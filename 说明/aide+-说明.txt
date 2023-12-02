@@ -1,0 +1,34 @@
+
+修复uidesigner不能使用的问题
+Lcom/aide/uidesigner/j;->aM()V
+iput-object v2, p0, Lcom/aide/uidesigner/j;->Hw:Ljava/util/Map;
+0x1e -> aM()V
+
+安装apk后显示  "启动中" 的时间 默认5s(1388)
+Lcom/aide/ui/MainActivity$n;->run()V
+Lcom/aide/ui/MainActivity;->we(Lcom/aide/ui/MainActivity;)Ljava/lang/Object;
+0x1388 -> 38e 
+
+//替换MainActivity会自定义Activity，需要继承MainActivity
+Lcom/aide/ui/MainActivity;->Mz(Landroid/content/Context;)Landroid/app/PendingIntent;
+Lcom/aide/ui/MainActivity;->OW(Landroid/content/Context;)Landroid/app/PendingIntent;
+Lcom/aide/ui/MainActivity;->aj(Landroid/content/Context;)Landroid/app/PendingIntent;
+Lcom/aide/ui/MainActivity;->fN(Landroid/content/Context;)V
+Lcom/aide/ui/MainActivity;->jO(Landroid/app/Activity;Landroid/content/IntentSender;)V
+Lcom/aide/ui/MainActivity;->lp(Landroid/content/Context;)Landroid/app/PendingIntent;
+Lcom/aide/ui/MainActivity;->sy(Landroid/content/Context;)Landroid/app/PendingIntent;
+(const-class.*)Lcom/aide/ui/MainActivity;
+$1Lio/github/zeroaicy/aide/activity/ZeroAicyMainActivity;
+Lcom/aide/ui/MainActivity; -> Lio/github/zeroaicy/aide/activity/ZeroAicyMainActivity;
+
+修复因更改包名导致的显示更新内容时的错误
+Lcom/aide/ui/marketing/WhatsNewDialog$PromotedAppListAdapter;
+
+为gradle项目增加Ndk构建
+Lcom/aide/ui/build/d$a;
+Lcom/aide/ui/build/d$a;->Hw(Ljava/util/List;Ljava/lang/String;)V
+invoke-static {p1, p2}, Lio/github/zeroaicy/aide/extend/DistributeEvents;->NDKEenhancement(Ljava/util/List;Ljava/lang/String;)V
+    new-instance v0, Ljava/lang/StringBuilder;
+
+
+
