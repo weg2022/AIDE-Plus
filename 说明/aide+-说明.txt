@@ -31,4 +31,12 @@ invoke-static {p1, p2}, Lio/github/zeroaicy/aide/extend/DistributeEvents;->NDKEe
     new-instance v0, Ljava/lang/StringBuilder;
 
 
-
+packagingservice包名下private方法改public
+invoke-direct(.*)(, Lcom/aide/ui/build/packagingservice/)
+invoke-virtual$1$2 
+修复上面导致构造器的指令错误
+invoke-virtual(.*)(, Lcom/aide/ui/build/packagingservice/.*;-><init>\()
+invoke-direct$1$2
+方法
+.method private 
+.method public 
