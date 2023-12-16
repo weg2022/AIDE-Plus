@@ -5,25 +5,33 @@ android {
     buildToolsVersion "21.1.0"
 
     defaultConfig {
-		
-		applicationId "com.aide.ui_clone1"
+		applicationId "io.github.zeroaicy.aide"
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
-        versionName "3.2.210316"
+        versionName "3.2.210316-1.0"
 		
     }
+	
     productFlavors {
+		
 		"AIDE+" {
 			applicationId "io.github.zeroaicy.aide"
 		}
-		clone4 {
-			applicationId "io.github.zeroaicy.aide_clone4"
+		"AIDE+4" {
+			applicationId "io.github.zeroaicy.aide4"
 		}
+		"AIDE+测试共存版" {
+			applicationId "com.ss.android.ugc.aweme"
+		}
+		
+	}
+	signingConfigs{
+		storeFile file("debug.keystore")
 	}
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled fals
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

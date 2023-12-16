@@ -19,12 +19,11 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	
 	static{
 		DebugUtil.debug();
-		//FindANR.startSendMsg();
 	}
 	
 	@Override
 	protected void attachBaseContext(Context base) {
-		DebugUtil.debug(base);
+		ZeroAicySetting.init(base);
 		super.attachBaseContext(base);
 	}
 	
@@ -33,15 +32,13 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	public void onCreate() {
 		super.onCreate();
 		CrashApphandler.getInstance().onCreated();
-		
 		//初始化ZeroAicy设置
-		ZeroAicySetting.init(this);
 		
 		Log.d(TAG, "onCreate: " + ContextUtil.getProcessName());
-		//反射全部
-		Log.d(TAG, "reflectAll: " + ReflectPie.reflectAll());
+		//解除反射
+		Log.d(TAG, "解除反射: " + ReflectPie.reflectAll());
 		
-		Log.d(TAG, "耗时: " + (System.currentTimeMillis() - now) + "ms");
+		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 		
 		
 	}

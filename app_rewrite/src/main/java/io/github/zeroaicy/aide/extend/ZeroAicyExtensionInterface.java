@@ -3,6 +3,7 @@ import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.ui.MainActivity;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 
 /**
@@ -45,4 +46,12 @@ public class ZeroAicyExtensionInterface {
 	public static boolean instalApp(final String apkFilePath) {
 		return DistributeEvents.instalApp(apkFilePath);
 	}
+	//在Java项目中解除android.jar限制
+	public static boolean isEnableAndroidApi() {
+		return ZeroAicySetting.isEnableAndroidApi();
+	}
+	public static boolean isEnableADRT(){
+		return ZeroAicySetting.enableADRT();
+	}
+	
 }

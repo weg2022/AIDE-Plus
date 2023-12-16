@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import com.aide.common.KeyStroke;
 import com.aide.ui.App;
-import com.aide.ui_zeroaicy.R;
+import com.aide.ui.rewrite.R;
 import java.io.File;
 
 public class FileBrowserMenuOpenAideTermux implements abcd.fg/*, abcd.bg*/ {

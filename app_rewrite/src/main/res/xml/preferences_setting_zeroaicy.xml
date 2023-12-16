@@ -81,8 +81,8 @@
                 android:defaultValue="false" />
             
             <SwitchPreference
-                android:title="Java项目API限制"
-                android:summary="Java项目被限制API使用，只能使用android.jar的java，javax等包" 
+                android:title="解除Java项目API限制"
+                android:summary="解除Java项目被限制API, 可以使用android.jar中类而不受限制" 
 				android:key="zero_aicy_remove_javaproject_api_limitations"
                 android:defaultValue="false" />
         </PreferenceCategory>
@@ -106,11 +106,6 @@
 	<PreferenceScreen
         android:title="实验室"
         android:summary="不稳定的功能">
-		<SwitchPreference
-            android:title="启用d8"
-            android:summary="完美解决脱糖问题，但主classes.dex未分配，安卓5以下可能闪退"
-            android:key="test_zero_aicy_enable_d8"
-            android:defaultValue="true" />
 		<SwitchPreference
             android:title="启用aapt2"
             android:key="test_zero_aicy_enable_aapt2"

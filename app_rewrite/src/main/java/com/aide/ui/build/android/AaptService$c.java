@@ -30,71 +30,82 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-@cy(clazz = -3735878600652745935L, container = -3735878600652745935L, user = true)
-class AaptService$c {
-    @fy
-    private static boolean U2;
-    @gy
-    private static boolean a8;
-    @dy(field = -931472428625758656L)
+public class AaptService$c {
     private final Map<String, List<String>> DW;
-    @dy(field = -807651976752566091L)
     private final Map<String, String> EQ;
-    @dy(field = 1477571350506341892L)
     private final String FH;
 	
 	//androidJar File
-    @dy(field = 1796935697685499452L)
     private final String Hw;
 	
-    @dy(field = -1781805026001355768L)
     private final List<String> J0;
 	
-    @dy(field = 2783851783522730945L)
     private final Map<String, String> J8;
 	
-    @dy(field = -2012524741532688485L)
-    @hy
     final AaptService Mr;
-    @dy(field = 5554888034137921137L)
+	
     private final Map<String, String> QX;
-    @dy(field = 3448893266485857335L)
     private final List<String> VH;
-    @dy(field = -310830878746832448L)
     private final Map<String, String> Ws;
-    @dy(field = 6523447474889641440L)
     private boolean XL;
-    @dy(field = -3009879880065517368L)
     private final String Zo;
-    @dy(field = -3340755254465993728L)
     private boolean aM;
 	
 	//resource.ap_
-    @dy(field = -1883344472830919455L)
     private final String gn;
-    @dy(field = 3597169466312011425L)
     private boolean j3;
 	
-    @dy(field = 626131991615361075L)
     private final String j6;
-    @dy(field = 380638801485211317L)
     private final Map<String, List<String>> tp;
-    @dy(field = -571588385592964453L)
     private final Map<String, String> u7;
-    @dy(field = 3461840776536088011L)
     private final String v5;
-    @dy(field = 5599908852964372480L)
     private final List<String> we;
 
-    static {
-        iy.Zo(AaptService$c.class);
-    }
+	//被Callable调用
+    public AaptService$b we() {
+        try {
 
-    @ey(method = -3030626465330413663L)
-    public AaptService$c(AaptService aaptService, String str, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
-        if (U2) {
-            iy.QX(-1829447386727788164L, (Object) null, new Object[]{aaptService, str, str2, str3, map, list, list2, androidJarFilePath, str5, list3, resourceAp_FilePath, genPackageNameMap, map3, map4, map5, map6, map7, new Boolean(z), new Boolean(z2), new Boolean(z3)});
+			if( ZeroAicySetting.isEnableAapt2()){
+				//aapt2实现
+				return Aapt2Task.proxyAapt(this);
+			}
+			
+            // aapt实现
+            AndroidProjectSupport.Qq(this.DW, this.v5);
+            AaptService$b EQ = EQ();
+            if (EQ.DW != null) {
+                return EQ;
+            }
+            for (String str : this.QX.keySet()) {
+                if (!new File(str).exists()) {
+                    new File(str).mkdirs();
+                }
+            }
+            j6();
+            File parentFile = new File(this.gn).getParentFile();
+            if (!parentFile.exists()) {
+                parentFile.mkdirs();
+            }
+            AaptService$b J0 = J0();
+            if (J0.DW != null) {
+                return J0;
+            }
+            Zo();
+            if (!this.XL) {
+                if (this.aM) {
+                    v5();
+                }
+                AaptService$b Ws = Ws();
+                return Ws.DW != null ? Ws : QX();
+            }
+            return new AaptService$b(false);
+        } catch (Throwable th) {
+            throw new Error(th);
         }
+    }
+	
+    public AaptService$c(AaptService aaptService, String str, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
+        
 		this.Mr = aaptService;
         this.j6 = str2;
         this.DW = map;
@@ -123,17 +134,12 @@ class AaptService$c {
         }
     }
 
-    @ey(method = 1224465869535983408L)
     public static String DW(AaptService$c aaptService$c) {
         return aaptService$c.j6;
     }
 
-    @ey(method = 1032727064344733680L)
     private AaptService$b EQ() {
         try {
-            if (U2) {
-                iy.gn(-562180946974429500L, this);
-            }
             if (this.we.size() > 0 || this.J0.size() > 0) {
                 String str = this.QX.get(this.Zo);
                 String str2 = this.Ws.get(str);
@@ -169,14 +175,10 @@ class AaptService$c {
             }
             return new AaptService$b(false);
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, -562180946974429500L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = -1180674979090545141L)
     public static Map FH(AaptService$c aaptService$c) {
         return aaptService$c.Ws;
     }
@@ -184,9 +186,6 @@ class AaptService$c {
     @ey(method = 2668790741732965889L)
     private void Hw(File file, String str, List<File> list) {
         try {
-            if (U2) {
-                iy.we(2660087692555738225L, this, file, str, list);
-            }
             File[] listFiles = file.listFiles();
             if (listFiles == null) {
                 return;
@@ -200,19 +199,12 @@ class AaptService$c {
                 }
             }
         } catch (Throwable th) {
-            if (a8) {
-                iy.U2(th, 2660087692555738225L, this, file, str, list);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = -3464081095762918397L)
     private AaptService$b J0() {
         try {
-            if (U2) {
-                iy.gn(545654521477259511L, this);
-            }
             for (Map.Entry<String, List<String>> entry : this.tp.entrySet()) {
                 if (!Thread.interrupted()) {
                     String key = entry.getKey();
@@ -236,9 +228,6 @@ class AaptService$c {
             }
             return new AaptService$b(false);
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 545654521477259511L, this);
-            }
             throw new Error(th);
         }
     }
@@ -246,16 +235,7 @@ class AaptService$c {
     @ey(method = -917848650515497287L)
     private AaptService$b J8(String str, List<String> list) {
         try {
-            if (U2) {
-                try {
-                    iy.EQ(-1076563014087588483L, this, str, list);
-                } catch (Throwable th) {
-                    if (a8) {
-                        iy.Mr(th, -1076563014087588483L, this, str, list);
-                    }
-                    throw new Error(th);
-                }
-            }
+            
             String str2 = this.QX.get(str);
             ArrayList<File> arrayList = new ArrayList<>();
             for (String str3 : list) {
@@ -310,12 +290,9 @@ class AaptService$c {
         }
     }
 
-    @ey(method = 3682399595367627425L)
     private AaptService$b QX() {
         try {
-            if (U2) {
-                iy.gn(2087452825608805401L, this);
-            }
+            
             if (!Thread.interrupted()) {
                 List<String> list = this.tp.get(this.Zo);
                 String str = this.QX.get(this.Zo);
@@ -381,19 +358,13 @@ class AaptService$c {
             }
             throw new InterruptedException();
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 2087452825608805401L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = 2580572055336340287L)
     private String VH(byte[] bArr, int i) {
         try {
-            if (U2) {
-                iy.EQ(5722637118515521607L, this, bArr, new Integer(i));
-            }
+            
 			String FH = StreamUtilities.FH(new InputStreamReader(new ByteArrayInputStream(bArr)));
 
             String trim = FH.trim();
@@ -407,19 +378,13 @@ class AaptService$c {
                 return trim;
             }
         } catch (Throwable th) {
-            if (a8) {
-                iy.Mr(th, 5722637118515521607L, this, bArr, new Integer(i));
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = 2636827223428796640L)
     private AaptService$b Ws() {
         try {
-            if (U2) {
-                iy.gn(4641341701031625616L, this);
-            }
+            
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
                 if (!Thread.interrupted()) {
                     String key = entry.getKey();
@@ -450,19 +415,12 @@ class AaptService$c {
             }
             return new AaptService$b(false);
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 4641341701031625616L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = 3024365811395366079L)
     private void Zo() {
         try {
-            if (U2) {
-                iy.gn(7026278626584899355L, this);
-            }
             for (Map.Entry<String, String> entry : this.EQ.entrySet()) {
                 String value = entry.getValue();
                 File file = new File(entry.getKey(), value.replace('.', File.separatorChar));
@@ -475,19 +433,12 @@ class AaptService$c {
                 }
             }
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 7026278626584899355L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = -3669174501772761539L)
     private String gn() {
         try {
-            if (U2) {
-                iy.gn(5107049041690597561L, this);
-            }
             HashSet<String> hashSet = new HashSet<>();
             for (Map.Entry<String, String> entry : this.EQ.entrySet()) {
                 String key = entry.getKey();
@@ -508,19 +459,12 @@ class AaptService$c {
             }
             return sb.toString();
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 5107049041690597561L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = -2620449744395147856L)
     private void j6() {
         try {
-            if (U2) {
-                iy.gn(-5562902152935276984L, this);
-            }
             if (!Thread.interrupted()) {
                 if (Build.VERSION.SDK_INT < 29 && !AaptService.VH()) {
                     File aaptFile = new File(this.FH);
@@ -536,19 +480,12 @@ class AaptService$c {
             }
             throw new InterruptedException();
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, -5562902152935276984L, this);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = 2250514188602812636L)
     private void tp(List<String> list) {
         try {
-            if (U2) {
-                iy.tp(1952183489897339520L, this, list);
-            }
             StringBuilder sb = new StringBuilder();
             sb.append("Running aapt ");
             for (int i = 1; i < list.size(); i++) {
@@ -561,19 +498,11 @@ class AaptService$c {
             }
             AppLog.DW(sb.toString());
         } catch (Throwable th) {
-            if (a8) {
-                iy.j3(th, 1952183489897339520L, this, list);
-            }
             throw new Error(th);
         }
     }
-
-    @ey(method = 191722989083538040L)
     private boolean u7(List<File> list, List<File> list2) {
         try {
-            if (U2) {
-                iy.EQ(-332527823694516160L, this, list, list2);
-            }
             if (list.isEmpty() || !list2.isEmpty()) {
                 long j = Long.MAX_VALUE;
                 for (File file : list2) {
@@ -587,19 +516,12 @@ class AaptService$c {
             }
             return false;
         } catch (Throwable th) {
-            if (a8) {
-                iy.Mr(th, -332527823694516160L, this, list, list2);
-            }
             throw new Error(th);
         }
     }
 
-    @ey(method = -2966187405524018889L)
     private void v5() {
         try {
-            if (U2) {
-                iy.gn(229105867974959927L, this);
-            }
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
                 if (!Thread.interrupted()) {
                     String value = entry.getValue();
@@ -612,55 +534,6 @@ class AaptService$c {
                 }
             }
         } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, 229105867974959927L, this);
-            }
-            throw new Error(th);
-        }
-    }
-	
-	//被Callable调用
-    @ey(method = 998598216370448001L)
-    public AaptService$b we() {
-        try {
-			if( ZeroAicySetting.isEnableAapt2()){
-				return (AaptService$b)Aapt2Task.proxyAapt(this);
-			}
-            if (U2) {
-                iy.gn(-1983879111166566075L, this);
-            }
-            AndroidProjectSupport.Qq(this.DW, this.v5);
-            AaptService$b EQ = EQ();
-            if (EQ.DW != null) {
-                return EQ;
-            }
-            for (String str : this.QX.keySet()) {
-                if (!new File(str).exists()) {
-                    new File(str).mkdirs();
-                }
-            }
-            j6();
-            File parentFile = new File(this.gn).getParentFile();
-            if (!parentFile.exists()) {
-                parentFile.mkdirs();
-            }
-            AaptService$b J0 = J0();
-            if (J0.DW != null) {
-                return J0;
-            }
-            Zo();
-            if (!this.XL) {
-                if (this.aM) {
-                    v5();
-                }
-                AaptService$b Ws = Ws();
-                return Ws.DW != null ? Ws : QX();
-            }
-            return new AaptService$b(false);
-        } catch (Throwable th) {
-            if (a8) {
-                iy.aM(th, -1983879111166566075L, this);
-            }
             throw new Error(th);
         }
     }

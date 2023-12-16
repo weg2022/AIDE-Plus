@@ -5,7 +5,7 @@ android {
     buildToolsVersion "21.1.0"
 
     defaultConfig {
-        applicationId "com.aide.ui_base"
+        applicationId "com.aide.ui.rewrite"
         minSdkVersion 14
         targetSdkVersion 28
         versionCode 2008210017
@@ -22,5 +22,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-	api project(':ClassReaderProvider')
+    compile files("provider/ClassReaderLibrary-1.5.1-beta.jar")
+	//compile files("provider/ClassReaderLibrary-1.4.9-beta_compileOnly.jar")
 }

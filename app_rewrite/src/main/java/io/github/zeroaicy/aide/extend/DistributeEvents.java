@@ -22,33 +22,6 @@ import java.io.InputStream;
 import java.util.List;
 
 public class DistributeEvents {
-
-	/*
-	 invoke-static {p1}, Lio/github/zeroaicy/aide/DistributeEvents;->instalApp(Ljava/lang/String;)Z
-	 move-result v0
-	 if-eqz v0, :cond_a
-	 return-void
-	 :cond_a
-	 */
-	//此函数返回值仅代表是否拦截AIDE默认安装流程
-
-	//
-	public static boolean instalApp(final String appPath) {
-		//使用自定义安装器安装 没有Shizuku权限时
-		if (ZeroAicySetting.isCustomInstaller() 
-			|| !ShizukuUtil.checkPermission()
-			|| !ZeroAicySetting.isShizukuInstaller()
-			) {
-			return HandleEventInstalApp(appPath);
-		}
-		//使用
-		if (ZeroAicySetting.isShizukuInstaller()) {
-			App.aj(new InstalApkFromShizuku(appPath));
-			//拦截默认安装流程
-			return true;
-		}
-		return false;
-	}
 	/*
 	没替换AIDE实现
 	*/
@@ -123,9 +96,31 @@ public class DistributeEvents {
 		}
 	}
 	
-	
+	//此函数返回值仅代表是否拦截AIDE默认安装流程
+
+	//
+	public static boolean instalApp(final String appPath) {
+		//使用自定义安装器安装 没有Shizuku权限时
+		if (ZeroAicySetting.isCustomInstaller() 
+			|| !ShizukuUtil.checkPermission()
+			|| !ZeroAicySetting.isShizukuInstaller() ) {
+
+			return HandleEventInstalApp(appPath);
+		}
+		//使用
+		if (ZeroAicySetting.isShizukuInstaller()) {
+			App.aj(new InstalApkFromShizuku(appPath));
+
+			//拦截默认安装流程
+			return true;
+		}
+
+		return false;
+	}
 	//安装App
 	public static boolean HandleEventInstalApp(String appPath) {
+
+		Log.d("HandleEventInstalApp", appPath);
 		Uri uri;
         try {
             if (!App.Mz() 
@@ -149,7 +144,6 @@ public class DistributeEvents {
                 intent.setDataAndType(uri, "application/vnd.android.package-archive");
 
                 Context context = App.VH();
-
 				//默认系统安装器
 				String apkInstall = ZeroAicySetting.getApkInstallPackageName();
 
@@ -175,12 +169,6 @@ public class DistributeEvents {
         }
 		return false;
 	}
-	
-	
-	public static boolean isEnableAndroidApi(){
-		return ZeroAicySetting.isEnableAndroidApi();
-	}
-	
 	public static boolean cmakeBuild(){
 		return false;
 	}
@@ -192,12 +180,4 @@ public class DistributeEvents {
 		
 		return CmakeBuild.isCmakeProject(projectPath);
 	}*/
-	
-	
-	
-	// 底包调用的方法都在这个类
-	public static boolean enableADRT(){
-		
-		return ZeroAicySetting.enableADRT();
-	}
 }

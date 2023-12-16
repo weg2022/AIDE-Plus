@@ -15,13 +15,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import com.aide.ui.preferences.PreferencesActivity;
-import com.aide.ui_zeroaicy.R;
+import com.aide.ui.rewrite.R;
 import java.util.List;
 
 public class ZeroAicyPreferencesActivity extends PreferencesActivity implements ActionBar.TabListener {
 
     private final String TAG = "ZeroAicyPreferencesActivity";
-	
 	
 	private final String TAG_TAB_SETTING = "tag_tab_settings";
 
@@ -61,7 +60,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
         from_main = getIntent().getBooleanExtra("from_main", false);
         if (from_main) {
 
-            getActionBar().setTitle(com.aide.ui_zeroaicy.R.string.app_name);
+            getActionBar().setTitle(com.aide.ui.rewrite.R.string.app_name);
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
             fm = getFragmentManager();

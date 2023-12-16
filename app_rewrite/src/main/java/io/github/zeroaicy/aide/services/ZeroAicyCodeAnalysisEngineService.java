@@ -2,18 +2,13 @@ package io.github.zeroaicy.aide.services;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 import android.widget.Toast;
 import com.aide.engine.service.CodeAnalysisEngineService;
-import com.aide.ui_zeroaicy.R;
+import com.aide.ui.rewrite.R;
 import io.github.zeroaicy.util.Log;
-import android.content.IntentFilter;
-import android.os.Bundle;
-import moe.shizuku.api.BinderContainer;
 
 public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService{
 
@@ -30,24 +25,6 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 		super.onCreate();
 		Log.d("ZeroAicyCodeAnalysisEngineService", "onCreate");
 		//setNotificationAndForeground();
-		
-		
-		/*
-		 Bundle bundle = new Bundle();
-		 bundle.putParcelable("io.github.zeroaicy.aide.shizuku.ZeroAicyServer", new BinderContainer(new 
-		 Intent intent = new Intent("io.github.zeroaicy.aide.shizuku.ZeroAicyServer");
-		 intent.putExtras(bundle);
-		 sendBroadcast(intent);
-
-		 IntentFilter intentFilter = new IntentFilter("io.github.zeroaicy.aide.shizuku.ZeroAicyServer");
-		 registerReceiver(new BroadcastReceiver(){
-
-		 @Override
-		 public void onReceive(Context context, Intent intent){
-
-		 }
-		 }, intentFilter))
-		 */
 	}
 	
 	

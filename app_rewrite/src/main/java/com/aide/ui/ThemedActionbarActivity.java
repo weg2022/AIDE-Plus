@@ -1,10 +1,10 @@
 package com.aide.ui;
 
 import android.app.Activity;
-import android.os.Bundle;
-import com.aide.ui_zeroaicy.R;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import android.content.res.Configuration;
+import android.os.Bundle;
+import com.aide.ui.rewrite.R;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 public class ThemedActionbarActivity extends Activity {
 

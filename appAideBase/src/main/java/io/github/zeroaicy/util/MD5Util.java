@@ -30,7 +30,7 @@ public class MD5Util{
     public static String byteArrayToHex(byte[] byteArray){
 
 		//首先初始化一个字符数组，用来存放每个16进制字符
-        char[] hexDigits = {'0','1','2','3','4','5','6','7','8','9', 'A','B','C','D','E','F' };
+        char[] hexDigits = {'0','1','2','3','4','5','6','7','8','9', 'a','b','c','d','e','f' };
 
 		//new一个字符数组，这个就是用来组成结果字符串的（解释一下：一个byte是八位二进制，也就是2位十六进制字符（2的8次方等于16的2次方））
         char[] resultCharArray =new char[byteArray.length * 2];

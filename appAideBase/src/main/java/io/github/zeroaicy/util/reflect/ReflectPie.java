@@ -61,7 +61,6 @@ public class ReflectPie {
 			return IsReflectPie;
 		}
 		initialized = true;
-		Log.d(TAG, "reflectAll首次调用");
 		return IsReflectPie = HiddenApiBypass.setHiddenApiExemptions("L");
 	}
 

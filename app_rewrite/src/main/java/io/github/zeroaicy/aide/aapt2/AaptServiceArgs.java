@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.aide.ui.build.android.AaptService$b;
 
 public class AaptServiceArgs {
 
@@ -32,8 +33,6 @@ public class AaptServiceArgs {
 	private ReflectPie mAaptS$cRef;
 
 	public final String buildBin;
-
-	public static final String D8OutDir = "/classesd8";
 
 	private final File compileDirFile;
 	//所有编译后的输出文件 测试顺序
@@ -76,9 +75,12 @@ public class AaptServiceArgs {
 		try {
 			BuildGradle buildGradle = new BuildGradle();
 			String buildGradlePath = currentAppHome + "/build.gradle";
+			
 			if (fileExists(buildGradlePath)) {
 				isGradleProject = true;
+				
 				buildGradle = buildGradle.j6((buildGradlePath));
+				
 				this.defaultMinSdk = Integer.parseInt(buildGradle.QX(null));
 				this.defaultTargetSdk = Integer.parseInt(buildGradle.a8(null));				
 			}
@@ -101,7 +103,7 @@ public class AaptServiceArgs {
 		// 构建缓存路径
 		this.buildBin = new File(this.resourcesApPath).getParent();
 		// 日志输出
-		this.log = new PrintStream(Log.AsyncOutputStreamHold.createOutStream(new File(buildBin, D8OutDir + "/aapt_log.log")));
+		this.log = new PrintStream(Log.AsyncOutputStreamHold.createOutStream(new File(buildBin, "intermediates/aapt_log.log")));
 		
 		//gen查找packageName
 		this.genPackageNameMap = mAaptS$cRef.get("EQ");
@@ -186,7 +188,8 @@ public class AaptServiceArgs {
 		this.assetsList = mAaptS$cRef.get("VH");
 
 		//aapt2缓存目录
-		this.compileDirFile = new File(this.buildBin, D8OutDir + "/resource");
+		this.compileDirFile = new File(this.buildBin, "intermediates/res");
+		this.compileDirFile.mkdirs();
 		
 		// 子项目的gen目录
 		this.subProjectGens = mAaptS$cRef.get("we");
@@ -196,9 +199,8 @@ public class AaptServiceArgs {
 		this.injectedAManifestMap = mAaptS$cRef.get("QX");
 
 		this.aManifestMap = mAaptS$cRef.get("Ws");
-		
-		
 	}
+	
 	//根据已有推出，res查找gen目录
 	public final Map<String, String> resDirGenDir;
 	//转化为包名依赖
@@ -245,7 +247,7 @@ public class AaptServiceArgs {
 	}
 
 	//合并AndroidManifestxml
-	public Object mergedAndroidManifestxml() {
+	public AaptService$b mergedAndroidManifestxml() {
 		return this.mAaptS$cRef.call("EQ").get();
 	}
 
