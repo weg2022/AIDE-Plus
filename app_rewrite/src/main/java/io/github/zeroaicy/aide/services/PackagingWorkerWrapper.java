@@ -206,13 +206,6 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			return this.androidFxtractNativeLibs;
 		}
 		
-		/**
-		 * 是否是在自定义仓库缓存文件夹中
-		 */
-		private boolean isUserM2repositories(String filePath) {
-			String userM2repositories = ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
-			return !TextUtils.isEmpty(userM2repositories) && filePath.startsWith(userM2repositories);
-		}
 		
 		/**********共用层，共用一些相同的代码逻辑***********************************/
 		
@@ -279,29 +272,32 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		}
 
 		/**
-		 * 获得jar的dex缓存文件夹路径
-		 * 如果在maven目录也返回jar同级目录/bin/jardex目录
+		 * 返回 getIntermediatesChildDirPath("jardex")目录下路径的md5码
+		 * 如果是maven仓库则去掉仓库路径在进行计算
 		 */
 		public String getJarDexCacheDirPath(String dependencyLibPath) {
-			File dependencyLibFile = new File(dependencyLibPath);
-			File parentFile = dependencyLibFile.getParentFile();
-			String parentFilePath = parentFile.getPath();
-
-			// aar库 自定义maven仓库 默认仓库
-			if (isUserM2repositories(dependencyLibPath)) {
+			String userM2repositories = ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
+			String defaultM2repositoriesDirPath = getNoBackupFilesDirPath() + "/.aide/maven";
+			
+			String key;
+			/**
+			 * 是否是在自定义仓库缓存文件夹中
+			 */
+			if (!TextUtils.isEmpty(userM2repositories) 
+				&& dependencyLibPath.startsWith(userM2repositories)) {
 				//指定了minsdk，会污染缓存，所以只能放项目目录
-				String userM2repositories = ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
-				
-				String key = dependencyLibPath.substring(userM2repositories.length());
-				return getIntermediatesChildDirPath("jardex/" + MD5Util.stringMD5(key) );
+				key = dependencyLibPath.substring(userM2repositories.length());
 			}
 			/**
 			 * 默认maven仓库缓存地址
 			 */
-			if (dependencyLibPath.startsWith(getNoBackupFilesDirPath() + "/.aide/maven")) {
-				return parentFilePath + "/bin/jardex";
+			else if ( dependencyLibPath.startsWith(defaultM2repositoriesDirPath) ) {
+				key = dependencyLibPath.substring(defaultM2repositoriesDirPath.length());
+			}else{
+				key = dependencyLibPath;	
 			}
-			return getDefaultJarDexDirPath();
+			
+			return getIntermediatesChildDirPath("jardex/" + MD5Util.stringMD5(key));
 		}
 		/**
 		 * 全部依赖，不只是jar
@@ -348,7 +344,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			//super.a8(progressTitle, progress);
 		}
 	}
-	/*
+	
+	
+	/**
+	* -dontwarn *
 	private void 混淆(boolean 混淆, List<String> classesDexZipList){
 		if ( 混淆 ){
 			String mixUpDexZipFilePath = getMixUpDexZipFilePath();

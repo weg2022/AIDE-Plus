@@ -53,5 +53,10 @@ public class ZeroAicyExtensionInterface {
 	public static boolean isEnableADRT(){
 		return ZeroAicySetting.enableADRT();
 	}
-	
+	/**
+	 * 
+	 */
+	 public static String getUserM2Repositories(){
+		 return ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
+	 }
 }

@@ -7,7 +7,7 @@ import com.aide.ui.App;
 import com.aide.ui.rewrite.R;
 import java.io.File;
 
-public class FileBrowserMenuOpenAideTermux implements abcd.fg/*, abcd.bg*/ {
+public class OpenAideTermux implements abcd.fg{
 	
 	//@Override
 	public String getName() {
@@ -16,7 +16,7 @@ public class FileBrowserMenuOpenAideTermux implements abcd.fg/*, abcd.bg*/ {
 
 	//@Override
 	public KeyStroke v5() {
-		//快捷方式，本来可以不支持，但是
+		//不支持快捷方式，但是
 		return new KeyStroke('\256', true, true, true);
 	}
 	
@@ -25,8 +25,8 @@ public class FileBrowserMenuOpenAideTermux implements abcd.fg/*, abcd.bg*/ {
 	//工作目录
 	private static final String work_dir_extra = "work_dir_extra";
 	
-	private static final FileBrowserMenuOpenAideTermux singleton = new FileBrowserMenuOpenAideTermux();
-	public static FileBrowserMenuOpenAideTermux getSingleton() {
+	private static final OpenAideTermux singleton = new OpenAideTermux();
+	public static OpenAideTermux getSingleton() {
 		return singleton;
 	}
 

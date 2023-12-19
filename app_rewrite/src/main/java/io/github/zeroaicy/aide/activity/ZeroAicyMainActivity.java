@@ -19,7 +19,7 @@ import com.aide.ui.App;
 import com.aide.ui.MainActivity;
 import com.aide.ui.rewrite.R;
 import com.hjq.permissions.XXPermissions;
-import io.github.zeroaicy.aide.extend.FileBrowserMenuOpenAideTermux;
+import io.github.zeroaicy.aide.extend.OpenAideTermux;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
@@ -43,20 +43,9 @@ import com.aide.ui.util.FileSpan;
 public class ZeroAicyMainActivity extends MainActivity {
 
 
-	private static boolean extendedFunctionalityAdded = false;
-
-	private void initExtendedFunctionality(){
-		if ( extendedFunctionalityAdded ){
-			return;
-		}
-		extendedFunctionalityAdded = true;
-		//在文件浏览器添加[在此目录启动终端]
-		com.aide.ui.AppCommands.Hw().add(FileBrowserMenuOpenAideTermux.getSingleton());
-	}
 
 	@Override
 	public void onCreate(Bundle bundle){
-		initExtendedFunctionality();
 		super.onCreate(bundle);
 
 		//初始化Shizuku库

@@ -30,6 +30,7 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import sun1.security.pkcs.PKCS8Key;
+import java.util.zip.ZipFile;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -78,7 +79,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 //minsdk是否大于等于21
 		 Log.d("QX", QX);
 		 */
-
 		/**
 		 * d8 class jar 并返回classesDexZip[d8输出zip]
 		 */
@@ -136,17 +136,15 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				checkInterrupted();
 
 				File jarFile = new File(dependencyLibPath);
-				String jarDexCachePath = getJarDexCachePath(dependencyLibPath);
-				File dexFile = new File(jarDexCachePath);
-				if ( isBuildRefresh() 
-					|| existsCacheFile
-					|| !dexFile.exists()
-					|| jarFile.lastModified() > dexFile.lastModified() ){
-					dependencyLibDexs.add(dexingDependencyLibFile(dependencyLibPath));
+				String dexCachePath = getJarDexCachePath(dependencyLibPath);
+				File dexCacheFile = new File(dexCachePath);
+
+				//根据时间戳判断是否需要dexing
+				if ( isBuildRefresh() || existsCacheFile
+					|| !dexCacheFile.exists() || jarFile.lastModified() > dexCacheFile.lastModified() ){
+					dexingDependencyLibFile(dependencyLibPath);
 				}
-				else{
-					dependencyLibDexs.add(jarDexCachePath);
-				}
+				dependencyLibDexs.add(dexCachePath);
 			}
 			//合并
 			//此缓存察觉不到依赖数量变化
@@ -189,15 +187,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			String dexCachePath = getJarDexCachePath(dependencyLibPath);
 			File dexCacheFile = new File(dexCachePath);
 
-			Log.println(dependencyLibPath + " -> " + dexCachePath);
-			Log.println();
 
-			File parentFile = dexCacheFile.getParentFile();
-			if ( !parentFile.exists() ){
-				parentFile.mkdirs();
-			}
-
-			File dexZipTempFile = File.createTempFile(dexCacheFile.getName(), ".dex.zip", parentFile);
+			File dexZipTempFile = File.createTempFile(dexCacheFile.getName(), ".dex.zip", dexCacheFile.getParentFile());
 			//更新时间
 			dexZipTempFile.setLastModified(System.currentTimeMillis());
 
@@ -207,9 +198,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, getValidDependencyLibs(), dexZipTempFile.getAbsolutePath());
 			//添加需要编译的jar
 			argsList.add(dependencyLibPath);
+
+			Log.println(dependencyLibPath + " -> " + dexCachePath);
+
 			try{
 				//dexing jar
 				com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
+
 				//临时文件移动到实际输出文件
 				dexZipTempFile.renameTo(dexCacheFile);
 				//删除
@@ -436,6 +431,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					//不是依赖库跳过
 					continue;
 				}
+				try{ 
+					new ZipFile(libFile);
+				}
+				catch (IOException e){
+					throw new Error(dependencyLib + "不是一个zip文件");
+				}
 				validDependencyLibs.add(dependencyLib);
 			}
 			return validDependencyLibs;
@@ -476,11 +477,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile();
 			//优化后，未签名
 			File unSignedApkFile = getUnSignedApkFile();
-
-			//删除输出
-			if ( unSignedApkFile.exists() ){
-				unSignedApkFile.delete();
-			}
 
 			// zipalign命令路径
 			String zipalignPath = getZipalignPath();
@@ -598,95 +594,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			//删除输入文件
 			unsignedApk.delete();
 		}
-		/**
-		 * 打包安卓即apk
-		 */
-		@Override
-		public void packagingAndroidProject(List<String> dexZipPathList) throws Throwable{
-			showProgress("构建APK", 80);
-			//未zip优化，未签名
-			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile();
-			if ( unZipAlignedUnSignedApkFile.exists() ){
-				unZipAlignedUnSignedApkFile.delete();
-			}
-			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(unZipAlignedUnSignedApkFile));
-			//resources_ap_file
-			String aAptResourceFilePath = getAAptResourceFilePath();
-			logDebug("Adding aapt generated resources from " + aAptResourceFilePath);
-			//添加并跟随resources.ap_ 文件
-			packagingZipFile(aAptResourceFilePath, zipResourceZipEntryTransformer, packagingZipOutput, true);
 
-			// 从文件夹添加原生库文件，
-			ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
-			//从原生库目录添加so
-			for ( String nativeLibDirPath : this.getNativeLibDirs() ){
-				File nativeLibDirFile = new File(nativeLibDirPath);
-				if ( nativeLibDirFile.exists() ){
-					logDebug("从原生库添加" + nativeLibDirPath);
-					packagingDirFile(nativeLibDirPath, nativeLibDirFile, nativeLibZipEntryTransformer, packagingZipOutput);
-				}
-			}
-			// 添加dex
-			addResource(dexZipPathList, packagingZipOutput);
-
-			//打包完成
-			packagingZipOutput.close();
-			zipalignApk();
-		}
-
-		private void addResource(List<String> dexZipPathList, PackagingStream packagingZipOutput) throws IOException{
-			for ( String dexZipPath : dexZipPathList ){
-				logDebug("添加classes.dex: " + dexZipPath);
-				packagingZipFile(dexZipPath, dexZipEntryTransformer, packagingZipOutput, false);
-			}
-
-			//从源码目录添加
-			for ( String sourceDir : getSourceDirs() ){
-				File sourceDirFile = new File(sourceDir);
-				if ( !sourceDirFile.exists() ){
-					continue;
-				}
-				logDebug("从源码目录添加资源" + sourceDir);
-				packagingDirFile(sourceDir, new File(sourceDir), zipResourceZipEntryTransformer, packagingZipOutput);
-			}
-			String[] allDependencyLibs = getAllDependencyLibs();
-			if ( allDependencyLibs != null ){
-				for ( String dependencyLibPath : allDependencyLibs ){
-					String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
-					if ( isCompileOnly(dependencyLibLowerCase) ){
-						//仅编译文件不打包
-						continue;
-					}
-					if ( isRuntimeOnly(dependencyLibLowerCase) ){
-						logDebug("从仅打包依赖文件添加资源及classes.dex " + dependencyLibPath);
-						this.packagingZipFile(dependencyLibPath, dexZipEntryTransformer, packagingZipOutput, false);
-						continue;
-					}
-
-					logDebug("从JAR文件添加资源 " + dependencyLibPath);
-					this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
-
-					//从源码路径添加资源，这会导致构建速度变慢，且原版不支持
-				}
-			}
-		}
-
-		private File getUnZipAlignedUnSignedApkFile(){
-			File unZipAlignedUnSignedApkFile = new File(getOutFilePath() + "-unzipaligned-unsigned");
-			File unZipAlignedUnSignedApkParentFile = unZipAlignedUnSignedApkFile.getParentFile();
-			if ( !unZipAlignedUnSignedApkParentFile.exists() ){
-				unZipAlignedUnSignedApkParentFile.mkdirs();
-			}
-			return unZipAlignedUnSignedApkFile;
-		}
-		private File getUnSignedApkFile(){
-			File unZipAlignedUnSignedApkFile = new File(getOutFilePath() + "-unsigned");
-			File unZipAlignedUnSignedApkParentFile = unZipAlignedUnSignedApkFile.getParentFile();
-			if ( !unZipAlignedUnSignedApkParentFile.exists() ){
-				unZipAlignedUnSignedApkParentFile.mkdirs();
-			}
-			return unZipAlignedUnSignedApkFile;
-		}
 
 		/**
 		 * 打包Java项目即zip
@@ -700,36 +608,137 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			if ( !outDirFile.exists() ){
 				outDirFile.mkdirs();
 			}
-
+			//构建输出文件
 			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(outFile));
-			for ( int dexCount = 0; dexCount < dexZipPathList.size(); dexCount++ ){
-				String dexZipPath = dexZipPathList.get(dexCount);
+			//打包dex
+			packagingDexs(dexZipPathList, packagingZipOutput);
+			packagingSourceDirsResource(packagingZipOutput);
+			//打包依赖库资源
+			packagingJarResources(packagingZipOutput);
+			packagingZipOutput.close();
+		}
+
+		private void packagingDexs(List<String> dexZipPathList, PackagingStream packagingZipOutput) throws IOException{
+			for ( String dexZipPath : dexZipPathList ){
 				logDebug("Adding classes.dex from " + dexZipPath);
 				packagingZipFile(dexZipPath, dexZipEntryTransformer, packagingZipOutput, false);
 			}
+		}
+		/**
+		 * 打包安卓即apk
+		 */
+		@Override
+		public void packagingAndroidProject(List<String> dexZipPathList) throws Throwable{
 
-			//所有依赖库
-			String[] allDependencyLibs = getAllDependencyLibs();
-			if ( allDependencyLibs != null ){
-				for ( String dependencyLibPath : allDependencyLibs ){
-					String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
-					if ( isCompileOnly(dependencyLibLowerCase) ){
-						//仅编译文件不打包
-						continue;
-					}
-					if ( isRuntimeOnly(dependencyLibLowerCase) ){
-						logDebug("从仅打包依赖文件添加资源 " + dependencyLibPath);
-						this.packagingZipFile(dependencyLibPath, dexZipEntryTransformer, packagingZipOutput, false);
-						continue;
-					}
-					logDebug("从JAR文件添加资源 " + dependencyLibPath);
-					this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
-					//从源码路径添加资源，这会导致构建速度变慢，且原版不支持
-					//FH为null
+			showProgress("构建APK", 80);
+			//未zip优化，未签名
+			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile();
+
+			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(unZipAlignedUnSignedApkFile));
+			//resources_ap_file
+			String aAptResourceFilePath = getAAptResourceFilePath();
+			logDebug("Adding aapt generated resources from " + aAptResourceFilePath);
+			//打包resources.ap_ 文件
+			packagingZipFile(aAptResourceFilePath, zipResourceZipEntryTransformer, packagingZipOutput, true);
+
+			// 从文件夹添加原生库文件，
+			ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
+			//从原生库目录添加so
+			for ( String nativeLibDirPath : this.getNativeLibDirs() ){
+				File nativeLibDirFile = new File(nativeLibDirPath);
+				if ( nativeLibDirFile.exists() ){
+					logDebug("从原生库添加" + nativeLibDirPath);
+					packagingDirFile(nativeLibDirPath, nativeLibDirFile, nativeLibZipEntryTransformer, packagingZipOutput);
 				}
 			}
+			//打包dex
+			packagingDexs(dexZipPathList, packagingZipOutput);
+			//打包源码目录下的资源
+			packagingSourceDirsResource(packagingZipOutput);			
+			//打包jar资源，优先第一个
+			packagingJarResources(packagingZipOutput);
+			//打包完成
 			packagingZipOutput.close();
+
+			//优化apk
+			zipalignApk();
 		}
+
+		private void packagingSourceDirsResource(PackagingStream packagingZipOutput) throws IOException{
+
+			//从源码目录添加
+			String[] sourceDirs = getSourceDirs();
+			if ( sourceDirs == null ){
+				return;
+			}
+			for ( String sourceDir : sourceDirs ){
+				File sourceDirFile = new File(sourceDir);
+				if ( !sourceDirFile.exists() ){
+					continue;
+				}
+				logDebug("从源码目录添加资源" + sourceDir);
+				packagingDirFile(sourceDir, new File(sourceDir), zipResourceZipEntryTransformer, packagingZipOutput);
+			}
+		}
+
+		private void packagingJarResources(PackagingStream packagingZipOutput) throws IOException{
+			String[] dependencyLibs = getAllDependencyLibs();
+			if ( dependencyLibs == null ){
+				return;
+			}
+			for ( String dependencyLibPath : dependencyLibs ){
+				String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
+				if ( isCompileOnly(dependencyLibLowerCase) ){
+					//仅编译文件不打包
+					continue;
+				}
+				if ( isRuntimeOnly(dependencyLibLowerCase) ){
+					logDebug("从仅打包依赖文件添加资源及classes.dex " + dependencyLibPath);
+					this.packagingZipFile(dependencyLibPath, dexZipEntryTransformer, packagingZipOutput, false);
+					continue;
+				}
+
+				logDebug("从JAR文件添加资源 " + dependencyLibPath);
+				this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
+			}
+
+		}
+
+		/**
+		 * 返回未优化,未签名时的apk输出文件，并清除已有缓存
+		 */
+		private File getUnZipAlignedUnSignedApkFile(){
+			File unZipAlignedUnSignedApkFile = new File(getOutFilePath() + "-unzipaligned-unsigned");
+			if ( unZipAlignedUnSignedApkFile.exists() ){
+				unZipAlignedUnSignedApkFile.delete();
+				//直接返回，文件存在所以父目录也存在
+				return unZipAlignedUnSignedApkFile;
+			}
+
+			File parentFile = unZipAlignedUnSignedApkFile.getParentFile();
+			if ( !parentFile.exists() ){
+				parentFile.mkdirs();
+			}
+			return unZipAlignedUnSignedApkFile;
+		}
+		/**
+		 * 返回未未签名apk的文件，并清除已有缓存
+		 */
+		private File getUnSignedApkFile(){
+			File unSignedApkFile = new File(getOutFilePath() + "-unsigned");
+			File parentFile = unSignedApkFile.getParentFile();
+			//删除输出
+			if ( unSignedApkFile.exists() ){
+				unSignedApkFile.delete();
+				return unSignedApkFile;
+			}
+
+			if ( !parentFile.exists() ){
+				parentFile.mkdirs();
+			}
+			return unSignedApkFile;
+		}
+
 
 
 		public void packagingDirFile(String relativeRootDirFilePath, File file, ZipEntryTransformer transformer, PackagingStream packagingZipOutput) throws FileNotFoundException, IOException{
@@ -797,28 +806,22 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return filePath.substring(index);
 		}
 
-		private void streamTransfer(InputStream bufferedInputStream, OutputStream packagingZipOutput) throws IOException{
-			byte[] data = new byte[4096];
-			int read;
-			while ( (read = bufferedInputStream.read(data)) > 0 ){
-				packagingZipOutput.write(data, 0, read);
-			}
-		}
+
 
 		/**
 		 * 不能添加class文件
 		 * 但是 
 		 */
-		private void packagingZipFile(String zipFilePath, ZipEntryTransformer transformer, PackagingStream packagingZipOutput, boolean followOriginalZipEntryMethod) throws IOException{
+		private void packagingZipFile(String zipFilePath, ZipEntryTransformer transformer, PackagingStream packagingZipOutput, boolean followZipEntryMethod) throws IOException{
 			if ( !new File(zipFilePath).exists() ){
                 AppLog.gn("Zip file not found: " + zipFilePath);
                 return;
             }
-			ZipInputStream dexZipFileInput = new ZipInputStream(new FileInputStream(zipFilePath));
+			ZipInputStream zipFileInput = null;
 			try{
+				zipFileInput = new ZipInputStream(new FileInputStream(zipFilePath));
 				ZipEntry originalZipEntry;
-
-				while ( (originalZipEntry = dexZipFileInput.getNextEntry()) != null ){
+				while ( (originalZipEntry = zipFileInput.getNextEntry()) != null ){
 					ZipEntry newZipEntry;
 					if ( transformer != null ){
 						newZipEntry = transformer.transformer(originalZipEntry, packagingZipOutput);
@@ -834,7 +837,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					if ( newZipEntry == originalZipEntry ){
 						newZipEntry = new ZipEntry(originalZipEntry.getName());
 					}
-					if ( followOriginalZipEntryMethod && originalZipEntry.getMethod() != -1 ){
+
+					if ( followZipEntryMethod 
+						&& originalZipEntry.getMethod() != -1 ){
 						if ( originalZipEntry.getMethod() == ZipEntry.STORED ){
 							newZipEntry.setCrc(originalZipEntry.getCrc());
 							newZipEntry.setSize(originalZipEntry.getSize());
@@ -843,16 +848,23 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					}
 
 					packagingZipOutput.putNextEntry(newZipEntry);
-					streamTransfer(dexZipFileInput, packagingZipOutput);
+					streamTransfer(zipFileInput, packagingZipOutput);
 					//Entry写入完成
 					packagingZipOutput.closeEntry();
 				}
 			}
 			finally{
-				dexZipFileInput.close();
+				if ( zipFileInput != null ) zipFileInput.close();
 			}
 		}
 
+		private void streamTransfer(InputStream bufferedInputStream, OutputStream packagingZipOutput) throws IOException{
+			byte[] data = new byte[4096];
+			int read;
+			while ( (read = bufferedInputStream.read(data)) > 0 ){
+				packagingZipOutput.write(data, 0, read);
+			}
+		}
 		private void logDebug(String msg){
 			Log.i(TAG, msg);
 		}

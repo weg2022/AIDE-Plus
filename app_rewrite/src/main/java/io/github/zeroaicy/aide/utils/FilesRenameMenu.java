@@ -15,13 +15,13 @@ public class FilesRenameMenu extends zb {
 		public FilesRenameMenu() {}
 
 		public boolean DW(boolean z) {
-			String FH = App.Ws().FH();
+			String path = App.Ws().FH();
 			
-			if (FH != null) {
-				if( new File(FH).exists()){
+			if (path != null) {
+				if( new File(path).exists()){
 					return true;
 				}
-				if (!FileSystem.sh(FH)) {
+				if (!FileSystem.sh(path)) {
 					return true;
 				}
 			}
