@@ -485,11 +485,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 */
 		private void zipalignApk() throws Exception, Throwable{
 			showProgress("ZeroAicy Zipalign APK ", 85);
-
 			//优化前，未签名
-			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile();
+			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile(false);
 			//优化后，未签名
-			File unSignedApkFile = getUnSignedApkFile();
+			File unSignedApkFile = getUnSignedApkFile(true);
 
 			// zipalign命令路径
 			String zipalignPath = getZipalignPath();
@@ -503,6 +502,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			args.add(unZipAlignedUnSignedApkFile.getAbsolutePath());
 			//输出
 			args.add(unSignedApkFile.getAbsolutePath());
+			
 			abcd.wf j62 = abcd.xf.j6(args, null, null, true, null, null);
 			if ( j62.DW() != 0 ){
 				throw new Exception(" zipalign Error: " + new String(j62.j6()));
@@ -645,7 +645,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			showProgress("构建APK", 80);
 			//未zip优化，未签名
-			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile();
+			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile(true);
 
 			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(unZipAlignedUnSignedApkFile));
 			//resources_ap_file
@@ -721,9 +721,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 返回未优化,未签名时的apk输出文件，并清除已有缓存
 		 */
-		private File getUnZipAlignedUnSignedApkFile(){
+		private File getUnZipAlignedUnSignedApkFile(boolean delete){
 			File unZipAlignedUnSignedApkFile = new File(getOutFilePath() + "-unzipaligned-unsigned");
-			if ( unZipAlignedUnSignedApkFile.exists() ){
+			if (delete && unZipAlignedUnSignedApkFile.exists() ){
 				unZipAlignedUnSignedApkFile.delete();
 				//直接返回，文件存在所以父目录也存在
 				return unZipAlignedUnSignedApkFile;
@@ -738,11 +738,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 返回未未签名apk的文件，并清除已有缓存
 		 */
-		private File getUnSignedApkFile(){
+		private File getUnSignedApkFile(boolean delete){
 			File unSignedApkFile = new File(getOutFilePath() + "-unsigned");
 			File parentFile = unSignedApkFile.getParentFile();
 			//删除输出
-			if ( unSignedApkFile.exists() ){
+			if (delete && unSignedApkFile.exists() ){
 				unSignedApkFile.delete();
 				return unSignedApkFile;
 			}
@@ -882,9 +882,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		private void logDebug(String msg){
 			Log.i(TAG, msg);
 		}
+		
 		private long nowTime(){
 			return System.currentTimeMillis();
 		}
+		
 	}
 	
 	public static String getFileName(String path){

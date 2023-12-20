@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipException;
+import io.github.zeroaicy.util.Log;
+import java.util.Collections;
 
 
 /**
@@ -40,11 +43,13 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 	}
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName){
+		
+		ZipFile zipFile = null;
 		try{
 			// str2 相对于Zip内部的路径
 			Set<String> listZipNames = new HashSet<>();
 
-			ZipFile zipFile = new ZipFile(zipFilePath);
+			zipFile = new ZipFile(zipFilePath);
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
 			while ( entries.hasMoreElements() ){
@@ -94,6 +99,10 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			zipFile.close();
 
 			return Arrays.asList(listZipNames.toArray(new String[listZipNames.size()]));
+		}
+		catch(ZipException zipException){
+			Log.d("ZeroAicyClassFilePreProcessor", "zip文件错误: " + zipFilePath);
+			return Collections.emptyList();
 		}
 		catch (Throwable th){
 			throw new Error(th);

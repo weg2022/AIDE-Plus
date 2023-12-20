@@ -22,6 +22,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile files("provider/ClassReaderLibrary-1.5.1-beta.jar")
+    compile files("provider/ClassReaderLibrary-1.5.3-beta.jar")
 	//compile files("provider/ClassReaderLibrary-1.4.9-beta_compileOnly.jar")
 }
