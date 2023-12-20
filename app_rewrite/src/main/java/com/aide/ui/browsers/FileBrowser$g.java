@@ -42,6 +42,7 @@ class FileBrowser$g extends ListAdapterBase<FileBrowser$h> {
 		ImageView filebrowserEntryFileImage;
 		public ViewHolder(View converView) {
 			this.converView = converView;
+			this.converView.setLayoutParams(new ViewGroup.LayoutParams(1000000, ViewGroup.LayoutParams.WRAP_CONTENT));
 			converView.setTag(this);
 			filebrowserEntryName = converView.findViewById(R.id.filebrowserEntryName);
 			filebrowserEntryFileImage = converView.findViewById(R.id.filebrowserEntryFileImage);

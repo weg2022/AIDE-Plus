@@ -87,14 +87,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			List<String> classesDexZipList = new ArrayList<>();
 			//先dexing 主classes.dex，即从源码编译的class
 			checkInterrupted();
+			
 			showProgress("Run D8 Dexing", 60);
 
-			String dexingMergingJarDexFiles;
+			String dexingMergingJarDexFiles = null;
 			if ( !getValidDependencyLibs().isEmpty() ){
 				dexingMergingJarDexFiles = dexingMergingJarDexFiles();
-			}
-			else{
-				dexingMergingJarDexFiles = null;
 			}
 
 			//dexing merging class文件
@@ -296,14 +294,14 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 是否仅编译，接受小写
 		 */
-		private boolean isCompileOnly(String dependencyLibLowerCase){
-			return dependencyLibLowerCase.endsWith("_compileonly.jar");
+		private boolean isCompileOnly(String libFileNameLowerCase){
+			return libFileNameLowerCase.endsWith("_compileonly.jar");
 		}
 		/**
 		 * 是否仅打包，接受小写
 		 */
-		private boolean isRuntimeOnly(String dependencyLibLowerCase){
-			return dependencyLibLowerCase.endsWith("_resource.jar");
+		private boolean isRuntimeOnly(String libFileNameLowerCase){
+			return libFileNameLowerCase.endsWith("_resource.jar");
 		}
 		/**
 		 * 存在的依赖，但不包括_resource.jar
@@ -410,7 +408,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				}
 			}
 		}
-
+		/**
+		 *有效依赖为[非(compile | runtime) only，存在且是jar]
+		 */
 		private List<String> validDependencyLibs;
 
 		public List<String> getValidDependencyLibs(){
@@ -418,20 +418,22 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				return validDependencyLibs;
 			}
 			validDependencyLibs = new ArrayList<>();
-			//有效依赖为[不是 compile | runtime only，不存在，非jar]
 			for ( String dependencyLib : getAllDependencyLibs() ){
-				String dependencyLibLowerCase = dependencyLib.toLowerCase();
-				if ( !dependencyLibLowerCase.endsWith(".jar")
-					|| dependencyLibLowerCase.endsWith("_resource.jar")
-					|| dependencyLibLowerCase.endsWith("_compileonly.jar") ){
+				
+				String fileName = getFileName(dependencyLib).toLowerCase();
+				if ( !fileName.endsWith(".jar")
+					|| isRuntimeOnly(fileName)
+					|| isCompileOnly(fileName) ){
 					continue;
 				}
+				
 				File libFile = new File(dependencyLib);
 				if ( !libFile.exists() ){
 					//不是依赖库跳过
 					continue;
 				}
-				try{ 
+				try{
+					//嗅探一下，d8打不开zip，不报路径😭
 					new ZipFile(libFile);
 				}
 				catch (IOException e){
@@ -446,23 +448,34 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		ZipEntryTransformer.DexZipTransformer dexZipEntryTransformer = new ZipEntryTransformer.DexZipTransformer();
 		// 从jar依赖添加资源的过滤器，
 		ZipEntryTransformer.ZipResourceTransformer zipResourceZipEntryTransformer = new ZipEntryTransformer.ZipResourceTransformer();
-
+		
+		public void minify(){
+			//混淆class
+		}
+		public void shrinkResources(){
+			//压缩资源
+		}
 		@Override
 		public void packaging() throws Throwable{
 			long now = nowTime();
-			logDebug("开始dxing");
+			
+			logDebug("开始dxing class");
 			List<String> classesDexZipList = getClassesDexZipList();
-			logDebug("dxing共用时: " + (nowTime() - now) + "ms");
-
+			
+			logDebug("dxing class 共用时: " + (nowTime() - now) + "ms");
+			
 			now = nowTime();
+			
 			//Java工程
 			if ( getOutFilePath().endsWith(".zip") ){
 				packagingJavaProject(classesDexZipList);
 			}
 			else{
+				
 				//打包安卓项目
 				packagingAndroidProject(classesDexZipList);
 			}
+			
 			logDebug("打包共用时: " + (nowTime() - now) + "ms");
 		}
 
@@ -688,6 +701,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 			for ( String dependencyLibPath : dependencyLibs ){
 				String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
+				
 				if ( isCompileOnly(dependencyLibLowerCase) ){
 					//仅编译文件不打包
 					continue;
@@ -872,5 +886,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return System.currentTimeMillis();
 		}
 	}
-
+	
+	public static String getFileName(String path){
+		int fileNameStartIndex = path.lastIndexOf('/');
+		if ( fileNameStartIndex >= 0 ){
+			return path.substring(fileNameStartIndex);
+		}
+		return path;
+	}
 }

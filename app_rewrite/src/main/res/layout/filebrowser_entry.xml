@@ -25,13 +25,13 @@
 			android:layout_height="wrap_content"
 			android:text=" "
 			android:singleLine="true"
-			style="@style/BrowserLabelLarge"
-			android:background="#12A0A0A0"/>
+			style="@style/BrowserLabelLarge"/>
 
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:text="                                                    "
+			android:background="#12A0A0A0"
 			android:singleLine="true"/>
 
 	</LinearLayout>
