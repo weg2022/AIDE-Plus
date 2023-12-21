@@ -22,7 +22,10 @@ public class CompileOnlyJar {
         filterCompileOnlyJar(libsList);
         return libsList.toArray(new String[libsList.size()]);
     }
-
+	
+	/**
+	 * 兼容AIDE Pro的Proguard混淆
+	 */
 	//返回所有compileOnlyJar
 	public static void addProguardJAVAibraryjars(List<String> proguardArgs, String[] libPaths) {
 		if( proguardArgs == null || proguardArgs.isEmpty()) return;
@@ -34,9 +37,7 @@ public class CompileOnlyJar {
 
 	public static List<String> getCompileOnlyJar(String[] libPaths) {
         List<String> libsList = new ArrayList<String>();
-
         if (libPaths == null) return libsList;
-
 		for (String jarPath : libPaths) {
 			if (jarPath == null) continue;
 			if (jarPath.toLowerCase().endsWith(FilterCompileOnlyJar)) {
@@ -72,6 +73,7 @@ public class CompileOnlyJar {
         try {
 			filterCompileOnlyJar(list, FilterCompileOnlyJar);
         } catch (Throwable e) {
+			
         }
     }
     public static void filterCompileOnlyJar(List<String> list, String suffix) {
