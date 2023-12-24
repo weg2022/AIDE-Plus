@@ -82,7 +82,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		//源码目录
 		private String[] nativeLibDirs;
 
-		private boolean buildRefresh;
+		private final boolean buildRefresh;
 
 		private final String zipalignPath;
 

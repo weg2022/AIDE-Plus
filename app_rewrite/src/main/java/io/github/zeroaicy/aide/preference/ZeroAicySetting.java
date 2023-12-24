@@ -11,6 +11,7 @@ public class ZeroAicySetting {
 	public static SharedPreferences projectServiceSharedPreferences;
 	private static final Map<String, String> gradleCmdLineMap = new LinkedHashMap<String, String>();
 
+
 	public static SharedPreferences getDefaultSp() {
 		return defaultSp;
 	}
@@ -113,6 +114,9 @@ public class ZeroAicySetting {
 	/**
 	 * 实验室
 	 */
+	public static boolean isEnableMinify(){
+		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_minify", false);
+	}
 	public static boolean isEnableAapt2() {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", false);
 	}

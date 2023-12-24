@@ -5,10 +5,15 @@ import android.text.TextUtils;
 import com.aide.common.AppLog;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import com.android.apksig.ApkSigner;
+import com.android.tools.r8.OutputMode;
+import com.android.tools.r8.R8;
+import com.android.tools.r8.R8Command;
+import com.android.tools.r8.origin.Origin;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
@@ -28,9 +34,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import sun1.security.pkcs.PKCS8Key;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import sun1.security.pkcs.PKCS8Key;
+import com.android.apksig.ApkSigner.Builder;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -39,12 +47,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		super(service);
 	}
 	@Override
-	public PackagingWorkerWrapper.TaskWrapper
-	getTaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, 
+	public PackagingWorkerWrapper.TaskWrapper getTaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, 
 				   String[] dependencyLibs, String outDirPath, String Zo, 
 				   String aAptResourcePath, String[] nativeLibDirs, String outFilePath, 
 				   String signaturePath, String signaturePassword, String signatureAlias, 
 				   String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX){
+
 		return new ZeroAicyR8Task(mainClassCacheDir, classFileRootDirs, sourceDirs, 
 								  dependencyLibs, outDirPath, Zo, aAptResourcePath, 
 								  nativeLibDirs, outFilePath, signaturePath, signaturePassword, 
@@ -54,10 +62,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 	public class ZeroAicyR8Task extends TaskWrapper{
 		public ZeroAicyR8Task(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aAptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX){
 			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aAptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
+			init();
 		}
 
 		/**
-		 * 返回 合并class文件缓存后的输出路径
+		 * 返回 合并class文件缓存后的输出路径？
+
 		 */
 		private String getMainClassesDexZipFilePath(){
 			return getIntermediatesChildDirPath("dex") + "/classes.dex.zip";
@@ -67,8 +77,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return getIntermediatesChildDirPath("dex") + "/dependency_merger.dex.zip";
 		}
 		//混淆
-		private String getMixUpDexZipFilePath(){
-			return getIntermediatesChildDirPath("dex") + "/classes_mix_up.dex.zip";
+		private File getMixUpDexZipFile(boolean delete){
+			File file = new File(getIntermediatesChildDirPath("dex") , "/classes_mix_up.dex.zip");
+			if ( file.exists() && delete ){
+				file.delete();
+			}
+			return file;
 		}
 
 		/**
@@ -87,7 +101,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			List<String> classesDexZipList = new ArrayList<>();
 			//先dexing 主classes.dex，即从源码编译的class
 			checkInterrupted();
-			
+
 			showProgress("Run D8 Dexing", 60);
 
 			String dexingMergingJarDexFiles = null;
@@ -120,14 +134,17 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 * dexing And merging Jar Class Files
 		 */
 		private String dexingMergingJarDexFiles() throws InterruptedException, IOException{
-			String dependencyLibDexZipFilePath = getDependencyMergerFilePath();
-			//缓存目录都不存在
-			boolean existsCacheFile = new File(dependencyLibDexZipFilePath).exists();
 
 			//缓存文件不存在使用全量编译
 			showProgress("Dexing - Libraries", 62);
 
 			List<String> dependencyLibDexs = new ArrayList<>();
+
+
+			String dependencyLibDexZipFilePath = getDependencyMergerFilePath();
+
+			//缓存目录都不存在
+			boolean existsCacheDir = new File(dependencyLibDexZipFilePath).exists();
 
 			//dexing 没有Jardex缓存的依赖
 			for ( String dependencyLibPath : getValidDependencyLibs() ){
@@ -138,8 +155,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				File dexCacheFile = new File(dexCachePath);
 
 				//根据时间戳判断是否需要dexing
-				if ( isBuildRefresh() || existsCacheFile
-					|| !dexCacheFile.exists() || jarFile.lastModified() > dexCacheFile.lastModified() ){
+				if ( isBuildRefresh() || ! existsCacheDir
+					|| !dexCacheFile.exists() 
+					|| jarFile.lastModified() > dexCacheFile.lastModified() ){
 					dexingDependencyLibFile(dependencyLibPath);
 				}
 				dependencyLibDexs.add(dexCachePath);
@@ -306,21 +324,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 存在的依赖，但不包括_resource.jar
 		 */
-		public List<String> getExistsDependencyLibs(){
-			ArrayList<String> existsDependencyLibs = new ArrayList<>();
-			//有效依赖为[不是 compile | runtime only，不存在，非jar]
-			for ( String dependencyLib : getAllDependencyLibs() ){
-				String dependencyLibLowerCase = dependencyLib.toLowerCase();
-				if ( !dependencyLibLowerCase.endsWith(".jar")
-					|| dependencyLibLowerCase.endsWith("_resource.jar") ){
-					continue;
-				}
+		public List<String> getCompileDependencyLibs(){
+			List<String> existsDependencyLibs = new ArrayList<>();
+			existsDependencyLibs.addAll(getValidDependencyLibs());
+			existsDependencyLibs.addAll(compileOnlyLibs);
 
-				File libFile = new File(dependencyLib);
-				if ( libFile.exists() ){
-					existsDependencyLibs.add(dependencyLib);
-				}
-			}
 			return existsDependencyLibs;
 		}
 		// dexing所有class
@@ -337,7 +345,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				//minSdk＜21，无法编译生成的class
 				minSdk = 21;
 			}
-			fillD8Args(argsList, minSdk, true, true, user_androidjar, getExistsDependencyLibs(), outPath);
+			fillD8Args(argsList, minSdk, true, true, user_androidjar, getCompileDependencyLibs(), outPath);
 			//添加需要编译的jar
 			argsList.addAll(dexingClassFiles);
 
@@ -355,7 +363,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null; 
-			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, getValidDependencyLibs(), outDexZipPath);
+			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, outDexZipPath);
 
 			//输入dexs
 			argsList.addAll(classeDexFiles);
@@ -365,21 +373,22 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 
 		public void fillClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet){
-			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet);
+			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, isBuildRefresh());
 		}
-
+		public void fillAllClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet){
+			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, true);
+		}
 		/**
 		 * 递归填充classCacheRootDirPath目录下的所有class文件
 		 */
-		public void fillClassFileCacheMap(String classCacheRootDirPath, File dirFile, List<String> incrementalClassFiles, Set<String> classFileSet){
+		public void fillClassFileCacheMap(String classCacheRootDirPath, File dirFile, List<String> incrementalClassFiles, Set<String> classFileSet, boolean isBuildRefresh){
 			File[] listFiles = dirFile.listFiles();
 			if ( listFiles == null ){
 				return;
-			}
-			boolean isBuildRefresh = isBuildRefresh();
+			};
 			for ( File file : listFiles ){
 				if ( file.isDirectory() ){
-					fillClassFileCacheMap(classCacheRootDirPath, file, incrementalClassFiles, classFileSet);
+					fillClassFileCacheMap(classCacheRootDirPath, file, incrementalClassFiles, classFileSet, isBuildRefresh);
 					continue;
 				}
 				if ( file.isFile() ){
@@ -411,73 +420,315 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 *有效依赖为[非(compile | runtime) only，存在且是jar]
 		 */
-		private List<String> validDependencyLibs;
+		private List<String> validLibs = new ArrayList<>();
+		/**
+		 * compileOnly
+		 */
+		private List<String> compileOnlyLibs  = new ArrayList<>();
 
-		public List<String> getValidDependencyLibs(){
-			if ( validDependencyLibs != null ){
-				return validDependencyLibs;
-			}
-			validDependencyLibs = new ArrayList<>();
+		/**
+		 * runtimeOnly
+		 */
+		private List<String> runtimeOnlyLibs = new ArrayList<>();
+
+		/**
+		 * aar混淆文件
+		 */
+		private List<Path> proguardPaths  = new ArrayList<>();
+		private void init(){
+
+
 			for ( String dependencyLib : getAllDependencyLibs() ){
-				
-				String fileName = getFileName(dependencyLib).toLowerCase();
-				if ( !fileName.endsWith(".jar")
-					|| isRuntimeOnly(fileName)
-					|| isCompileOnly(fileName) ){
-					continue;
-				}
-				
-				File libFile = new File(dependencyLib);
-				if ( !libFile.exists() ){
+				File jarFile = new File(dependencyLib);
+				if ( !jarFile.exists() ){
 					//不是依赖库跳过
 					continue;
 				}
+
+				String fileName = getFileName(dependencyLib).toLowerCase();
+				if ( !fileName.endsWith(".jar") ){
+					continue;
+				}
+				if ( isRuntimeOnly(fileName) ){
+					runtimeOnlyLibs.add(dependencyLib);
+					continue;
+				}
+
+				if ( isCompileOnly(fileName) ){
+					compileOnlyLibs.add(dependencyLib);
+					continue;
+				}
+
+				if ( fileName.equals("classes.jar") ){
+					File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
+					if ( proguardFile.isFile() ){
+						proguardPaths.add(proguardFile.toPath());
+					}					
+				}
+
 				try{
 					//嗅探一下，d8打不开zip，不报路径😭
-					new ZipFile(libFile);
+					new ZipFile(jarFile);
 				}
 				catch (IOException e){
 					throw new Error(dependencyLib + "不是一个zip文件");
 				}
-				validDependencyLibs.add(dependencyLib);
+
+				validLibs.add(dependencyLib);
 			}
-			return validDependencyLibs;
+		}
+
+		public List<String> getValidDependencyLibs(){
+			return validLibs;
 		}
 
 		// dex.zip转换器，即根目录下有classes%d.dex的zip文件的转换器
 		ZipEntryTransformer.DexZipTransformer dexZipEntryTransformer = new ZipEntryTransformer.DexZipTransformer();
 		// 从jar依赖添加资源的过滤器，
 		ZipEntryTransformer.ZipResourceTransformer zipResourceZipEntryTransformer = new ZipEntryTransformer.ZipResourceTransformer();
-		
-		public void minify(){
-			//混淆class
+
+		public void minify() throws Exception{
+
+			// 混淆class 
+			// 查找混淆文件
+			File aaptRulesFile = new File(getDefaultIntermediatesDirPath(), "aapt_rules.txt");
+			if ( aaptRulesFile.isFile() ){
+				proguardPaths.add(aaptRulesFile.toPath());			
+			}
+			String buildOutDirPath = getBuildOutDirPath();
+			if ( buildOutDirPath.endsWith("/build/bin") ){
+				String projectPath = buildOutDirPath.substring(0, buildOutDirPath.length() - "/build/bin".length());
+				File proguardPulesProFile = new File(projectPath, "proguard-rules.pro");
+				if ( proguardPulesProFile.isFile() ){
+					//主项目混淆混淆，子项目的就先不加了
+					proguardPaths.add(proguardPulesProFile.toPath());
+				}
+			}
+
+			// 合并所有依赖除runtimeOnly外
+			// compileOnly是库
+			// runtimeOnly不参与r8，最后加入apk
+
+			// 编译依赖库
+			showProgress("合并混淆class文件", 60);
+			logDebug("合并待混淆类库");
+
+			//合并的目的是去重
+			minifyClassJarFiles();
+
+			List<String> mainClassFilePaths = method();
+
+			//所有的dex
+			File minifyClassJarFile = new File(getIntermediatesChildDirPath("r8"), "minifyClass.jar");
+			File mixUpDexZipFile = getMixUpDexZipFile(true);
+
+			Path androidJarPath = new File(getUserAndroidJar()).toPath();
+			int minSdk = getMinSdk();
+
+			List<Path> compileOnlyPaths = new ArrayList<>();
+
+			for ( String jarPath : this.compileOnlyLibs ){
+				compileOnlyPaths.add(new File(jarPath).toPath());
+			}
+
+			BaseDiagnosticsHandler baseDiagnosticsHandler = new BaseDiagnosticsHandler();
+			R8Command.Builder builder = R8Command.builder(baseDiagnosticsHandler);
+
+			logDebug("开始添加AIDE输出的类");
+			for ( String inputClassPath : mainClassFilePaths ){
+
+				DataInputStream dataInputStream = new DataInputStream(new FileInputStream(inputClassPath));
+				byte[] readAllBytes = dataInputStream.readAllBytes();
+				dataInputStream.close();
+				builder.addClassProgramData(readAllBytes, Origin.root());
+			}
+			logDebug("开始配置");
+
+			R8Command r8Command = builder
+				// 所有类
+				.addProgramFiles(minifyClassJarFile.toPath())
+				.addProguardConfigurationFiles(proguardPaths)
+				//主要是为了兼容AIDE的输出类
+				.setMinApiLevel(minSdk < 21 ? 21 : minSdk)
+				// Android SDK
+				.addLibraryFiles(androidJarPath)
+				// 依赖库
+				.addClasspathFiles(compileOnlyPaths)
+				// 输出
+				.setOutput(mixUpDexZipFile.toPath(), OutputMode.DexIndexed)
+				.setProguardMapOutputPath( new File(getIntermediatesChildDirPath("r8"), "proguardMap.txt").toPath())
+				.build();
+
+			showProgress("混淆class中", 65);
+
+			//运行r8
+			R8.run(r8Command);
+
+			if ( baseDiagnosticsHandler.hasError() ){
+				throw new RuntimeException(baseDiagnosticsHandler.getErrorMessage());
+			}
 		}
+
+		private List<String> method() throws InterruptedException{
+			List<String> allClassFiles = new ArrayList<>();
+			//类名
+			Set<String> classFileSet = new HashSet<>();
+			//填充class文件
+			String mainProjectClassCacheDirPath = getMainClassCacheDir();
+			fillAllClassFileCache(mainProjectClassCacheDirPath, allClassFiles, classFileSet);
+			//遍历添加所有项目的class缓存目录
+			for ( String classFileRootDir : getAllClassFileRootDirs() ){
+				checkInterrupted();
+				if ( classFileRootDir != null 
+					|| !classFileRootDir.equals(mainProjectClassCacheDirPath) ){
+					fillAllClassFileCache(classFileRootDir, allClassFiles, classFileSet);
+				}
+			}
+			//List<Path> classFilePaths = new ArrayList<>();
+
+			return allClassFiles;
+		}
+
+
+		private void minifyClassJarFiles() throws Exception{
+			// 过滤重复文件
+			Set<String> zipEntrySet = new HashSet<>();
+			zipEntrySet.add("META-INF/MANIFEST.MF");
+			//输出zip流
+			File minifyClassJarFile = new File(getIntermediatesChildDirPath("r8"), "minifyClass.jar");
+			//后面在实现增量信息，保存输入文件信息
+			//new File(getIntermediatesChildDirPath("r8"), "minifyClass.jar");
+
+			ZipOutputStream minifyClassJarOutput = null;
+
+			try{
+				minifyClassJarOutput = new ZipOutputStream(new FileOutputStream(minifyClassJarFile));
+
+				for ( String inputClassesJar : getValidDependencyLibs() ){
+
+					File inputClassesJarFile = new File(inputClassesJar);
+					ZipInputStream zipFileInput = null;
+					try{
+						zipFileInput = new ZipInputStream(new FileInputStream(inputClassesJarFile));
+
+						ZipEntry originalZipEntry;
+						while ( (originalZipEntry = zipFileInput.getNextEntry()) != null ){
+							String name = originalZipEntry.getName();
+
+							if ( zipEntrySet.contains(name) ){
+								continue;
+							}
+							if ( originalZipEntry.isDirectory() ){
+								//文件夹不用加
+								continue;
+							}
+							ZipEntry newZipEntry = new ZipEntry(name);
+							int method = originalZipEntry.getMethod();
+							if ( method == ZipEntry.STORED ){
+								newZipEntry.setMethod(method) ;
+								newZipEntry.setCrc(originalZipEntry.getCrc());
+								newZipEntry.setSize(originalZipEntry.getSize());								
+							}
+
+							zipEntrySet.add(name);
+							minifyClassJarOutput.putNextEntry(newZipEntry);
+							streamTransfer(zipFileInput, minifyClassJarOutput);
+							//Entry写入完成
+							minifyClassJarOutput.closeEntry();
+						}
+					}
+					finally{
+						if ( zipFileInput != null ) 
+							zipFileInput.close();
+					}
+				}
+			}
+			finally{
+				if ( minifyClassJarOutput != null ) 
+					minifyClassJarOutput.close();
+			}
+
+		}
+
+
+
 		public void shrinkResources(){
-			//压缩资源
+			//压缩资源 不会
 		}
 		@Override
 		public void packaging() throws Throwable{
 			long now = nowTime();
-			
+
+			if ( !getOutFilePath().endsWith(".zip") 
+				&& isMinify() ){
+				packagingAndroidMinify();
+				logDebug("混淆打包共用时: " + (nowTime() - now) + "ms");
+
+				return;
+			}
 			logDebug("开始dxing class");
+
 			List<String> classesDexZipList = getClassesDexZipList();
-			
 			logDebug("dxing class 共用时: " + (nowTime() - now) + "ms");
-			
+
 			now = nowTime();
-			
+
 			//Java工程
 			if ( getOutFilePath().endsWith(".zip") ){
 				packagingJavaProject(classesDexZipList);
 			}
 			else{
-				
 				//打包安卓项目
 				packagingAndroidProject(classesDexZipList);
 			}
-			
+
 			logDebug("打包共用时: " + (nowTime() - now) + "ms");
 		}
+
+		private boolean isMinify(){
+			return ZeroAicySetting.isEnableMinify();
+		}
+
+		private void packagingAndroidMinify() throws Throwable{
+			if( !false ) System.out.println("packagingAndroidMinify2+19");
+			//混淆
+			minify();
+
+			showProgress("构建APK", 80);			
+			//未zip优化，未签名
+			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile(true);
+
+			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(unZipAlignedUnSignedApkFile));
+			//resources_ap_file
+			String aAptResourceFilePath = getAAptResourceFilePath();
+			logDebug("从 aapt generated resources添加 " + aAptResourceFilePath);
+			//打包resources.ap_ 文件
+			packagingZipFile(aAptResourceFilePath, zipResourceZipEntryTransformer, packagingZipOutput, true);
+
+			// 从文件夹添加原生库文件，
+			ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
+			//从原生库目录添加so
+			for ( String nativeLibDirPath : this.getNativeLibDirs() ){
+				File nativeLibDirFile = new File(nativeLibDirPath);
+				if ( nativeLibDirFile.exists() ){
+					logDebug("从原生库添加" + nativeLibDirPath);
+					packagingDirFile(nativeLibDirPath, nativeLibDirFile, nativeLibZipEntryTransformer, packagingZipOutput);
+				}
+			}
+			//打包混淆后的dex
+			packagingZipFile(getMixUpDexZipFile(false).getAbsolutePath(), dexZipEntryTransformer, packagingZipOutput, false);
+
+			//打包源码目录下的资源
+			packagingSourceDirsResource(packagingZipOutput);			
+			//打包jar资源，优先第一个
+			packagingJarResources(packagingZipOutput);
+			//打包完成
+			packagingZipOutput.close();
+
+			//优化apk
+			zipalignApk();
+		}
+
 
 
 		/**
@@ -502,7 +753,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			args.add(unZipAlignedUnSignedApkFile.getAbsolutePath());
 			//输出
 			args.add(unSignedApkFile.getAbsolutePath());
-			
+
 			abcd.wf j62 = abcd.xf.j6(args, null, null, true, null, null);
 			if ( j62.DW() != 0 ){
 				throw new Exception(" zipalign Error: " + new String(j62.j6()));
@@ -517,6 +768,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			proxySign(unSignedApkFile, new File(getOutFilePath()));
 
 			logDebug("Signing APK共用时: " + (nowTime() - now) + "ms");
+
 		}
 
 		public void proxySign(File unsignedApk, File signedApk) throws Throwable{
@@ -584,6 +836,15 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				privateKey = pkcs8;
 				certInputStream.close();
 			}
+			//签名
+			signApk(privateKey, certificate, unsignedApk, signedApk);
+
+			//删除输入文件
+			unsignedApk.delete();
+		}
+
+		private void signApk(PrivateKey privateKey, X509Certificate certificate, File unsignedApk, File signedApk) throws Throwable{
+
 
 			SharedPreferences defaultSp = ZeroAicySetting.getDefaultSp();
 			boolean isapksignv1 = defaultSp.getBoolean("v1", true);
@@ -594,8 +855,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				new ApkSigner.SignerConfig.Builder("ANDROID",  privateKey, Collections.singletonList(certificate))
 				.build();
 
-			new ApkSigner.Builder(Collections.singletonList(signerConfig))
-				.setCreatedBy("Android Gradle 8.4")
+			ApkSigner.Builder builder = new ApkSigner.Builder(Collections.singletonList(signerConfig));
+			builder.setCreatedBy("Android Gradle 8.4")
 				.setMinSdkVersion(getMinSdk())
 				.setInputApk(unsignedApk)
 				.setOutputApk(signedApk)
@@ -604,8 +865,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				.setV3SigningEnabled(isapksignv3)
 				.build()
 				.sign();
-			//删除输入文件
-			unsignedApk.delete();
 		}
 
 
@@ -701,7 +960,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 			for ( String dependencyLibPath : dependencyLibs ){
 				String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
-				
+
 				if ( isCompileOnly(dependencyLibLowerCase) ){
 					//仅编译文件不打包
 					continue;
@@ -723,7 +982,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 */
 		private File getUnZipAlignedUnSignedApkFile(boolean delete){
 			File unZipAlignedUnSignedApkFile = new File(getOutFilePath() + "-unzipaligned-unsigned");
-			if (delete && unZipAlignedUnSignedApkFile.exists() ){
+			if ( delete && unZipAlignedUnSignedApkFile.exists() ){
 				unZipAlignedUnSignedApkFile.delete();
 				//直接返回，文件存在所以父目录也存在
 				return unZipAlignedUnSignedApkFile;
@@ -742,7 +1001,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			File unSignedApkFile = new File(getOutFilePath() + "-unsigned");
 			File parentFile = unSignedApkFile.getParentFile();
 			//删除输出
-			if (delete && unSignedApkFile.exists() ){
+			if ( delete && unSignedApkFile.exists() ){
 				unSignedApkFile.delete();
 				return unSignedApkFile;
 			}
@@ -828,9 +1087,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 */
 		private void packagingZipFile(String zipFilePath, ZipEntryTransformer transformer, PackagingStream packagingZipOutput, boolean followZipEntryMethod) throws IOException{
 			if ( !new File(zipFilePath).exists() ){
-                AppLog.gn("Zip file not found: " + zipFilePath);
-                return;
-            }
+				AppLog.gn("Zip file not found: " + zipFilePath);
+				return;
+			}
 			ZipInputStream zipFileInput = null;
 			try{
 				zipFileInput = new ZipInputStream(new FileInputStream(zipFilePath));
@@ -882,13 +1141,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		private void logDebug(String msg){
 			Log.i(TAG, msg);
 		}
-		
+
 		private long nowTime(){
 			return System.currentTimeMillis();
 		}
-		
+
 	}
-	
+
 	public static String getFileName(String path){
 		int fileNameStartIndex = path.lastIndexOf('/');
 		if ( fileNameStartIndex >= 0 ){

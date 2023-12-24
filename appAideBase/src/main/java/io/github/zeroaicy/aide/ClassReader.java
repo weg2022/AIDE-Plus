@@ -17,7 +17,8 @@ import java.lang.reflect.Method;
 import io.github.zeroaicy.readclass.classInfo.DefaultMethodAllowedList;
 
 public class ClassReader {
-
+	private static final String TAG2 = "ZeroAicyClassReader";
+	
 	private static final String TAG = "ZeroAicyClassReader";
 
 	public static final boolean isDirect = isDirect();

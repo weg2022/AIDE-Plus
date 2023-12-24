@@ -1,4 +1,9 @@
+
+
+
 package io.github.zeroaicy.aide.extend;
+
+
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.ui.MainActivity;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
@@ -12,7 +17,7 @@ import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
  * 3.d8[打包流程]
  * 
  */
-
+ 
 /**
  * AIDE+底包的修改点都将调用此类
  * 优点是可以随时更换实现
@@ -53,8 +58,9 @@ public class ZeroAicyExtensionInterface {
 	public static boolean isEnableADRT(){
 		return ZeroAicySetting.enableADRT();
 	}
+	
 	/**
-	 * 
+	 * 修改maven默认下载路径
 	 */
 	 public static String getUserM2Repositories(){
 		 return ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
