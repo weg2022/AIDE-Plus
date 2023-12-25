@@ -21,9 +21,6 @@ android {
 		"AIDE+4" {
 			applicationId "io.github.zeroaicy.aide4"
 		}
-		"AIDE+测试共存版" {
-			applicationId "com.ss.android.ugc.aweme"
-		}
 		
 	}
 	signingConfigs{
