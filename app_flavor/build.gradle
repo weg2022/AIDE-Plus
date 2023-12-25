@@ -3,14 +3,13 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.0"
-
+	
     defaultConfig {
 		applicationId "io.github.zeroaicy.aide"
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
         versionName "3.2.210316-1.0"
-		
     }
 	
     productFlavors {
