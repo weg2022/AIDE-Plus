@@ -255,7 +255,9 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		 * 返回class dexing后的dex缓存路径
 		 */
 		public String getClassDexFileCache(String classFileSubPath) {
-			return getDefaultClassDexCacheDirPath() + classFileSubPath.substring(0, classFileSubPath.length() - "class".length()) + ".dex";
+			int endIndex = classFileSubPath.length() - ".class".length();
+			return getDefaultClassDexCacheDirPath() 
+				+ classFileSubPath.substring(0, endIndex) + ".dex";
 		}
 		/**
 		 * 返回jar的dex.zip缓存路径
