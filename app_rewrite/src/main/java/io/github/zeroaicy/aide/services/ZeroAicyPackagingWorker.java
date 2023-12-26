@@ -256,24 +256,24 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				checkInterrupted();
 				if ( classFileRootDir != null 
 					|| !classFileRootDir.equals(mainProjectClassCacheDirPath) ){
+						
 					fillClassFileCache(classFileRootDir, incrementalClassFiles, classFileMap);
 				}
 			}
+			
 			String mainClassesDexZipFilePath = getMainClassesDexZipFilePath();
-
 			//增量为0，不dexing
 			if ( incrementalClassFiles.isEmpty() ){
 				return mainClassesDexZipFilePath;
 			}
-
+			logDebug("待dexing类文件数量: " + incrementalClassFiles.size());
+			
 			showProgress("Dexing - Classes", 67);
 			//dexing classFile[增量]
 			dexingClassFilesFromD8(getDefaultClassDexCacheDirPath(), incrementalClassFiles);
-
-			List<String> classeDexFiles = FileUtil.Files2Strings(FileUtil.findFile(new File(getDefaultClassDexCacheDirPath()), ".dex"));
-			//无论增量与否都要合并所有dex
-			// ./intermediates/dex/mainClassesDex.zip
+			
 			showProgress("Merging - Classes", 69);
+			List<String> classeDexFiles = FileUtil.Files2Strings(FileUtil.findFile(new File(getDefaultClassDexCacheDirPath()), ".dex"));
 			mergingClassDexs(mainClassesDexZipFilePath, classeDexFiles);				
 
 			return mainClassesDexZipFilePath;
@@ -370,14 +370,20 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
 			logDebug("合并classes.dex，已输出: " + outDexZipPath);
 		}
-
-
+		
+		/**
+		 * 根据isBuildRefresh是否增量
+		 */
 		public void fillClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet){
-			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, isBuildRefresh());
+			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, this.isBuildRefresh());
 		}
+		/**
+		 * 默认不增量
+		 */
 		public void fillAllClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet){
 			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, true);
 		}
+		
 		/**
 		 * 递归填充classCacheRootDirPath目录下的所有class文件
 		 */
@@ -385,35 +391,46 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			File[] listFiles = dirFile.listFiles();
 			if ( listFiles == null ){
 				return;
-			};
-			for ( File file : listFiles ){
-				if ( file.isDirectory() ){
-					fillClassFileCacheMap(classCacheRootDirPath, file, incrementalClassFiles, classFileSet, isBuildRefresh);
+			}
+			
+			for ( File classFile : listFiles ){
+				if ( classFile.isDirectory() ){
+					fillClassFileCacheMap(classCacheRootDirPath, classFile, incrementalClassFiles, classFileSet, isBuildRefresh);
 					continue;
 				}
-				if ( file.isFile() ){
-					String classFilePath = file.getPath();
-					if ( !classFilePath.toLowerCase().endsWith(".class") ){
+				
+				if ( classFile.isFile() ){
+					String classFilePath = classFile.getPath();
+					if ( !getFileName(classFilePath).toLowerCase().endsWith(".class") ){
 						continue;
 					}
+					
 					String classFileSubPath = classFilePath.substring(classCacheRootDirPath.length());
 					if ( classFileSet.contains(classFileSubPath) ){
-						AppLog.DW("忽略重复 .class 文件 " + classFilePath);
+						//AppLog.DW("忽略重复 .class 文件 " + classFilePath);
 						continue;
 					}
-
 					classFileSet.add(classFileSubPath);
+					
 					if ( isBuildRefresh ){
 						//构建刷新，直接添加
 						incrementalClassFiles.add(classFilePath);
 						continue;
 					}
+					
+					//判断是否更新
 					String classDexFileCache = getClassDexFileCache(classFileSubPath);
-					if ( file.lastModified() > new File(classDexFileCache).lastModified() ){
+					
+					File dexFile = new File(classDexFileCache);
+					if ( classFile.lastModified() > dexFile.lastModified() ){
+						/*
+						logDebug("更新 " + classFilePath + " -> " + classDexFileCache);
+						logDebug("更新 " + classFile.lastModified() + " -> " + dexFile.lastModified());
+						logDebug("");
+						*/
 						//需要重新dexing的class
 						incrementalClassFiles.add(classFilePath);
 					}
-
 				}
 			}
 		}
@@ -697,11 +714,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("构建APK", 80);			
 			//未zip优化，未签名
 			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile(true);
-
 			PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(unZipAlignedUnSignedApkFile));
+			
+			logDebug("从aapt2生成文件添加资源" );
 			//resources_ap_file
 			String aAptResourceFilePath = getAAptResourceFilePath();
-			logDebug("从 aapt generated resources添加 " + aAptResourceFilePath);
 			//打包resources.ap_ 文件
 			packagingZipFile(aAptResourceFilePath, zipResourceZipEntryTransformer, packagingZipOutput, true);
 
@@ -891,8 +908,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		}
 
 		private void packagingDexs(List<String> dexZipPathList, PackagingStream packagingZipOutput) throws IOException{
+			logDebug("添加classes.dex");
 			for ( String dexZipPath : dexZipPathList ){
-				logDebug("Adding classes.dex from " + dexZipPath);
 				packagingZipFile(dexZipPath, dexZipEntryTransformer, packagingZipOutput, false);
 			}
 		}
@@ -916,10 +933,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 从文件夹添加原生库文件，
 			ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
 			//从原生库目录添加so
+			logDebug("添加原生库");
 			for ( String nativeLibDirPath : this.getNativeLibDirs() ){
 				File nativeLibDirFile = new File(nativeLibDirPath);
 				if ( nativeLibDirFile.exists() ){
-					logDebug("从原生库添加" + nativeLibDirPath);
 					packagingDirFile(nativeLibDirPath, nativeLibDirFile, nativeLibZipEntryTransformer, packagingZipOutput);
 				}
 			}
@@ -937,7 +954,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		}
 
 		private void packagingSourceDirsResource(PackagingStream packagingZipOutput) throws IOException{
-
+			logDebug("从源码目录添加资源");
 			//从源码目录添加
 			String[] sourceDirs = getSourceDirs();
 			if ( sourceDirs == null ){
@@ -948,7 +965,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				if ( !sourceDirFile.exists() ){
 					continue;
 				}
-				logDebug("从源码目录添加资源" + sourceDir);
 				packagingDirFile(sourceDir, new File(sourceDir), zipResourceZipEntryTransformer, packagingZipOutput);
 			}
 		}
@@ -958,6 +974,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			if ( dependencyLibs == null ){
 				return;
 			}
+			logDebug("从JAR文件添加资源");
+			
 			for ( String dependencyLibPath : dependencyLibs ){
 				String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
 
@@ -966,12 +984,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					continue;
 				}
 				if ( isRuntimeOnly(dependencyLibLowerCase) ){
-					logDebug("从仅打包依赖文件添加资源及classes.dex " + dependencyLibPath);
 					this.packagingZipFile(dependencyLibPath, dexZipEntryTransformer, packagingZipOutput, false);
 					continue;
 				}
 
-				logDebug("从JAR文件添加资源 " + dependencyLibPath);
 				this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
 			}
 
