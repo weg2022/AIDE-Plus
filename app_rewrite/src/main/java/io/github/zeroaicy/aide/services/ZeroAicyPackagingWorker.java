@@ -266,7 +266,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			if ( incrementalClassFiles.isEmpty() ){
 				return mainClassesDexZipFilePath;
 			}
-			logDebug("待dexing类文件数量: " + incrementalClassFiles.size());
+			//logDebug("待dexing类文件数量: " + incrementalClassFiles.size());
 			
 			showProgress("Dexing - Classes", 67);
 			//dexing classFile[增量]
