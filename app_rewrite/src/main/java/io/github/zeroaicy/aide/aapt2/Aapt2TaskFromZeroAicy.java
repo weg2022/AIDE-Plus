@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import com.aide.ui.build.android.AaptService$b;
+import io.github.zeroaicy.aide.utils.AndroidManifestParser;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -235,18 +236,23 @@ public class Aapt2TaskFromZeroAicy {
 		//merged
 		String androidManifestXml = getAndroidManifestXml(aaptServiceArgs, genDir);
 
-		AndroidManifestParser androidManifestRead = new AndroidManifestParser(androidManifestXml);
+		AndroidManifestParser androidManifestRead = AndroidManifestParser.get(androidManifestXml);
 
-		int min = androidManifestRead.getMiniSdk();
-		int target = androidManifestRead.getTargetSdk();
-
-		if (min <= 0) {
+		final int min;
+		try{
+			min = Integer.parseInt(androidManifestRead.getMinSdkVersion());
+		}
+		catch (Throwable e){
 			min = aaptServiceArgs.defaultMinSdk;
 		}
-		if (target <= 0) {
-			target = aaptServiceArgs.defaultTargetSdk;			
-		}
 
+		final int target;
+		try{
+			target = Integer.parseInt(androidManifestRead.getTargetSdkVersion());
+		}
+		catch (Throwable e){
+			target = aaptServiceArgs.defaultTargetSdk;
+		}
 
 		/*****/
 		List<String> args = new ArrayList<>();

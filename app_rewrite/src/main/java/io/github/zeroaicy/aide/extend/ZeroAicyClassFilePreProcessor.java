@@ -81,9 +81,8 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 						listZipNames.add(zipFilePath + '/' + zipEntryName);
 					}
 					else if ( (lowerEntryName.endsWith(".class")
-							 && lowerEntryName.indexOf('$') < 0)
-							 || lowerEntryName.endsWith(".dex")){
-								 
+							 && lowerEntryName.indexOf('$') < 0)){
+						// || lowerEntryName.endsWith(".dex")
 						listZipNames.add(zipFilePath + '/' + zipEntryName);							
 					}
 					else if ( lowerEntryName.endsWith(".java") ){
