@@ -145,12 +145,12 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 					projectMinSdk = defaultProjectMinSdk;
 				}
 				else{
-					
 					this.androidFxtractNativeLibs = androidManifestParser.getExtractNativeLibs();
 
 					final int androidProject ;
 					try{
-						androidProject = Integer.parseInt(androidManifestParser.getMinSdkVersion());
+						String minSdkVersion = androidManifestParser.getMinSdkVersion();
+						androidProject = Integer.parseInt(minSdkVersion);
 					}
 					catch (NumberFormatException e){
 						androidProject = defaultProjectMinSdk;

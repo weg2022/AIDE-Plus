@@ -16,8 +16,7 @@ public class InstalApkFromShizuku implements Runnable {
 	public InstalApkFromShizuku(String appPath) {
 		this.appPath = appPath;
 	}
-	
-	
+
 	@Override
 	public void run() {
 		//在主线程中
