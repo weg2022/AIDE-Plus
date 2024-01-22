@@ -39,14 +39,16 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Attr;
 import android.text.TextUtils;
+import io.github.zeroaicy.util.Log;
 
 public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
+	
 	public static AndroidManifestParser instance;
 
 	public static synchronized AndroidManifestParser getInstance(){  
         if ( instance == null ){  
             instance = new AndroidManifestParser();  
-        }  
+        }
         return instance;  
     }
 
@@ -68,9 +70,9 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 		try{
 			return new AndroidManifestParser(path);
 		}
-		catch (IOException e){}
-		catch (ParserConfigurationException e){}
-		catch (SAXException e){}
+		catch (Exception e){
+			Log.e("AndroidManifestParser", "创建AndroidManifestParser()", e);
+		}
 		return this;
 	}
 
@@ -100,7 +102,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 
-		this.document = builder.parse(mAndroidManifestXmlPath);
+		this.document = builder.parse(new File(mAndroidManifestXmlPath));
 
 		Element manifestElement = this.document.getDocumentElement();
 		NamedNodeMap manifestAttributes = manifestElement.getAttributes();
