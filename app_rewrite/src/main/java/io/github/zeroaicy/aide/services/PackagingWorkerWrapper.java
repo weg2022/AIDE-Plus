@@ -92,6 +92,8 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		private final String signatureAliasPassword;
 
+		private String mergerCachePath;
+
 
 
 		public int getMinSdk(){
@@ -105,11 +107,13 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aaptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
 
 			this.mainClassCacheDir = mainClassCacheDir;
+			
 			File mainProjectClassCacheDirFile = new File(this.mainClassCacheDir);
 			File parentFile = mainProjectClassCacheDirFile.getParentFile();
 			this.defaultIntermediatesDirPath = new File(parentFile, "intermediates").getAbsolutePath();
 			this.defaultClassDexCacheDirPath = this.getIntermediatesChildDirPath(mainProjectClassCacheDirFile.getName());
-
+			this.mergerCachePath = getIntermediatesChildDirPath("dex");
+			
 			this.allClassFileRootDirs = classFileRootDirs;
 			this.sourceDirs = sourceDirs;
 			this.dependencyLibs = dependencyLibs;
@@ -188,6 +192,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String getDefaultIntermediatesDirPath(){
 			return defaultIntermediatesDirPath;
 		}
+		public String getMergerCacheDirPath(){
+			return this.mergerCachePath;
+		}
+		
 		//返回 intermediates子文件夹
 		public String getIntermediatesChildDirPath(String childDirName){
 			File childFile = new File(getDefaultIntermediatesDirPath(), childDirName);

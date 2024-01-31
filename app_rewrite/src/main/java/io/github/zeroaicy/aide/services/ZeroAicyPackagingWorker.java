@@ -31,6 +31,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import sun1.security.pkcs.PKCS8Key;
+import java.nio.file.Files;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -105,15 +106,16 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 		 */
 		private String getMainClassesDexZipFilePath(){
-			return getIntermediatesChildDirPath("dex") + "/classes.dex.zip";
+			return getMergerCacheDirPath() + "/classes.dex.zip";
 		}
 
 		private String getDependencyMergerFilePath(){
-			return getIntermediatesChildDirPath("dex") + "/dependency_merger.dex.zip";
+			return getMergerCacheDirPath() + "/dependency_merger.dex.zip";
 		}
+
 		//混淆
 		private File getMixUpDexZipFile(boolean delete){
-			File file = new File(getIntermediatesChildDirPath("dex") , "/classes_mix_up.dex.zip");
+			File file = new File(getMergerCacheDirPath() , "/classes_mix_up.dex.zip");
 			if ( file.exists() && delete ){
 				file.delete();
 			}
@@ -147,13 +149,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 
 			/* desugar_libs:{
-				for ( String desugar_libs : getValidDependencyLibs() ){
-					if ( desugar_libs.contains("/com/android/tools/desugar_jdk_libs/")
-						|| desugar_libs.contains("/com/android/tools/desugar_jdk_libs_configuration/") ){
-						classesDexZipList.add(getJarDexCachePath(desugar_libs));
-					}
-				}
-			} */
+			 for ( String desugar_libs : getValidDependencyLibs() ){
+			 if ( desugar_libs.contains("/com/android/tools/desugar_jdk_libs/")
+			 || desugar_libs.contains("/com/android/tools/desugar_jdk_libs_configuration/") ){
+			 classesDexZipList.add(getJarDexCachePath(desugar_libs));
+			 }
+			 }
+			 } */
 
 			//混淆(false, classesDexZipList);
 			return classesDexZipList;
@@ -195,13 +197,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					|| jarFile.lastModified() > dexCacheFile.lastModified() ){
 					dexingDependencyLibFile(dependencyLibPath);
 				}
-				
+
 				/* desugar_libs:{
-					if ( dependencyLibPath.contains("/com/android/tools/desugar_jdk_libs/")
-						|| dependencyLibPath.contains("/com/android/tools/desugar_jdk_libs_configuration/") ){
-						continue;
-					}
-				} */
+				 if ( dependencyLibPath.contains("/com/android/tools/desugar_jdk_libs/")
+				 || dependencyLibPath.contains("/com/android/tools/desugar_jdk_libs_configuration/") ){
+				 continue;
+				 }
+				 } */
 				dependencyLibDexs.add(dexCachePath);
 			}
 
@@ -411,11 +413,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					argsList.add(librarie);
 				}
 			}
-			
+
 			/* desugar_libs: {
-				argsList.add("--desugared-lib");
-				argsList.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/META-INF/desugar/d8/desugar.json");
-			} */
+			 argsList.add("--desugared-lib");
+			 argsList.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/META-INF/desugar/d8/desugar.json");
+			 } */
 
 			argsList.add("--output");
 			argsList.add(outPath);
@@ -477,7 +479,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			//输入dexs
 			argsList.addAll(classeDexFiles);
 			com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
-			logDebug("合并classes.dex，已输出: " + outDexZipPath);
+			//logDebug("合并classes.dex，已输出: " + outDexZipPath);
 		}
 
 		/**
@@ -532,11 +534,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 					File dexFile = new File(classDexFileCache);
 					if ( classFile.lastModified() > dexFile.lastModified() ){
-						/*
-						 logDebug("更新 " + classFilePath + " -> " + classDexFileCache);
-						 logDebug("更新 " + classFile.lastModified() + " -> " + dexFile.lastModified());
-						 logDebug("");
-						 */
 						//需要重新dexing的class
 						incrementalClassFiles.add(classFilePath);
 					}
@@ -563,6 +560,20 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		private List<Path> proguardPaths  = new ArrayList<>();
 
 		private void initBuildEnvironment(){
+			if ( isBuildRefresh() ){
+				File defaultJarDexDir = new File(getDefaultJarDexDirPath());
+				File defaultClassDexCacheDir = new File(getDefaultClassDexCacheDirPath());
+				File mergerCacheDir = new File(getMergerCacheDirPath());
+				
+				FileUtil.deleteFolder(defaultJarDexDir);
+				FileUtil.deleteFolder(defaultClassDexCacheDir);
+				FileUtil.deleteFolder(mergerCacheDir);
+				
+				defaultJarDexDir.mkdirs();
+				defaultClassDexCacheDir.mkdirs();
+				mergerCacheDir.mkdirs();
+			}
+
 			for ( String dependencyLib : getAllDependencyLibs() ){
 				File jarFile = new File(dependencyLib);
 
@@ -605,9 +616,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 
 			/* desugar_libs:{
-				validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs/2.0.4/desugar_jdk_libs-2.0.4.jar");
-				validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/desugar_jdk_libs_configuration-2.0.4.jar");
-			} */
+			 validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs/2.0.4/desugar_jdk_libs-2.0.4.jar");
+			 validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/desugar_jdk_libs_configuration-2.0.4.jar");
+			 } */
 
 		}
 

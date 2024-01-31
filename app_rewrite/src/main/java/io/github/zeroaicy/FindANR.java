@@ -26,12 +26,11 @@ public class FindANR{
 			public void handleMessage(Message msg){
 				switch ( msg.what ){
 					case MAIN_THREAD_MESSAGE:
-
-						//System.out.println("接收到消息");
-						//接收到消息
+						//优先FIND_ANR触发，移除
 						removeMessages(FIND_ANR);
-						//重置
-						sendEmptyMessageDelayed(FIND_ANR, 6000);
+						//重置FIND_ANR时间，一旦主进程阻塞
+						//则无法及时移除并重置FIND_ANR
+						sendEmptyMessageDelayed(FIND_ANR, 5500);
 						break;
 					case FIND_ANR:
 						//接收到FIND_ANR消息

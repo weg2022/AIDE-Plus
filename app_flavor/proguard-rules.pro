@@ -75,7 +75,10 @@
     @com.android.apksig.internal.asn1.Asn1Field <fields>;
 }
 
-
+-keep class com.hjq.permissions.Permission {
+    <fields>;
+    <methods>;
+}
 # 重写AIDE底包方法类
 -keep class com.aide.** {
     <fields>;
