@@ -19,12 +19,14 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	
 	static{
 		DebugUtil.debug();
+		FindANR.startSendMsg();
 	}
 	
 	@Override
 	protected void attachBaseContext(Context base) {
-		ZeroAicySetting.init(base);
 		super.attachBaseContext(base);
+		ZeroAicySetting.init(base);
+		
 	}
 	
 	

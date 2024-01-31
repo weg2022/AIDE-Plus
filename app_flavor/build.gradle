@@ -9,7 +9,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
-        versionName "3.2.210316-1.0"
+        versionName "1.1.9-[3.2.210316]"
     }
 	
     productFlavors {

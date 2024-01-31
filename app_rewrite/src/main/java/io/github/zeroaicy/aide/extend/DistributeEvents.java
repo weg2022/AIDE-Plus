@@ -22,12 +22,109 @@ import java.io.InputStream;
 import java.util.List;
 
 public class DistributeEvents {
+	
+
+
+	
+	
+	//此函数返回值仅代表是否拦截AIDE默认安装流程
+	public static boolean instalApp(final String appPath) {
+		//使用自定义安装器安装 没有Shizuku权限时
+		if (ZeroAicySetting.isCustomInstaller() 
+			|| !ShizukuUtil.checkPermission()
+			|| !ZeroAicySetting.isShizukuInstaller() ) {
+			return customInstaler(appPath);
+		}
+		
+		if (ZeroAicySetting.isShizukuInstaller()) {
+			App.aj(new InstalApkFromShizuku(appPath));
+			//拦截默认安装流程
+			return true;
+		}
+
+		return false;
+	}
+	//安装App
+	public static boolean customInstaler(String appPath) {
+		try {
+			
+            if (!App.Mz() 
+				|| App.nw().Ws()) {
+                Intent intent = new Intent(Intent.ACTION_DEFAULT);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				//分屏
+                //intent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
+				Uri apkUri;
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    apkUri = FileProvider.v5(App.VH(), FileSystem.j3(), new File(appPath));
+                    intent.addFlags(1);
+                }
+				else {
+                    apkUri = Uri.fromFile(new File(appPath));
+                }
+				intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+
+                Context context = App.VH();
+				//默认系统安装器
+				String apkInstall = ZeroAicySetting.getApkInstallPackageName();
+
+				List<ResolveInfo> queryIntentActivities = App.VH().getPackageManager().queryIntentActivities(intent, 0);
+				if (queryIntentActivities != null && queryIntentActivities.size() > 0) {
+					for (ResolveInfo resolveInfo : queryIntentActivities) {
+						ActivityInfo activityInfo = resolveInfo.activityInfo;
+						if (apkInstall.equals(activityInfo.applicationInfo.packageName)) {
+							intent.setComponent(new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name));
+							break;
+						}
+                    }
+                }
+				context.startActivity(intent);
+				
+				Log.d("HandleEventInstalApp", intent.toString());
+				iy.BT(context, intent);
+				a0.tp("Run app without root");
+				return true;
+            }
+        } catch (Throwable th) {
+            throw new Error(th);
+        }
+		return false;
+	}
+	public static boolean cmakeBuild(){
+		return false;
+	}
+	
+	/*public static Map<String, List<SyntaxError>> build(String projectPath){
+		return CmakeBuild.build(projectPath);
+	}
+	public static boolean isCmakeProject(String projectPath){
+		
+		return CmakeBuild.isCmakeProject(projectPath);
+	}*/
+	
+	public static boolean isGradleProject(String str) {
+        return zd.ro(str);
+    }
+	public static void NDKEenhancement(List<String> list, String project) {
+        if (isGradleProject(project)) {
+			//安卓gradle工程
+			list.add("NDK_PROJECT_PATH=.");
+			list.add("APP_BUILD_SCRIPT=src/main/jni/Android.mk");
+			list.add("NDK_APP_OUT=src/main/obj");
+			list.add("NDK_LIBS_OUT=src/main/jniLibs");
+
+			File ApplicationFile = new File(project, "src/main/jni/Application.mk");
+			if (ApplicationFile.exists()) {
+				list.add("NDK_APPLICATION_MK=" + "src/main/jni/Application.mk");
+			}
+		}
+	}
 	/*
-	没替换AIDE实现
-	*/
+	 没替换AIDE实现
+	 */
 	public static int GarbledRepai(InputStream mInput, byte[] data) throws IOException {
         int read = mInput.read();
-		
+
         if (read < 0) {
             return -1;
         }
@@ -75,109 +172,4 @@ public class DistributeEvents {
 		}
 		return count;
     }
-
-
-	public static boolean isGradleProject(String str) {
-        return zd.ro(str);
-    }
-	
-	public static void NDKEenhancement(List<String> list, String project) {
-        if (isGradleProject(project)) {
-			//安卓gradle工程
-			list.add("NDK_PROJECT_PATH=.");
-			list.add("APP_BUILD_SCRIPT=src/main/jni/Android.mk");
-			list.add("NDK_APP_OUT=src/main/obj");
-			list.add("NDK_LIBS_OUT=src/main/jniLibs");
-
-			File ApplicationFile = new File(project, "src/main/jni/Application.mk");
-			if (ApplicationFile.exists()) {
-				list.add("NDK_APPLICATION_MK=" + "src/main/jni/Application.mk");
-			}
-		}
-	}
-	
-	//此函数返回值仅代表是否拦截AIDE默认安装流程
-
-	//
-	public static boolean instalApp(final String appPath) {
-		//使用自定义安装器安装 没有Shizuku权限时
-		if (ZeroAicySetting.isCustomInstaller() 
-			|| !ShizukuUtil.checkPermission()
-			|| !ZeroAicySetting.isShizukuInstaller() ) {
-
-			return HandleEventInstalApp(appPath);
-		}
-		//使用
-		if (ZeroAicySetting.isShizukuInstaller()) {
-			App.aj(new InstalApkFromShizuku(appPath));
-
-			//拦截默认安装流程
-			return true;
-		}
-
-		return false;
-	}
-	//安装App
-	public static boolean HandleEventInstalApp(String appPath) {
-
-		Log.d("HandleEventInstalApp", appPath);
-		Uri uri;
-        try {
-            if (!App.Mz() 
-				|| App.nw().Ws()) {
-                
-				Intent intent = new Intent(Intent.ACTION_DEFAULT);
-				
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-				//分屏
-                //intent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    uri = FileProvider.v5(App.VH(), FileSystem.j3(), new File(appPath));
-                    intent.addFlags(1);
-                }
-				else {
-                    uri = Uri.fromFile(new File(appPath));
-                }
-				
-                intent.setDataAndType(uri, "application/vnd.android.package-archive");
-
-                Context context = App.VH();
-				//默认系统安装器
-				String apkInstall = ZeroAicySetting.getApkInstallPackageName();
-
-				List<ResolveInfo> queryIntentActivities = App.VH().getPackageManager().queryIntentActivities(intent, 0);
-				if (queryIntentActivities != null && queryIntentActivities.size() > 0) {
-					for (ResolveInfo resolveInfo : queryIntentActivities) {
-						ActivityInfo activityInfo = resolveInfo.activityInfo;
-						if (apkInstall.equals(activityInfo.applicationInfo.packageName)) {
-							intent.setComponent(new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name));
-							break;
-						}
-                    }
-                }
-				context.startActivity(intent);
-				Log.d("HandleEventInstalApp", intent.toString());
-				iy.BT(context, intent);
-                a0.tp("Run app without root");
-
-				return true;
-            }
-        } catch (Throwable th) {
-            throw new RuntimeException(th);
-        }
-		return false;
-	}
-	public static boolean cmakeBuild(){
-		return false;
-	}
-	
-	/*public static Map<String, List<SyntaxError>> build(String projectPath){
-		return CmakeBuild.build(projectPath);
-	}
-	public static boolean isCmakeProject(String projectPath){
-		
-		return CmakeBuild.isCmakeProject(projectPath);
-	}*/
 }

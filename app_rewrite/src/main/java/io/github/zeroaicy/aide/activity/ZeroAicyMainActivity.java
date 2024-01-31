@@ -1,25 +1,32 @@
 package io.github.zeroaicy.aide.activity;
 
 
+import abcd.iy;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 import android.widget.Toolbar;
 import com.aide.common.AndroidHelper;
 import com.aide.ui.App;
 import com.aide.ui.MainActivity;
 import com.aide.ui.rewrite.R;
+import com.aide.ui.util.FileSpan;
+import com.aide.ui.util.FileSystem;
 import com.hjq.permissions.XXPermissions;
-import io.github.zeroaicy.aide.extend.OpenAideTermux;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
@@ -32,15 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.aide.ui.util.FileSystem;
-import android.os.Build;
-import android.webkit.MimeTypeMap;
-import android.net.Uri;
-import abcd.iy;
-import android.content.ActivityNotFoundException;
-import android.widget.Toast;
-import com.aide.ui.util.FileSpan;
-public class ZeroAicyMainActivity extends MainActivity {
+public class ZeroAicyMainActivity extends MainActivity{
 
 
 
@@ -63,14 +62,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 		ShizukuUtil.removeBinderListener();
 	}
 
-	//@Override
+	@Override
 	public void setHasEmbeddedTabs(){
-		if ( ZeroAicySetting.enableActionBarSpinner() ){
-			AndroidHelper.ei(this, true);			
-		}
-		else{
-			AndroidHelper.ei(this, false);
-		}
+		//App.Mz() && AndroidHelper.u7(this) <= 610.0f
+		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
+						 || (App.Mz() && AndroidHelper.u7(this) <= 610.0f));
 		//绑定监听器
 		AndroidHelper.nw(this);
 	}
@@ -85,6 +81,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 			throw new RuntimeException(t);
         }
     }
+
+
 	//可见屏幕的高度
 	public static float Ws(Context context){
         try{
@@ -98,6 +96,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 			throw new RuntimeException(e);
         }
     }
+
 	@Override
 	public void FH(boolean z){
 		App.DW().u7(!z);
@@ -133,17 +132,19 @@ public class ZeroAicyMainActivity extends MainActivity {
 		ZeroAicyPreferencesActivity.DW(this, i);
     }
 
+
+	@Override
 	public void qp(String str){
 		String suffixName = FileSystem.XL(str);
 		String mimeTypeFromExtension = MimeTypeMap.getSingleton().getMimeTypeFromExtension(suffixName);
-		
+
 		if ( !suffixName.equals("java") 
 			&& !suffixName.equals("class") 
 			&& !suffixName.equals("xml") 
 			&& !suffixName.equals("svg") 
 			&& mimeTypeFromExtension != null 
 			&& !mimeTypeFromExtension.startsWith("text") ){
-				
+
 			if ( Build.VERSION.SDK_INT < 24 ){
 				Intent intent = new Intent();
 				intent.setAction("android.intent.action.VIEW");
@@ -160,7 +161,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 					return;
 				}
 			}
-			
+
 			return;
 		}
 		if ( FileSystem.ei(str) ){
@@ -168,7 +169,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		}
 		aq(new FileSpan(str, 1, 1, 1, 1));
 		App.P8().VH(str);
-        
+
     }
 	private static void gn(Object obj, Intent intent){
         ((MainActivity) obj).startActivity(intent);

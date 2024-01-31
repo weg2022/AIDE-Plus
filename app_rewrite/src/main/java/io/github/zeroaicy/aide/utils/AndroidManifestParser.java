@@ -39,16 +39,27 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Attr;
 import android.text.TextUtils;
+import io.github.zeroaicy.util.Log;
 
 public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
+	
 	public static AndroidManifestParser instance;
 
 	public static synchronized AndroidManifestParser getInstance(){  
         if ( instance == null ){  
             instance = new AndroidManifestParser();  
-        }  
+        }
         return instance;  
     }
+
+	public static AndroidManifestParser get(File path){
+		return get(path.getAbsolutePath());
+	}
+	public static AndroidManifestParser get(String path){
+		//复用缓存
+		return getInstance().j6(path);
+	}
+
 
 	public AndroidManifestParser(){
 		this.mAndroidManifestXmlPath = null;
@@ -59,9 +70,9 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 		try{
 			return new AndroidManifestParser(path);
 		}
-		catch (IOException e){}
-		catch (ParserConfigurationException e){}
-		catch (SAXException e){}
+		catch (Exception e){
+			Log.e("AndroidManifestParser", "创建AndroidManifestParser()", e);
+		}
 		return this;
 	}
 
@@ -81,17 +92,17 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
         return mAndroidManifestXmlPath;
     }
 
-    public AndroidManifestParser(String xmlPath) throws IOException, ParserConfigurationException, SAXException {
+    public AndroidManifestParser(String xmlPath) throws IOException, ParserConfigurationException, SAXException{
         this.mAndroidManifestXmlPath = xmlPath;
 		init();
     }
 
 
-    private void init() throws ParserConfigurationException, IOException, SAXException {
+    private void init() throws ParserConfigurationException, IOException, SAXException{
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 
-		this.document = builder.parse(mAndroidManifestXmlPath);
+		this.document = builder.parse(new File(mAndroidManifestXmlPath));
 
 		Element manifestElement = this.document.getDocumentElement();
 		NamedNodeMap manifestAttributes = manifestElement.getAttributes();
@@ -115,7 +126,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 				this.extractNativeLibs = false;
 			}
 		} 
-		
+
 		Node usesSdkNode = getFristElementByTagName(manifestElement, "uses-sdk");
 		if ( usesSdkNode != null ){
 			NamedNodeMap usesSdkAttributes = usesSdkNode.getAttributes();
@@ -124,7 +135,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 		}
 		//this.permissions = getPermissions(this.document);
     }
-	
+
 
 	/********************************manifest属性****************************************************/
 	private String packageName;
@@ -145,17 +156,28 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 	public String getMinSdkVersion(){
 		return minSdkVersion;
 	}
+	public int getMinSdkVersionInteger(){
+		int parseInt;
+		try{
+			parseInt = Integer.parseInt(this.minSdkVersion);
+		}
+		catch (NumberFormatException e){
+			parseInt = -1;
+		}
+		return parseInt;
+	}
+
 	public String getTargetSdkVersion(){
 		return targetSdkVersion;
 	}
-	
+
 	/********************************application属性****************************************************/
 
 	private String applicationLabel;
 	private String applicationName;
 	private String applicationIcon;
 	private boolean extractNativeLibs = true;
-	
+
     public String getApplicationLabel(){
         return this.applicationLabel;
     }
@@ -168,7 +190,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 	public boolean getExtractNativeLibs(){
         return this.extractNativeLibs;
     }
-	
+
 	public static String getAttributeNodeValue(Element element, String attributeName){
 		Attr attributeNode = element.getAttributeNode(attributeName);
 		if ( attributeNode != null ){
@@ -177,8 +199,8 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 		return null;
 	}
 	public static String getAttributeValue(NamedNodeMap attributes, String attributeName){
-		if( attributes == null ) return null;
-		
+		if ( attributes == null ) return null;
+
 		Node namedItem = attributes.getNamedItem(attributeName);
 		if ( namedItem != null ){
 			return namedItem.getNodeValue();
@@ -217,7 +239,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
             return nn.getNodeValue();
         return "";
     }
-	
+
 	List<String> permissions ;
 	public List<String> getPermissions(){
 		return this.permissions;
@@ -240,6 +262,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
         }
         return result;
     }
+
 	/*******************修改API*******/
 
 	/**
@@ -251,11 +274,14 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
             ((Element) per.item(i)).setAttribute("android:exported", "true");
         }
     }
-
-
-
-    
-
+    public void exportActivity(boolean all){
+        NodeList per = document.getElementsByTagName("activity");
+        for ( int i = 0; i < per.getLength(); i += 1 ){
+            ((Element) per.item(i))
+			.setAttribute("android:exported", "true");
+        }
+    }
+	
     public List<String> getActivityName(){
         List<FActivityInfo> as = getActivity();
         List<String> names = new ArrayList<String>();
@@ -263,6 +289,8 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
             names.add(as.get(i).name);
         return names;
     }
+
+
     public List<FActivityInfo> getActivity(){
         NodeList per = document.getElementsByTagName("activity");
         List<FActivityInfo> result = new ArrayList<FActivityInfo>();
@@ -340,16 +368,12 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
         per.item(id).appendChild(FistActivity);
         return true;
     }
-	
 
-    
-
-    
     public boolean RemovePermission(int id){
 		getPermissions().remove(id);
         return false;
     }
-	
+
     public static void Save(Document document, String mAndroidManifestXmlPath) throws Exception{
 		FileOutputStream fos = new FileOutputStream(mAndroidManifestXmlPath);
         OutputStreamWriter osw = new OutputStreamWriter(fos);

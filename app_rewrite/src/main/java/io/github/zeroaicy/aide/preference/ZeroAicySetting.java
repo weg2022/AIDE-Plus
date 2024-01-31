@@ -117,6 +117,7 @@ public class ZeroAicySetting {
 	public static boolean isEnableMinify(){
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_minify", false);
 	}
+	
 	public static boolean isEnableAapt2() {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", false);
 	}

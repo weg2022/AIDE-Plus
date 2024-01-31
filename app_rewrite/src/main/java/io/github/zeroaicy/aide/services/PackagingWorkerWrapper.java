@@ -3,40 +3,40 @@ package io.github.zeroaicy.aide.services;
 import android.os.Build;
 import android.text.TextUtils;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
-import io.github.zeroaicy.aide.aapt2.AndroidManifestParser;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.MD5Util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import io.github.zeroaicy.aide.utils.AndroidManifestParser;
 
-public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker {
+public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker{
 
 	ExternalPackagingService externalPackagingService;
 	private String noBackupFilesDirPath;
-	public PackagingWorkerWrapper(ExternalPackagingService externalPackagingService) {
+	public PackagingWorkerWrapper(ExternalPackagingService externalPackagingService){
 		//父类没有使用外部类[ExternalPackagingService]
 		null.super();
 		this.externalPackagingService = externalPackagingService;
 	}
-	public String getUserAndroidJar() {
+	public String getUserAndroidJar(){
 		return ZeroAicySetting.getDefaultSpString("user_androidjar", getNoBackupFilesDirPath() + "/.aide/android.jar");
 	}
-	
+
 	/**
 	 * no_backup路径
 	 */
-	public String getNoBackupFilesDirPath() {
-		if (noBackupFilesDirPath == null) {
+	public String getNoBackupFilesDirPath(){
+		if ( noBackupFilesDirPath == null ){
 			noBackupFilesDirPath = externalPackagingService.getNoBackupFilesDir().getAbsolutePath();
 		}
 		return this.noBackupFilesDirPath;
 	}
 
 	@Override
-	public final void Zo(String str, String[] strArr, String[] strArr2, String[] strArr3, String str2, String str3, String str4, String[] strArr4, String str5, String str6, String str7, String str8, String str9, boolean z, boolean z2, boolean z3) {
-		if (this.Hw == null) {
+	public final void Zo(String str, String[] strArr, String[] strArr2, String[] strArr3, String str2, String str3, String str4, String[] strArr4, String str5, String str6, String str7, String str8, String str9, boolean z, boolean z2, boolean z3){
+		if ( this.Hw == null ){
 			this.Hw = new ArrayList<>();
 		}
 		//添加打包任务
@@ -45,19 +45,17 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 	public abstract TaskWrapper getTaskWrapper(String str, String[] strArr, String[] strArr2, String[] strArr3, String str2, String str3, String str4, String[] strArr4, String str5, String str6, String str7, String str8, String str9, boolean z, boolean z2, boolean z3);
 
-	public abstract class TaskWrapper extends Task {
-
-
+	public abstract class TaskWrapper extends Task{
 		//class转dex默认输出目录
 		private final String defaultClassDexCacheDirPath;
 		private final String defaultIntermediatesDirPath;
-		
+
 		/**
 		 * android:extractNativeLibs="false"必须无压缩
 		 */
 		private boolean androidFxtractNativeLibs = true;
 		private int minSdk = 21;
-		
+
 		/*************************参数*********************************/
 		// 主项目.class file缓存目录
 		private final String mainClassCacheDir;
@@ -69,7 +67,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		//构建文件地址[类型分为apk和zip]
 		private String outFilePath;
-		private String aAptResourcePath;
+		private String aaptResourcePath;
 
 
 		//项目的jardex默认目录
@@ -94,95 +92,133 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		private final String signatureAliasPassword;
 
-		
+		private String mergerCachePath;
 
-		public int getMinSdk() {
+
+
+		public int getMinSdk(){
 			return minSdk;
 		}
 
-		public String getZipalignPath() {
+		public String getZipalignPath(){
 			return this.zipalignPath;
 		}
-
-		public TaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aAptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX) {
-			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aAptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
+		public TaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aaptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX){
+			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aaptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
 
 			this.mainClassCacheDir = mainClassCacheDir;
+			
 			File mainProjectClassCacheDirFile = new File(this.mainClassCacheDir);
 			File parentFile = mainProjectClassCacheDirFile.getParentFile();
 			this.defaultIntermediatesDirPath = new File(parentFile, "intermediates").getAbsolutePath();
 			this.defaultClassDexCacheDirPath = this.getIntermediatesChildDirPath(mainProjectClassCacheDirFile.getName());
-
+			this.mergerCachePath = getIntermediatesChildDirPath("dex");
+			
 			this.allClassFileRootDirs = classFileRootDirs;
 			this.sourceDirs = sourceDirs;
 			this.dependencyLibs = dependencyLibs;
+
 			//  build/bin | bin/[debug | release]/dex
 			this.outDirPath = outDirPath;
-			
+
 			//Zo
 			this.defaultJarDexDirPath = this.getIntermediatesChildDirPath("jardex");
-			this.aAptResourcePath = aAptResourcePath;
+
+			this.aaptResourcePath = aaptResourcePath;
 			this.nativeLibDirs = nativeLibDirs;
 			this.outFilePath = outFilePath;
-			
+
 			this.signaturePath = signaturePath;
 			this.signaturePassword = signaturePassword;
 			this.signatureAlias = signatureAlias;
 			this.signatureAliasPassword = signatureAliasPassword;
-			
+
 			this.buildRefresh = buildRefresh;
 
-			if (isAndroidProject()) {
-				File androidManifestXmlFile = new File(getBuildOutDirPath() + "/injected/AndroidManifest.xml");
-				AndroidManifestParser androidManifestParser;
-				if (androidManifestXmlFile.exists()) {
-					androidManifestParser = new AndroidManifestParser(androidManifestXmlFile.getAbsolutePath());
-				} else if ((androidManifestXmlFile = new File(getBuildOutDirPath() + "/merged/AndroidManifest.xml")).exists()) {
-					androidManifestParser = new AndroidManifestParser(androidManifestXmlFile.getAbsolutePath());					
-				} else if ((androidManifestXmlFile = new File(getBuildOutDirPath() + "/../AndroidManifest.xml")).exists()) {
-					androidManifestParser = new AndroidManifestParser(androidManifestXmlFile.getAbsolutePath());
-				} else {
-					androidManifestParser = null;	
-				}
-				if (androidManifestParser != null) {
-					this.androidFxtractNativeLibs = androidManifestParser.getAndroidFxtractNativeLibs();
-					Log.d("androidFxtractNativeLibs", androidFxtractNativeLibs);
-					this.minSdk = androidManifestParser.getMiniSdk();
-				}
-				if (this.minSdk == -1) {
-					this.minSdk = 21;
-				}
-			}else{
-				//Java项目为当前设备
-				this.minSdk = Build.VERSION.SDK_INT;
-			}
+			this.minSdk = this.getProjectMinSdk();
 			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
 		}
 
-		private boolean isAndroidProject() {
+		private int getProjectMinSdk(){
+			final int defaultProjectMinSdk = 21;
+			final int projectMinSdk;
+
+			if ( isAndroidProject() ){
+				AndroidManifestParser androidManifestParser = getAndroidManifestParser();
+				if ( androidManifestParser == null ){
+					projectMinSdk = defaultProjectMinSdk;
+				}
+				else{
+					this.androidFxtractNativeLibs = androidManifestParser.getExtractNativeLibs();
+
+					final int androidProject ;
+					try{
+						String minSdkVersion = androidManifestParser.getMinSdkVersion();
+						androidProject = Integer.parseInt(minSdkVersion);
+					}
+					catch (NumberFormatException e){
+						androidProject = defaultProjectMinSdk;
+					}
+					projectMinSdk = androidProject;
+				}
+			}
+			else{
+				//Java项目为当前设备
+				projectMinSdk = Build.VERSION.SDK_INT;
+			}
+			return projectMinSdk;
+		}
+		private AndroidManifestParser getAndroidManifestParser(){
+			String buildOutDirPath = getBuildOutDirPath();
+			AndroidManifestParser androidManifestParser = null;  
+			for ( String androidManifestAbsolutePath : new String[]{
+				"injected/AndroidManifest.xml",
+				"merged/AndroidManifest.xml",
+				"../AndroidManifest.xml"} ){
+				File androidManifestXmlFile = new File(buildOutDirPath, androidManifestAbsolutePath);
+				if ( androidManifestXmlFile.exists() ){
+					androidManifestParser = AndroidManifestParser.get(androidManifestXmlFile);
+					break;
+				}
+			}
+			return androidManifestParser;
+		}
+
+		private boolean isAndroidProject(){
 			return getOutFilePath().endsWith(".apk");
 		}
 
 		// intermediates目录地址
-		public String getDefaultIntermediatesDirPath() {
+		public String getDefaultIntermediatesDirPath(){
 			return defaultIntermediatesDirPath;
 		}
+		public String getMergerCacheDirPath(){
+			return this.mergerCachePath;
+		}
+		
 		//返回 intermediates子文件夹
-		public String getIntermediatesChildDirPath(String childDirName) {
+		public String getIntermediatesChildDirPath(String childDirName){
 			File childFile = new File(getDefaultIntermediatesDirPath(), childDirName);
-			if (!childFile.exists() && !childFile.mkdirs()) {
+			if ( !childFile.exists() && !childFile.mkdirs() ){
 				Log.d("Could not create dir: " + childFile);
 			}
 			return childFile.getAbsolutePath();
 		}
 
 		@Override
-		public final void Mr() {
-			try {
+		public final void Mr(){
+			try{
 				packaging();
-			} catch (Throwable e) {
+			}
+			catch (Throwable e){
 				Log.d("打包错误", "堆栈 -> ", e);
-				throw new Error(e);
+				String message = e.getMessage();
+				
+				Throwable cause = e;
+				while ( (cause = e.getCause()) != null ){
+					e = cause;
+				}
+				throw new Error(message, e);
 			}
 		}
 		/*************************抽象层，屏蔽所有父类方法*********************************/
@@ -197,75 +233,77 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		 */
 		public abstract List<String> getClassesDexZipList() throws Throwable;
 
-		
+
 		/******************************************/
 		/**
 		 * 返回android:extractNativeLibs="false"的值
 		 */
-		public boolean getAndroidFxtractNativeLibs() {
+		public boolean getAndroidFxtractNativeLibs(){
 			return this.androidFxtractNativeLibs;
 		}
-		
-		
+
+
 		/**********共用层，共用一些相同的代码逻辑***********************************/
-		
+
 		/**
 		 * 签名路径
 		 */
-		public String getSignaturePath() {
+		public String getSignaturePath(){
 			return this.signaturePath;
 		}
 		//签名密码
-		public String getSignaturePassword() {
+		public String getSignaturePassword(){
 			return signaturePassword;
 		}
 		//别名
-		public String getSignatureAlias() {
+		public String getSignatureAlias(){
 			return signatureAlias;
 		}
 		//别名密码
-		public String getSignatureAliasPassword() {
+		public String getSignatureAliasPassword(){
 			return signatureAliasPassword;
 		}
-		
+
 		/**
 		 * 构建刷新
 		 */
-		public boolean isBuildRefresh() {
+		public boolean isBuildRefresh(){
 			return this.buildRefresh;
 		}
 
-		public String[] getAllClassFileRootDirs() {
+		public String[] getAllClassFileRootDirs(){
 			return this.allClassFileRootDirs;
 		}
 		/**
 		 * 返回主项目class文件缓存路径，即主项目class文件的输出目录
 		 */
-		public String getMainClassCacheDir() {
+		public String getMainClassCacheDir(){
 			return this.mainClassCacheDir;
 		}
 		/**
 		 * 返回默认dex文件缓存路径，[从class文件dexing的]
 		 */
-		public String getDefaultClassDexCacheDirPath() {
+		public String getDefaultClassDexCacheDirPath(){
 			return defaultClassDexCacheDirPath;
 		}
 
 		/**
 		 * 返回class dexing后的dex缓存路径
 		 */
-		public String getClassDexFileCache(String classFileSubPath) {
-			return getDefaultClassDexCacheDirPath() + classFileSubPath.substring(0, classFileSubPath.length() - "class".length()) + ".dex";
+		public String getClassDexFileCache(String classFileSubPath){
+			int endIndex = classFileSubPath.length() - ".class".length();
+			return getDefaultClassDexCacheDirPath() 
+				+ classFileSubPath.substring(0, endIndex) + ".dex";
 		}
 		/**
 		 * 返回jar的dex.zip缓存路径
 		 */
-		public String getJarDexCachePath(String jarFilePath) {
+		public String getJarDexCachePath(String jarFilePath){
 			String jarDexCacheDirPath = getJarDexCacheDirPath(jarFilePath);
 			String jarDexZipName = new File(jarFilePath).getName() + ".dex.zip";
 
 			//不会为null
-			if (jarDexCacheDirPath == null) {
+			if ( jarDexCacheDirPath == null ){
 				jarDexCacheDirPath = getDefaultJarDexDirPath();
 			}
 			return jarDexCacheDirPath + "/" +  jarDexZipName;
@@ -275,51 +313,52 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		 * 返回 getIntermediatesChildDirPath("jardex")目录下路径的md5码
 		 * 如果是maven仓库则去掉仓库路径在进行计算
 		 */
-		public String getJarDexCacheDirPath(String dependencyLibPath) {
+		public String getJarDexCacheDirPath(String dependencyLibPath){
 			String userM2repositories = ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
 			String defaultM2repositoriesDirPath = getNoBackupFilesDirPath() + "/.aide/maven";
-			
+
 			String key;
 			/**
 			 * 是否是在自定义仓库缓存文件夹中
 			 */
-			if (!TextUtils.isEmpty(userM2repositories) 
-				&& dependencyLibPath.startsWith(userM2repositories)) {
+			if ( !TextUtils.isEmpty(userM2repositories) 
+				&& dependencyLibPath.startsWith(userM2repositories) ){
 				//指定了minsdk，会污染缓存，所以只能放项目目录
 				key = dependencyLibPath.substring(userM2repositories.length());
 			}
 			/**
 			 * 默认maven仓库缓存地址
 			 */
-			else if ( dependencyLibPath.startsWith(defaultM2repositoriesDirPath) ) {
+			else if ( dependencyLibPath.startsWith(defaultM2repositoriesDirPath) ){
 				key = dependencyLibPath.substring(defaultM2repositoriesDirPath.length());
-			}else{
+			}
+			else{
 				key = dependencyLibPath;	
 			}
-			
+
 			return getIntermediatesChildDirPath("jardex/" + MD5Util.stringMD5(key));
 		}
 		/**
 		 * 全部依赖，不只是jar
 		 */
-		public String[] getAllDependencyLibs() {
+		public String[] getAllDependencyLibs(){
 			return this.dependencyLibs;
 		}
-		
-		public String getDefaultJarDexDirPath() {
+
+		public String getDefaultJarDexDirPath(){
 			return this.defaultJarDexDirPath;
 		}
-		
-		public String[] getSourceDirs() {
+
+		public String[] getSourceDirs(){
 			return this.sourceDirs;
 		}
-		public String[] getNativeLibDirs() {
+		public String[] getNativeLibDirs(){
 			return this.nativeLibDirs;
 		}
 		/**
 		 * 输出
 		 */
-		public String getBuildOutDirPath() {
+		public String getBuildOutDirPath(){
 			return this.outDirPath;
 		}
 
@@ -327,57 +366,57 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		 * 返回输出文件路径
 		 * 可以在此处实现将apk生成项目缓存路径中
 		 */
-		public String getOutFilePath() {
+		public String getOutFilePath(){
 			return this.outFilePath;
 		}
 
 		//resource.ap_文件
-		public String getAAptResourceFilePath() {
-			return this.aAptResourcePath;
+		public String getAAptResourceFilePath(){
+			return this.aaptResourcePath;
 		}
 
 		/**
 		 * 显示构建总进度，只有一级进度
 		 */
-		public void showProgress(String progressTitle, int progress) {
+		public void showProgress(String progressTitle, int progress){
 			ExternalPackagingService.ExternalPackagingServiceWorker.v5(PackagingWorkerWrapper.this, progressTitle + "...", progress);
 			//super.a8(progressTitle, progress);
 		}
 	}
-	
-	
+
+
 	/**
-	* -dontwarn *
-	private void 混淆(boolean 混淆, List<String> classesDexZipList){
-		if ( 混淆 ){
-			String mixUpDexZipFilePath = getMixUpDexZipFilePath();
-			File outDexZipFile = new File(mixUpDexZipFilePath);
-			//删除缓存文件
-			outDexZipFile.delete();
+	 * -dontwarn *
+	 private void 混淆(boolean 混淆, List<String> classesDexZipList){
+	 if ( 混淆 ){
+	 String mixUpDexZipFilePath = getMixUpDexZipFilePath();
+	 File outDexZipFile = new File(mixUpDexZipFilePath);
+	 //删除缓存文件
+	 outDexZipFile.delete();
 
-			List<String> argsList  = new ArrayList<String>();
-			String user_androidjar = getUserAndroidJar(); 
-			//fillD8Args(argsList, false, false, user_androidjar, null, mixUpDexZipFilePath);
-			// --pg-compat             # 在 Proguard 兼容模式下使用 R8 进行编译。
-			// --pg-conf <file>        # 混淆器配置<file>.
-			// --pg-conf-output <file> # 将集合配置输出到<file>.
-			// --pg-map-output <file>  # 将结果名称和线路映射输出到<file>
-			argsList.add("--pg-compat");
-			argsList.add("--pg-conf");
-			argsList.add("混淆配置");
+	 List<String> argsList  = new ArrayList<String>();
+	 String user_androidjar = getUserAndroidJar(); 
+	 //fillD8Args(argsList, false, false, user_androidjar, null, mixUpDexZipFilePath);
+	 // --pg-compat             # 在 Proguard 兼容模式下使用 R8 进行编译。
+	 // --pg-conf <file>        # 混淆器配置<file>.
+	 // --pg-conf-output <file> # 将集合配置输出到<file>.
+	 // --pg-map-output <file>  # 将结果名称和线路映射输出到<file>
+	 argsList.add("--pg-compat");
+	 argsList.add("--pg-conf");
+	 argsList.add("混淆配置");
 
 
 
-			argsList.add("--release");
-			argsList.add("--dex");
+	 argsList.add("--release");
+	 argsList.add("--dex");
 
-			//输入dexs
-			argsList.addAll(classesDexZipList);
-			com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
+	 //输入dexs
+	 argsList.addAll(classesDexZipList);
+	 com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
 
-			//添加混淆后的dex.zip
-			classesDexZipList.clear();
-			classesDexZipList.add(mixUpDexZipFilePath);
-		}
-	}*/
+	 //添加混淆后的dex.zip
+	 classesDexZipList.clear();
+	 classesDexZipList.add(mixUpDexZipFilePath);
+	 }
+	 }*/
 }
