@@ -89,10 +89,10 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
         switch (id) {
 			case android.R.id.selectAll:
 				LogD("全选--start");
-                MainActivity rN = App.rN();
+                MainActivity rN = App.getMainActivity();
                 if (rN == null) return true;
                 rN.w9();
-                FileSpan currentFileSpan = App.rN().sh().getCurrentFileSpan();
+                FileSpan currentFileSpan = App.getMainActivity().sh().getCurrentFileSpan();
                 com.aide.ui.App.we().QX(currentFileSpan.j6, currentFileSpan.DW, currentFileSpan.FH, currentFileSpan.Hw, currentFileSpan.v5);
 				LogD("全选--end");
                 return true;

@@ -79,10 +79,10 @@ public class AaptServiceArgs {
 			if (fileExists(buildGradlePath)) {
 				isGradleProject = true;
 				
-				buildGradle = buildGradle.j6((buildGradlePath));
+				buildGradle = buildGradle.getConfiguration((buildGradlePath));
 				
-				this.defaultMinSdk = Integer.parseInt(buildGradle.QX(null));
-				this.defaultTargetSdk = Integer.parseInt(buildGradle.a8(null));				
+				this.defaultMinSdk = Integer.parseInt(buildGradle.getMinSdkVersion(null));
+				this.defaultTargetSdk = Integer.parseInt(buildGradle.getTargetSdkVersion(null));				
 			}
 			else {
 				this.defaultMinSdk = 14;

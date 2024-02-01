@@ -58,7 +58,12 @@ public class ZeroAicyExtensionInterface {
 	public static boolean isEnableADRT(){
 		return ZeroAicySetting.enableADRT();
 	}
-	
+	/*
+	* 控制台是否启用分屏
+	*/
+	public static boolean isEnableSplitScreenConsole(){
+		return false;
+	}
 	/**
 	 * 修改maven默认下载路径
 	 */

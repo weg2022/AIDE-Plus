@@ -84,7 +84,6 @@ public class ContextUtil{
 	 */
 	public static String getProcessName(){
 		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ){
-			//ReflectPie.on(Application.class).call("getProcessName").get();
 			return Application.getProcessName();
 		}
 		try{
@@ -97,6 +96,7 @@ public class ContextUtil{
 	
 	public static final boolean isMainProcess = ContextUtil.getPackageName().equals(ContextUtil.getProcessName());
 	public static boolean isMainProcess(){
+		
 		return isMainProcess;
 	}
 	

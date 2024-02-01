@@ -57,7 +57,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 	}
 	public static AndroidManifestParser get(String path){
 		//复用缓存
-		return getInstance().j6(path);
+		return getInstance().getConfiguration(path);
 	}
 
 
@@ -66,7 +66,7 @@ public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 	}
 
 	@Override
-	public AndroidManifestParser DW(String path){
+	public AndroidManifestParser makeConfiguration(String path){
 		try{
 			return new AndroidManifestParser(path);
 		}

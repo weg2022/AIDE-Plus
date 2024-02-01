@@ -1,7 +1,6 @@
 package io.github.zeroaicy.aide.extend;
-import abcd.a0;
+
 import abcd.iy;
-import abcd.zd;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import com.aide.ui.firebase.FireBaseLogEvent;
+import com.aide.ui.project.internal.GradleTools;
 
 public class DistributeEvents {
 	
@@ -48,7 +49,7 @@ public class DistributeEvents {
 	public static boolean customInstaler(String appPath) {
 		try {
 			
-            if (!App.Mz() 
+            if (!App.isTrainerMode() 
 				|| App.nw().Ws()) {
                 Intent intent = new Intent(Intent.ACTION_DEFAULT);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -56,7 +57,7 @@ public class DistributeEvents {
                 //intent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
 				Uri apkUri;
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    apkUri = FileProvider.v5(App.VH(), FileSystem.j3(), new File(appPath));
+                    apkUri = FileProvider.getUriForFile(App.getContext(), FileSystem.j3(), new File(appPath));
                     intent.addFlags(1);
                 }
 				else {
@@ -64,11 +65,11 @@ public class DistributeEvents {
                 }
 				intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
 
-                Context context = App.VH();
+                Context context = App.getContext();
 				//默认系统安装器
 				String apkInstall = ZeroAicySetting.getApkInstallPackageName();
 
-				List<ResolveInfo> queryIntentActivities = App.VH().getPackageManager().queryIntentActivities(intent, 0);
+				List<ResolveInfo> queryIntentActivities = App.getContext().getPackageManager().queryIntentActivities(intent, 0);
 				if (queryIntentActivities != null && queryIntentActivities.size() > 0) {
 					for (ResolveInfo resolveInfo : queryIntentActivities) {
 						ActivityInfo activityInfo = resolveInfo.activityInfo;
@@ -82,7 +83,7 @@ public class DistributeEvents {
 				
 				Log.d("HandleEventInstalApp", intent.toString());
 				iy.BT(context, intent);
-				a0.tp("Run app without root");
+				FireBaseLogEvent.tp("Run app without root");
 				return true;
             }
         } catch (Throwable th) {
@@ -103,7 +104,7 @@ public class DistributeEvents {
 	}*/
 	
 	public static boolean isGradleProject(String str) {
-        return zd.ro(str);
+        return GradleTools.isGradleProject(str);
     }
 	public static void NDKEenhancement(List<String> list, String project) {
         if (isGradleProject(project)) {

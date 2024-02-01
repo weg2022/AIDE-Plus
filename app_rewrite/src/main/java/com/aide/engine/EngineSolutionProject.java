@@ -25,12 +25,12 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class EngineSolutionProject implements Parcelable {
-    public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject2$a();
+    public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 
     final String AL;
     final List<String> Jl;
     final String Q6;
-    public final String WB;
+    public final String projectName;
     final boolean Z1;
     final boolean cT;
     final List<EngineSolution.File> fY;
@@ -48,8 +48,8 @@ public class EngineSolutionProject implements Parcelable {
 
 
 	private boolean compress = false;
-    public EngineSolutionProject(String str, String str2, String str3, List<EngineSolution.File> list, List<String> list2, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5){
-		this.WB = str;
+    public EngineSolutionProject(String projectName, String str2, String str3, List<EngineSolution.File> list, List<String> list2, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5){
+		this.projectName = projectName;
 
         this.mb = str2;
         this.jw = str3;
@@ -80,7 +80,6 @@ public class EngineSolutionProject implements Parcelable {
 	private static String zipParcelDataName = "com.aide.engine.EngineSolutionProject";
 
 	private static SharedPreferences sharedPreferences;
-
 	public static SharedPreferences getSharedPreferences(){
 		if ( sharedPreferences == null ){
 			sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ContextUtil.getContext());
@@ -94,38 +93,33 @@ public class EngineSolutionProject implements Parcelable {
 		//写入数据
 		writeToParcel(obtain);
 
+		method(obtain, dest);
+    }
+
+	private void method(Parcel obtain, Parcel dest) throws RuntimeException{
 		boolean data_compression_enable = getSharedPreferences().getBoolean("data_compression_enable", false);
 		int data_compression_threshold = 25;
 		try{
 			data_compression_threshold = Integer.parseInt(getSharedPreferences().getString("data_compression_threshold", "25"));
 		}
-		catch (NumberFormatException e){
-
-		}
+		catch (NumberFormatException e){}
 		int data_compression_level = Deflater.DEFLATED;
 		try{
 			data_compression_level = Integer.parseInt(getSharedPreferences().getString("data_compression_level", "9"));
 		}
-		catch (NumberFormatException e){
-
-		}
+		catch (NumberFormatException e){}
 		if ( data_compression_level < 0 || data_compression_level > 9 ){
 			data_compression_level = Deflater.DEFLATED;
 		}
 		//此处1000作为1KB
-
 		compress = data_compression_enable && obtain.dataSize() > data_compression_threshold * 1000;
 		//是否压缩标识
 		dest.writeInt(compress ? 1 : 0);
 		if ( compress ){
-			//System.out.print("压缩模式: " );
-			//System.out.println("压缩前数据大小: " + obtain.dataSize() );
 			try{
 				//压缩数据
 				byte[] data = compressParcelData(obtain, data_compression_level);
-				//System.out.println("压缩后数据大小: " + data.length );
 				dest.writeByteArray(data, 0, data.length);
-
 			}
 			catch (Throwable e){
 				throw new RuntimeException(e);
@@ -137,7 +131,7 @@ public class EngineSolutionProject implements Parcelable {
 		}
 		//释放
 		obtain.recycle();
-    }
+	}
 
 	private byte[] compressParcelData(Parcel obtain, final int level) throws IOException{
 		ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
@@ -159,7 +153,7 @@ public class EngineSolutionProject implements Parcelable {
 	}
 
 	private void writeToParcel(Parcel parcel){
-		parcel.writeString(this.WB);
+		parcel.writeString(this.projectName);
 		parcel.writeString(this.mb);
 		parcel.writeString(this.jw);
 		parcel.writeInt(this.k2 ? 1 : 0);
@@ -192,7 +186,7 @@ public class EngineSolutionProject implements Parcelable {
 			readParcel = unZipParcel(dest);
 		}
 
-		this.WB = readParcel.readString();
+		this.projectName = readParcel.readString();
 		this.mb = readParcel.readString();
 		this.jw = readParcel.readString();
 		this.k2 = readParcel.readInt() != 0;

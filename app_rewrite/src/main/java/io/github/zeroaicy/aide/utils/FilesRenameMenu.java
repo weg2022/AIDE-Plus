@@ -15,7 +15,7 @@ public class FilesRenameMenu extends zb {
 		public FilesRenameMenu() {}
 
 		public boolean DW(boolean z) {
-			String path = App.Ws().FH();
+			String path = App.getFileBrowserService().FH();
 			
 			if (path != null) {
 				if( new File(path).exists()){
@@ -41,11 +41,11 @@ public class FilesRenameMenu extends zb {
 		}
 
 		public boolean run() {
-			final String FH = App.Ws().FH();
-			MessageBox.XL(App.rN(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.er(FH), new ValueRunnable<String>(){
+			final String FH = App.getFileBrowserService().FH();
+			MessageBox.XL(App.getMainActivity(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.getName(FH), new ValueRunnable<String>(){
 					@Override
 					public void j6(String t){
-						App.rN().w9();
+						App.getMainActivity().w9();
 						App.we().SI(FH, t);
 					}
 				});

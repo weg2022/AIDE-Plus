@@ -21,7 +21,11 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile files("provider/ClassReaderLibrary-1.5.3-beta.jar")
-	//compile files("provider/ClassReaderLibrary-1.4.9-beta_compileOnly.jar")
+	//api 'com.android.support:support-v4:28.+'
+	//api 'com.android.support:customtabs:28.+'
+	//api 'com.android.support:multidex:1.0.0'
+	
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+	
+	api project(':support-v4')
 }

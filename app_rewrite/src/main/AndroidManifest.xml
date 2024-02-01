@@ -140,7 +140,7 @@
 			android:name="io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService"
 			android:exported="false"
 			android:process=":PackagingService" />
-		
+
 
 		<!-- 被修改的 -->
 		<activity
@@ -379,7 +379,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-		
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2926119607791157~3039278622" />
@@ -450,11 +450,13 @@
                     android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
+
         <provider
             android:name="com.google.firebase.provider.FirebaseInitProvider"
             android:exported="false"
             android:authorities="${applicationId}.firebaseinitprovider"
             android:initOrder="100" />
+		
         <activity
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:name="com.google.android.gms.common.api.GoogleApiActivity"

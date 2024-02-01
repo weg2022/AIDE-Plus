@@ -21,11 +21,11 @@ public class InstalApkFromShizuku implements Runnable {
 	public void run() {
 		//在主线程中
 		final String instalApkError = ShizukuUtil.instalApk(appPath);
-		Context context = App.VH();
+		Context context = App.getContext();
 		if (TextUtils.isEmpty(instalApkError)) {
 			//成功安装，启动应用
-			String gW = App.P8().gW();
-			String packageName = AndroidProjectSupport.kQ(gW, App.P8().rN());
+			String gW = App.getProjectService().getCurrentAppHome();
+			String packageName = AndroidProjectSupport.kQ(gW, App.getProjectService().getBuildVariant());
 			PackageManager packageManager = context.getPackageManager();
 			Intent launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName);
 
@@ -33,13 +33,13 @@ public class InstalApkFromShizuku implements Runnable {
 				context.startActivity(launchIntentForPackage);
 			}
 			else {
-				com.aide.common.MessageBox.BT(App.rN(), "运行错误", "应用程序已成功安装，但找不到主活动");					
+				com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "应用程序已成功安装，但找不到主活动");					
 			}
 		}
 		else {
 			
 			//安装失败
-			com.aide.common.MessageBox.BT(App.rN(), "安装失败", instalApkError);
+			com.aide.common.MessageBox.BT(App.getMainActivity(), "安装失败", instalApkError);
 		}
 	}
 

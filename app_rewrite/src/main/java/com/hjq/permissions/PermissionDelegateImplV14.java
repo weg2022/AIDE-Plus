@@ -9,7 +9,6 @@ import android.net.VpnService;
 import android.provider.Settings;
 
 
-import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 
 import java.util.Set;

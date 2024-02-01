@@ -20,7 +20,7 @@ public class we {
 	}
 
     public void Hw(String str) {
-		SharedPreferences.Editor edit = App.VH().getSharedPreferences("FileBrowserService", 0).edit();
+		SharedPreferences.Editor edit = App.getContext().getSharedPreferences("FileBrowserService", 0).edit();
 		edit.putString("CurrentDir", str);
 		edit.commit();
 		v5();
@@ -35,7 +35,7 @@ public class we {
     }
 
     public String j6() {
-		String string = App.VH().getSharedPreferences("FileBrowserService", 0).getString("CurrentDir", null);
+		String string = App.getContext().getSharedPreferences("FileBrowserService", 0).getString("CurrentDir", null);
 		if (string == null || !FileSystem.SI(string)) {
 			String DW = DW();
 			FileSystem.g3(DW);

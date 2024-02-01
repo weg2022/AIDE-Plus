@@ -39,7 +39,7 @@ public class OpenAideTermux implements abcd.fg {
 	@Override
 	public boolean isEnabled() {
 		String currentFilePath;
-		FileBrowserService fileBrowserService = App.Ws();
+		FileBrowserService fileBrowserService = App.getFileBrowserService();
 		if (fileBrowserService.FH() != null) {
 			//长按文件得到了文件
 			currentFilePath = fileBrowserService.FH();
@@ -68,7 +68,7 @@ public class OpenAideTermux implements abcd.fg {
 
 	@Override
 	public boolean run() {
-		FileBrowserService fileBrowserService = App.Ws();
+		FileBrowserService fileBrowserService = App.getFileBrowserService();
 		//长按
 		String currentFilePath = fileBrowserService.FH();
 		if (currentFilePath == null) {
@@ -93,10 +93,10 @@ public class OpenAideTermux implements abcd.fg {
 			}
 		}
 	
-		Context context = App.VH();
+		Context context = App.getContext();
 		Intent launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage("com.aide.termux");
 		if (launchIntentForPackage == null) {
-			com.aide.common.MessageBox.BT(App.rN(), "运行错误", "AIDE-Termux未安装");
+			com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "AIDE-Termux未安装");
 			return true;
 		}
 		

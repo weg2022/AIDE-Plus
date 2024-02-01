@@ -30,7 +30,7 @@ public class FindANR{
 						removeMessages(FIND_ANR);
 						//重置FIND_ANR时间，一旦主进程阻塞
 						//则无法及时移除并重置FIND_ANR
-						sendEmptyMessageDelayed(FIND_ANR, 5500);
+						sendEmptyMessageDelayed(FIND_ANR, 7500);
 						break;
 					case FIND_ANR:
 						//接收到FIND_ANR消息

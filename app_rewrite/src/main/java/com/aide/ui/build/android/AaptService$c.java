@@ -447,7 +447,7 @@ public class AaptService$c {
                     hashSet.add(value);
                 }
             }
-            if (FileSystem.er(FileSystem.gW(this.QX.get(this.Zo))).equals("AIDEExp")) {
+            if (FileSystem.getName(FileSystem.getParent(this.QX.get(this.Zo))).equals("AIDEExp")) {
                 hashSet.add("com.aide.ui");
             }
             StringBuilder sb = new StringBuilder();

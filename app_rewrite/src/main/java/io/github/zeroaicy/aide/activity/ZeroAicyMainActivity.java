@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.aide.ui.AIDEEditorPager;
 public class ZeroAicyMainActivity extends MainActivity{
 
 
@@ -46,7 +47,6 @@ public class ZeroAicyMainActivity extends MainActivity{
 	@Override
 	public void onCreate(Bundle bundle){
 		super.onCreate(bundle);
-
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
 
@@ -66,7 +66,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 	public void setHasEmbeddedTabs(){
 		//App.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
-						 || (App.Mz() && AndroidHelper.u7(this) <= 610.0f));
+						 || (App.isTrainerMode() && AndroidHelper.u7(this) <= 610.0f));
 		//绑定监听器
 		AndroidHelper.nw(this);
 	}
@@ -156,7 +156,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 					return;
 				}
 				catch (ActivityNotFoundException unused){
-					Context VH = App.VH();
+					Context VH = App.getContext();
 					Toast.makeText(VH, "No handler found for type " + mimeTypeFromExtension, 0).show();
 					return;
 				}
@@ -168,7 +168,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 			return;
 		}
 		aq(new FileSpan(str, 1, 1, 1, 1));
-		App.P8().VH(str);
+		App.getProjectService().VH(str);
 
     }
 	private static void gn(Object obj, Intent intent){
@@ -236,7 +236,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 
 						Intent launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
 						if ( launchIntentForPackage == null ){
-							com.aide.common.MessageBox.BT(App.rN(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
+							com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
 							return true;
 						}
 
@@ -246,7 +246,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 						launchIntentForPackage.putExtra(work_dir_extra, gradleProjectRootDir.getAbsolutePath());
 						if ( cmdline.contains("gradle") ){
 							if ( !hasGradlew(currentAppHome) ){
-								com.aide.common.MessageBox.BT(App.rN(), "不是Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
+								com.aide.common.MessageBox.BT(App.getMainActivity(), "不是Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
 								return true;
 							}
 							launchIntentForPackage.putExtra(gradle_cmd_line_extra, cmdline);
@@ -275,7 +275,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu){
 		RepairBUG1(menu);
-		if ( !com.aide.ui.App.Mz() ){
+		if ( !com.aide.ui.App.isTrainerMode() ){
 			RepairBUG1(menu);
 			RepairBUG2(menu);
 		}

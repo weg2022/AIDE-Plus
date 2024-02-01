@@ -17,68 +17,35 @@ import io.github.zeroaicy.aide.ClassReader;
 import io.github.zeroaicy.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
-import abcd.k4;
+import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
 
-@cy(clazz = -146370945839940960L, container = 2006115082471780797L, user = true)
-class CodeAnalysisEngineService$a extends k4 {
-    @gy
-    private static boolean VH;
-    @fy
-    private static boolean Zo;
-    @dy(field = -2242509117242277440L)
+public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
     @hy
     final CodeAnalysisEngineService v5;
-
-    static {
-		iy.Zo(CodeAnalysisEngineService$a.class);
-    }
-
-    @ey(method = 3587681936204591544L)
-   public CodeAnalysisEngineService$a(CodeAnalysisEngineService codeAnalysisEngineService) {
+	
+	public CodeAnalysisEngineService$a(CodeAnalysisEngineService codeAnalysisEngineService){
         this.v5 = codeAnalysisEngineService;
     }
 
-    @ey(method = 555879083465091925L)
-    public InputStream FH(String str) {
-		
-        try {
-            if (Zo) {
-                iy.tp(3462692199028310193L, this, str);
-            }
-			try {
-				AssetManager assets = this.v5.getAssets();
-				InputStream open = assets.open(str);
-				
-				if ("adrt/ADRT.class".equals(str)) {
-					open = ClassReader.modifyADRT(open);
-				}
-				return open;
-			} catch (IOException e) {
-				Log.println(e);
-				throw e;
+    public InputStream getResourceInputStream(String fileName){
+
+        try{
+			AssetManager assets = this.v5.getAssets();
+			InputStream open = assets.open(fileName);
+
+			if ( "adrt/ADRT.class".equals(fileName) ){
+				open = ClassReader.modifyADRT(open);
 			}
-			
-        } catch (Throwable th) {
-            if (VH) {
-                iy.j3(th, 3462692199028310193L, this, str);
-            }
-            throw new RuntimeException(th);
-        }
+			return open;
+		}
+		catch (IOException e){
+			Log.println(e);
+			throw new Error(e);
+		}
     }
 
-    @ey(method = -6315075546956300225L)
-    public String j6() {
-        try {
-            if (Zo) {
-                iy.gn(731669566573082785L, this);
-            }
-            return this.v5.getPackageName();
-        } catch (Throwable th) {
-            if (VH) {
-                iy.aM(th, 731669566573082785L, this);
-            }
-            throw new RuntimeException(th);
-        }
+    public String getHostPackageName(){
+		return this.v5.getPackageName();
     }
 }
 
