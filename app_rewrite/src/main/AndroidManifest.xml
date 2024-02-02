@@ -445,7 +445,8 @@
         <service
             android:name="com.google.firebase.iid.FirebaseInstanceIdService"
             android:exported="true">
-            <intent-filter android:priority="-500">
+            <intent-filter
+				android:priority="-500">
                 <action
                     android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>

@@ -17,6 +17,9 @@ android {
 		"AIDE+" {
 			applicationId "io.github.zeroaicy.aide"
 		}
+		"AIDE+1" {
+			applicationId "io.github.zeroaicy.aide1"
+		}
 		"AIDE+4" {
 			applicationId "io.github.zeroaicy.aide4"
 		}

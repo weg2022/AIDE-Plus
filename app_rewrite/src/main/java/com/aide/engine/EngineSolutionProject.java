@@ -27,10 +27,11 @@ import java.util.zip.GZIPOutputStream;
 public class EngineSolutionProject implements Parcelable {
     public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 
+    public final String projectName;
+
     final String AL;
     final List<String> Jl;
     final String Q6;
-    public final String projectName;
     final boolean Z1;
     final boolean cT;
     final List<EngineSolution.File> fY;

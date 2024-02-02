@@ -1,5 +1,6 @@
 package com.aide.ui;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -13,8 +14,7 @@ public class ThemedActionbarActivity extends Activity {
     protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 
-		method(false);
-
+		enableFollowSystem(false);
 		if (ZeroAicySetting.isLightTheme()) {
 			setTheme(R.style.ActivityActionbarThemeLight);
 		}
@@ -26,18 +26,18 @@ public class ThemedActionbarActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		method(true);
+		enableFollowSystem(true);
 	}
 
 	@Override
 	public void onConfigurationChanged(Configuration configuration) {
 		super.onConfigurationChanged(configuration);
 		//*
-		method(true);
+		enableFollowSystem(true);
 		//*/
 	}
 
-	private void method(boolean recreate) {
+	private void enableFollowSystem(boolean recreate) {
 		if (ZeroAicySetting.enableFollowSystem()) {
 			if (ZeroAicySetting.isNightMode(this)) {
 				if (ZeroAicySetting.isLightTheme()) {
