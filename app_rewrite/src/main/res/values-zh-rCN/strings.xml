@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	<string name="refresh_maven_repository_tips">提示</string>
+	<string name="refresh_maven_repository_tips_message">确定要刷新Maven仓库吗</string>
+	
 	<string name="zeroaicy_settings">ZeroAicy扩展设置</string>
 	<string name="command_files_open_aide_termux">此目录中打开终端</string>
 	<string name="command_run_from_gradle">运行Gradle</string>
