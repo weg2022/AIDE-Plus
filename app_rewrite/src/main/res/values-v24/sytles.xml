@@ -20,10 +20,12 @@
 	
 	
     <style name="ActivityActionbarThemeDark" parent="@android:style/Theme.Material">
+		
         <item name="android:windowBackground">@color/app_background</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
         <item name="android:actionBarTabStyle">@style/TabViewStyle</item>
+		
 		<!-- ActionBar内主题 -->
         <item name="android:actionBarTabBarStyle">@android:style/Widget.Material.ActionBar.TabBar</item>
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle</item>
@@ -68,6 +70,7 @@
 	
 	 <!-- MainActivity主题 -->
     <style name="ActivityActionbarThemeLight" parent="@android:style/Theme.Material.Light">
+		
         <item name="android:windowBackground">@color/app_background_light</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
@@ -81,6 +84,7 @@
         <item name="android:colorPrimary">@color/primary_material_light</item>
         <item name="android:colorPrimaryDark">@color/primary_dark_material_light</item>
         <item name="android:colorAccent">@color/accent_material_light</item>
+		
         <item name="color_app_background">@color/app_background_light</item>
         <item name="color_browser_label">@color/browser_label_light</item>
         <item name="color_browser_label_gray">@color/browser_label_gray_light</item>
@@ -114,6 +118,8 @@
         <item name="icon_view">@drawable/ic_l_view_light</item>
         <item name="theme_name">Material</item>
     </style>
+	
+	
     <style name="ActivityGotoThemeDark" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:windowNoTitle">true</item>
@@ -133,6 +139,7 @@
         <item name="drawable_popup">@drawable/popup</item>
         <item name="theme_name">Material</item>
     </style>
+	
     <style name="ActivityGotoThemeLight" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:windowNoTitle">true</item>

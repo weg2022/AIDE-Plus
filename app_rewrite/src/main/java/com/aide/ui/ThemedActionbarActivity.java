@@ -12,9 +12,11 @@ public class ThemedActionbarActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-
+		
 		enableFollowSystem(false);
+		
+		super.onCreate(bundle);
+		
 		if (ZeroAicySetting.isLightTheme()) {
 			setTheme(R.style.ActivityActionbarThemeLight);
 		}
@@ -32,9 +34,7 @@ public class ThemedActionbarActivity extends Activity {
 	@Override
 	public void onConfigurationChanged(Configuration configuration) {
 		super.onConfigurationChanged(configuration);
-		//*
 		enableFollowSystem(true);
-		//*/
 	}
 
 	private void enableFollowSystem(boolean recreate) {

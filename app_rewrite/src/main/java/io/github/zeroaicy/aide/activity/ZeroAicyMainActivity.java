@@ -39,11 +39,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.aide.ui.AIDEEditorPager;
+
 public class ZeroAicyMainActivity extends MainActivity{
-
-
-
+	
 	@Override
 	public void onCreate(Bundle bundle){
 		super.onCreate(bundle);
@@ -276,7 +274,6 @@ public class ZeroAicyMainActivity extends MainActivity{
 	public boolean onPrepareOptionsMenu(Menu menu){
 		RepairBUG1(menu);
 		if ( !com.aide.ui.App.isTrainerMode() ){
-			RepairBUG1(menu);
 			RepairBUG2(menu);
 		}
 		return super.onPrepareOptionsMenu(menu);
@@ -284,7 +281,7 @@ public class ZeroAicyMainActivity extends MainActivity{
 
 
 	//查找Toolbar
-	public static Toolbar findToolbarByMenu(Menu mMenu){
+	public static android.widget.Toolbar findToolbarByMenu(Menu mMenu){
 		try{
             if ( mMenu == null ){
 				//实例是 MenuItemImpl
@@ -295,16 +292,17 @@ public class ZeroAicyMainActivity extends MainActivity{
                 final Object presenter = ref.get();
                 if ( presenter == null ){
                     mPresenters.remove(ref);
+					continue;
                 }
-				else if ( presenter.getClass().getName().contains("Toolbar$") ){
-					Toolbar mToolbar = ReflectPie.on(presenter).get("this$0");
-                    return mToolbar;
+				if ( presenter.getClass().getName().contains("Toolbar$") ){
+					Object unknownToolbar = ReflectPie.on(presenter).get("this$0");
+					if ( unknownToolbar instanceof android.widget.Toolbar ){
+						return (android.widget.Toolbar)unknownToolbar;
+					}
                 }
             }
         }
-		catch ( Exception e){
-            e.printStackTrace(System.out);
-        }
+		catch ( Throwable e){}
 		return null;
 	}
 	//Menu clear修复
@@ -313,43 +311,42 @@ public class ZeroAicyMainActivity extends MainActivity{
             if ( mMenu == null ){
                 return;
             }
-			Toolbar mToolbar = findToolbarByMenu(mMenu);
+			android.widget.Toolbar mToolbar = findToolbarByMenu(mMenu);
 			RepairCollapseActionView(mToolbar);//修复
         }
-		catch ( Exception e){
-            e.printStackTrace(System.out);
-        }
+		catch ( Throwable e){}
+
     }
 	//mCollapseButtonView 修复
 	public static void RepairBUG2(Menu mMenu){
         try{
-			final Toolbar mToolbar = findToolbarByMenu(mMenu);
+			final android.widget.Toolbar mToolbar = findToolbarByMenu(mMenu);
 			if ( mToolbar == null ){
 				return;
 			}
 			View mCollapseButtonView = ReflectPie.on(mToolbar).get("mCollapseButtonView");
+			if ( mCollapseButtonView == null ){
+
+			}
 			if ( mCollapseButtonView != null ){
 				mCollapseButtonView.setOnClickListener(new View.OnClickListener(){
 						@Override
 						public void onClick(View view){
 							try{
-								RepairCollapseActionView(mToolbar);//修复
+								//修复
+								RepairCollapseActionView(mToolbar);
 								mToolbar.collapseActionView();
 							}
-							catch ( Exception e){
-								e.printStackTrace(System.out);
-							}
+							catch ( Throwable e){}
 						}
 					});
 			}
         }
-		catch ( Exception e){
-            e.printStackTrace(System.out);
-        }
+		catch ( Throwable e){}
 	}
 
 	//修复 collapseActionView方法
-	public static void RepairCollapseActionView(Toolbar mToolbar){
+	public static void RepairCollapseActionView(android.widget.Toolbar mToolbar){
         try{
             if ( mToolbar == null ){
                 return;
@@ -360,14 +357,14 @@ public class ZeroAicyMainActivity extends MainActivity{
 			}
 			for ( View view : mHiddenViews ){
 				ViewGroup parent = (ViewGroup) view.getParent();
-				if ( parent != null ){
-					Log.d("RepairBUG", "移除Parent->" + view);
-					parent.removeView(view);
+				if ( parent == null ){
+					continue;
 				}
+				Log.d("RepairBUG", "移除Parent->" + view);
+				parent.removeView(view);
+				
 			}
 		}
-		catch ( Exception e){
-            e.printStackTrace(System.out);
-        }
+		catch ( Throwable e){}
 	}
 }

@@ -148,7 +148,6 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 
 		StringBuilder res = new StringBuilder();
         try {
-
             // the reason for use "com.android.shell" as installer package under adb is that getMySessions will check installer package's owner
 			String installerPackageName = "com.android.shell";
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -245,6 +244,8 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
         //noinspection JavaReflectionMemberAccess
         return IntentSender.class.getConstructor(IIntentSender.class).newInstance(binder);
     }
+	
+	
     public static IPackageInstaller PackageManager_getPackageInstaller() throws RemoteException {
 		IPackageManager PACKAGE_MANAGER = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
         IPackageInstaller packageInstaller = PACKAGE_MANAGER.getPackageInstaller();

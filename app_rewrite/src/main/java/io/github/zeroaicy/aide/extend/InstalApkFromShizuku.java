@@ -37,7 +37,6 @@ public class InstalApkFromShizuku implements Runnable {
 			}
 		}
 		else {
-			
 			//安装失败
 			com.aide.common.MessageBox.BT(App.getMainActivity(), "安装失败", instalApkError);
 		}
