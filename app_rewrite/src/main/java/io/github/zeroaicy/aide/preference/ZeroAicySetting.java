@@ -119,7 +119,7 @@ public class ZeroAicySetting {
 	}
 	
 	public static boolean isEnableAapt2() {
-		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", false);
+		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", true);
 	}
 	public static boolean isEnableViewBinding() {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_view_binding", false);

@@ -117,7 +117,7 @@
             android:title="启用aapt2"
             android:key="test_zero_aicy_enable_aapt2"
             android:summary="不支持apktool反编译项目，需要特殊aapt2"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
 		
         <SwitchPreference
 			android:title="启用ViewBinding"
