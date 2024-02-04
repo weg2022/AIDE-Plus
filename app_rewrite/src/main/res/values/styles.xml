@@ -1,38 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	
 	<style name="TabTextStyle" parent="@android:style/Widget.Holo.ActionBar.TabBar">
 		<item name="android:textAllCaps">false</item>
     </style>
+	
 	<style name="TabTextStyleLight" parent="@android:style/Widget.Holo.Light.ActionBar.TabText">
 		<item name="android:textAllCaps">false</item>
     </style>
 	
+	<style name="MainActionBar" parent="@android:style/Widget.Holo.ActionBar" />
 	
-    <style name="ActionBarButton">
-        <item name="android:gravity">center</item>
-        <item name="android:background">#00000000</item>
-        <item name="android:padding">0.0dip</item>
-        <item name="android:layout_width">36.0dip</item>
-        <item name="android:layout_height">36.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="ActionBarLabel">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-    <style name="ActionBarTopRight">
-        <item name="android:minHeight">?android:actionBarSize</item>
-    </style>
-	
-	
-    <style name="ActivityActionbarThemeDark" parent="@android:style/Theme.Holo">
+		
+	<style name="ActivityActionbarThemeDark" parent="@android:style/Theme.Holo">
         <item name="android:windowBackground">@color/app_background</item>
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+		<!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle</item>
 		
-		<item name="color_app_background">@color/app_background</item>
+        <item name="color_app_background">@color/app_background</item>
         <item name="color_browser_label">@color/browser_label</item>
         <item name="color_browser_label_gray">@color/browser_label_gray</item>
         <item name="color_key">@color/quickkey</item>
@@ -63,14 +50,15 @@
         <item name="icon_undo">@drawable/ic_menu_revert</item>
         <item name="icon_view">@drawable/ic_menu_view</item>
     </style>
+	
     <style name="ActivityActionbarThemeLight" parent="@android:style/Theme.Holo.Light">
         <item name="android:windowBackground">@color/app_background_light</item>
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+        <!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyleLight</item>
 		
-        <item name="color_app_background">@color/app_background_light</item>
+		<item name="color_app_background">@color/app_background_light</item>
         <item name="color_browser_label">@color/browser_label_light</item>
         <item name="color_browser_label_gray">@color/browser_label_gray_light</item>
         <item name="color_key">@color/quickkey</item>
@@ -102,67 +90,31 @@
         <item name="icon_undo">@drawable/ic_menu_revert</item>
         <item name="icon_view">@drawable/ic_menu_view</item>
     </style>
-    <style name="ActivityGotoThemeDark" parent="@android:style/Theme.Holo.NoActionBar">
-        <item name="android:windowBackground">@color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="color_browser_label">@color/browser_label</item>
-        <item name="color_browser_label_gray">@color/browser_label_gray</item>
-        <item name="color_list_separator">@color/list_separator</item>
-        <item name="color_selected_item">@color/selected_list_item</item>
-        <item name="color_split_separator">@color/split_separator</item>
-        <item name="drawable_header">@drawable/browser_header</item>
-        <item name="drawable_popup">@drawable/popup</item>
-    </style>
 	
-    <style name="ActivityGotoThemeLight" parent="@android:style/Theme.Holo.Light.NoActionBar">
-        <item name="android:windowBackground">@color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="color_browser_label">@color/browser_label_light</item>
-        <item name="color_browser_label_gray">@color/browser_label_gray_light</item>
-        <item name="color_list_separator">@color/list_separator_light</item>
-        <item name="color_selected_item">@color/selected_list_item_light</item>
-        <item name="color_split_separator">@color/split_separator_light</item>
-        <item name="drawable_header">@drawable/browser_header_light</item>
-        <item name="drawable_popup">@drawable/popup_light</item>
-    </style>
 	
-    <style name="ActivityPreferencesThemeDark" parent="@android:style/Theme.Holo">
+	<style name="ActivityPreferencesThemeDark" parent="@android:style/Theme.Holo">
         <item name="android:windowBackground">@drawable/background_holo_dark</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+		<!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle</item>
 		
     </style>
-    <style name="ActivityPreferencesThemeLight" parent="@android:style/Theme.Holo.Light">
+	
+	<style name="ActivityPreferencesThemeLight" parent="@android:style/Theme.Holo.Light">
         <item name="android:windowBackground">@drawable/background_holo_light</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+		<!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyleLight</item>
 		
     </style>
 	
-    <style name="ActivityShopPopup" parent="@android:style/Theme.Holo.Light">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation</item>
-        <item name="android:background">@android:color/transparent</item>
-        <item name="android:colorBackgroundCacheHint">@null</item>
-    </style>
-    <style name="ActivityThemeDesignerDark" parent="@android:style/Theme.Holo">
+    
+	<style name="ActivityThemeDesignerDark" parent="@android:style/Theme.Holo">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+		<!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle</item>
 		
         <item name="Android_Widget">@android:style/Widget</item>
@@ -455,10 +407,11 @@
         <item name="icon_undo">@drawable/ic_menu_revert</item>
         <item name="icon_view">@drawable/ic_menu_view</item>
     </style>
+	
     <style name="ActivityThemeDesignerLight" parent="@android:style/Theme.Holo.Light">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:actionBarStyle">@style/MainActionBar</item>
-		<!-- ActionBar内主题 -->
+		<!-- ActionBar内Tab主题 -->
         <item name="android:actionBarTabTextStyle">@style/TabTextStyleLight</item>
 		
         <item name="Android_Widget">@android:style/Widget</item>
@@ -751,220 +704,5 @@
         <item name="icon_undo">@drawable/ic_menu_revert</item>
         <item name="icon_view">@drawable/ic_menu_view</item>
     </style>
-    <style name="ActivityThemeWebDesigner" parent="@android:style/Theme.Holo.Light.NoActionBar" />
-    <style name="AnalysisProgressBar" parent="@android:style/Widget.ProgressBar.Horizontal">
-        <item name="android:layout_height">3.0dip</item>
-        <item name="android:progressDrawable">@drawable/progressbar</item>
-    </style>
-    <style name="AndroidAppTheme" parent="@android:style/Theme.Holo.Light">
-        <item name="android:windowIsTranslucent">true</item>
-    </style>
-    <style name="BrowserCodeLine">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:typeface">monospace</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserHeaderBackgroundInner">
-        <item name="android:background">?android:selectableItemBackground</item>
-        <item name="android:minHeight">?android:actionBarSize</item>
-    </style>
-    <style name="BrowserHeaderBackgroundOuter">
-        <item name="android:background">?drawable_header</item>
-    </style>
-    <style name="BrowserHeaderImage">
-        <item name="android:gravity">center</item>
-        <item name="android:layout_width">40.0dip</item>
-        <item name="android:layout_height">40.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="BrowserHeaderLabel">
-        <item name="android:textSize">16.0sp</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserHeaderLabelSmallGray">
-        <item name="android:textSize">12.0sp</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserHeaderMenuButton">
-        <item name="android:gravity">center</item>
-        <item name="android:background">?android:selectableItemBackground</item>
-        <item name="android:layout_width">?android:actionBarSize</item>
-        <item name="android:layout_height">?android:actionBarSize</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="BrowserHelpButton">
-        <item name="android:gravity">center</item>
-        <item name="android:background">?android:selectableItemBackground</item>
-        <item name="android:padding">3.0dip</item>
-        <item name="android:layout_width">30.0dip</item>
-        <item name="android:layout_height">30.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="BrowserImage">
-        <item name="android:gravity">center</item>
-        <item name="android:layout_width">35.0dip</item>
-        <item name="android:layout_height">35.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="BrowserImageSmall">
-        <item name="android:gravity">center</item>
-        <item name="android:layout_width">30.0dip</item>
-        <item name="android:layout_height">30.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="BrowserLabelLarge">
-        <item name="android:textSize">16.0sp</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserLabelSmall">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserLabelSmallBold">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserLabelSmallGray">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textColor">?color_browser_label_gray</item>
-    </style>
-    <style name="BrowserLabelSmallItalic">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textStyle">italic</item>
-        <item name="android:textColor">?color_browser_label</item>
-    </style>
-    <style name="BrowserListView">
-        <item name="android:fadingEdge">none</item>
-        <item name="android:cacheColorHint">#00000000</item>
-        <item name="android:divider">?color_list_separator</item>
-        <item name="android:dividerHeight">0.0px</item>
-        <item name="android:fastScrollEnabled">true</item>
-        <item name="android:headerDividersEnabled">false</item>
-    </style>
-    <style name="BrowserProgress" parent="@android:style/Widget.Holo.Light.ProgressBar" />
-    <style name="BuildProgressBar" parent="@android:style/Widget.Holo.ProgressBar.Horizontal">
-        <item name="android:layout_height">wrap_content</item>
-    </style>
-    <style name="CompletionListWindow">
-        <item name="android:background">?drawable_popup</item>
-    </style>
-    <style name="DialogCheckbox">
-        <item name="android:textSize">18.0sp</item>
-    </style>
-    <style name="DialogEditText">
-        <item name="android:textSize">18.0sp</item>
-        <item name="android:inputType">textVisiblePassword|textNoSuggestions</item>
-        <item name="android:imeOptions">flagNoExtractUi</item>
-    </style>
-    <style name="DialogLabel">
-        <item name="android:textSize">18.0sp</item>
-    </style>
-    <style name="DialogLabelSmall">
-        <item name="android:textSize">12.0sp</item>
-    </style>
-    <style name="DialogListView">
-        <item name="android:fadingEdge">none</item>
-        <item name="android:cacheColorHint">#00000000</item>
-        <item name="android:fastScrollEnabled">true</item>
-        <item name="android:headerDividersEnabled">false</item>
-    </style>
-    <style name="EmptyEditorBackground">
-        <item name="android:background">?color_app_background</item>
-    </style>
-    <style name="EmptyEditorLabel">
-        <item name="android:textSize">20.0sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">?color_browser_label_gray</item>
-        <item name="android:background">?android:selectableItemBackground</item>
-        <item name="android:padding">10.0dip</item>
-    </style>
-    <style name="ErrorPopup">
-        <item name="android:background">@drawable/toast</item>
-    </style>
-    <style name="ErrorsView">
-        <item name="android:background">?android:selectableItemBackground</item>
-    </style>
-    <style name="GotoEditText">
-        <item name="android:textSize">18.0sp</item>
-        <item name="android:textColor">@color/goto_edit_text</item>
-        <item name="android:inputType">textVisiblePassword|textNoSuggestions</item>
-        <item name="android:imeOptions">flagNoExtractUi</item>
-    </style>
-    <style name="GotoListWindow">
-        <item name="android:background">?drawable_popup</item>
-    </style>
-    <style name="MainActionBar" parent="@android:style/Widget.Holo.ActionBar" />
-    <style name="SearchEditText">
-        <item name="android:textSize">18.0sp</item>
-        <item name="android:textColor">#ffffffff</item>
-        <item name="android:inputType">textVisiblePassword|textNoSuggestions</item>
-        <item name="android:imeOptions">flagNoExtractUi</item>
-    </style>
-    <style name="SearchLabel">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/actionbar_label</item>
-    </style>
-    <style name="SpinnerImage">
-        <item name="android:gravity">center</item>
-        <item name="android:layout_width">35.0dip</item>
-        <item name="android:layout_height">35.0dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    <style name="SpinnerLabel">
-        <item name="android:textSize">18.0sp</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-    </style>
-    <style name="SpinnerLabelSmall">
-        <item name="android:textSize">12.0sp</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-    </style>
-    <style name="TextAppearance.Compat.Notification" parent="@android:style/TextAppearance.StatusBar.EventContent" />
-    <style name="TextAppearance.Compat.Notification.Info" parent="@style/TextAppearance.Compat.Notification">
-        <item name="android:textSize">12.0sp</item>
-        <item name="android:textColor">?android:textColorSecondary</item>
-    </style>
-    <style name="TextAppearance.Compat.Notification.Info.Media" parent="@style/TextAppearance.Compat.Notification.Info" />
-    <style name="TextAppearance.Compat.Notification.Line2" parent="@style/TextAppearance.Compat.Notification.Info" />
-    <style name="TextAppearance.Compat.Notification.Line2.Media" parent="@style/TextAppearance.Compat.Notification.Info.Media" />
-    <style name="TextAppearance.Compat.Notification.Media" parent="@style/TextAppearance.Compat.Notification" />
-    <style name="TextAppearance.Compat.Notification.Time" parent="@style/TextAppearance.Compat.Notification">
-        <item name="android:textSize">12.0sp</item>
-        <item name="android:textColor">?android:textColorSecondary</item>
-    </style>
-    <style name="TextAppearance.Compat.Notification.Time.Media" parent="@style/TextAppearance.Compat.Notification.Time" />
-    <style name="TextAppearance.Compat.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title" />
-    <style name="TextAppearance.Compat.Notification.Title.Media" parent="@style/TextAppearance.Compat.Notification.Title" />
-    <style name="Theme.IAPTheme" parent="@android:style/Theme">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:backgroundDimEnabled">false</item>
-    </style>
-    <style name="Theme_Holo_Light_Holo_ActionBar" parent="@android:style/Theme.Holo.Light">
-        <item name="android:actionBarStyle">@android:style/Widget.Holo.ActionBar</item>
-		<!-- ActionBar内主题 -->
-        <item name="android:actionBarTabTextStyle">@style/TabTextStyleLight</item>
-		
-    </style>
-    <style name="ToastLabelSmall">
-        <item name="android:textSize">14.0sp</item>
-        <item name="android:textColor">@color/browser_label_light</item>
-    </style>
-    <style name="TrainerBoxImage" />
-    <style name="TrainerBoxInner">
-        <item name="android:background">@drawable/trainer_box</item>
-    </style>
-    <style name="TrainerBoxOuter" />
-    <style name="TrainerHeaderInner">
-        <item name="android:background">@drawable/trainer_header</item>
-    </style>
-    <style name="TrainerHeaderOuter" />
-    <style name="Widget.Compat.NotificationActionContainer" parent="" />
-    <style name="Widget.Compat.NotificationActionText" parent="" />
+	
 </resources>
