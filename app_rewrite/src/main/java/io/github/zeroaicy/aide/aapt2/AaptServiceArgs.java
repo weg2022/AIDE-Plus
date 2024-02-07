@@ -34,7 +34,10 @@ public class AaptServiceArgs {
 
 	public final String buildBin;
 
+	private final File resOut;
 	private final File compileDirFile;
+	private final File mergedDirFile;
+	
 	//所有编译后的输出文件 测试顺序
 	public final Set<String> resCompiledSet = new LinkedHashSet<String>();
 
@@ -45,6 +48,7 @@ public class AaptServiceArgs {
 
 
 	private DataBindingBuilderProxy dataBindingBuilder;
+
 	public DataBindingBuilderProxy getDataBindingBuilder() {
 		if (this.dataBindingBuilder == null) {
 			this.dataBindingBuilder = new DataBindingBuilderProxy(this);
@@ -188,8 +192,14 @@ public class AaptServiceArgs {
 		this.assetsList = mAaptS$cRef.get("VH");
 
 		//aapt2缓存目录
-		this.compileDirFile = new File(this.buildBin, "intermediates/res");
+		this.resOut = new File(this.buildBin, "intermediates/res");
+		
+		this.compileDirFile = new File(this.resOut, "flat");
 		this.compileDirFile.mkdirs();
+		
+		this.mergedDirFile = new File(this.resOut, "merged");
+		this.mergedDirFile.mkdirs();
+		
 		
 		// 子项目的gen目录
 		this.subProjectGens = mAaptS$cRef.get("we");
@@ -250,18 +260,37 @@ public class AaptServiceArgs {
 	public AaptService$b mergedAndroidManifestxml() {
 		return this.mAaptS$cRef.call("EQ").get();
 	}
-
+	//aapt2输出目录
+	public File getResOutFile(){
+		if (!this.resOut.exists()) {
+			this.resOut.mkdirs();
+		}
+		return this.resOut;
+	}
+	
 	//资源编译输出目录
 	public File getCompileDirFile() {
 		if (!compileDirFile.exists()) {
 			compileDirFile.mkdirs();
 		}
+		// intermediates/res/flat
 		return compileDirFile;
 	}
 	public String getCompileDirPath() {
+		
 		return getCompileDirFile().getAbsolutePath();
 	}
-
+	//资源合并输出目录
+	public File getMergedDirFile() {
+		if (!this.mergedDirFile.exists()) {
+			this.mergedDirFile.mkdirs();
+		}
+		return this.mergedDirFile;
+	}
+	public String getMergedDirPath() {
+		return getMergedDirFile().getAbsolutePath();
+	}
+	
 	// 取得Aapt2路径
 	public static String getAapt2Path2() {
 		//会从assets自动解压
