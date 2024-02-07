@@ -12,7 +12,6 @@ import io.github.zeroaicy.util.ContextUtil;
 public class AIDEApplication extends MultiDexApplication{
 	public void onCreate() {
         super.onCreate();
-		
 		App.lp("com.aide.ui");
 		if (ContextUtil.isMainProcess()) {
 			if (App.P8.equals("com.aide.ui")) {
