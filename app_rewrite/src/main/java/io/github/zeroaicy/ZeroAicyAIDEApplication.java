@@ -1,14 +1,13 @@
 package io.github.zeroaicy;
 
 
-import android.app.Application;
 import android.content.Context;
+import com.aide.ui.AIDEApplication;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.DebugUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
-import com.aide.ui.AIDEApplication;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 

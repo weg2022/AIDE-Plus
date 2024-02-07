@@ -8,8 +8,10 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 import com.aide.ui.App;
+import com.aide.ui.firebase.FireBaseLogEvent;
+import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.extend.InstalApkFromShizuku;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
@@ -19,8 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import com.aide.ui.firebase.FireBaseLogEvent;
-import com.aide.ui.project.internal.GradleTools;
 
 public class DistributeEvents {
 	

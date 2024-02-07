@@ -21,11 +21,12 @@ android {
 }
 
 dependencies {
-	//api 'com.android.support:support-v4:28.+'
-	//api 'com.android.support:customtabs:28.+'
-	//api 'com.android.support:multidex:1.0.0'
-	
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	
-	api project(':support-v4')
+	//api project(':material+')
+	api "androidx.multidex:multidex:2.0.1"
+	api "androidx.drawerlayout:drawerlayout:1.2.0"
+	api "androidx.legacy:legacy-support-v4:1.0.0"
+	api "androidx.browser:browser:1.6.0"
+	
 }
