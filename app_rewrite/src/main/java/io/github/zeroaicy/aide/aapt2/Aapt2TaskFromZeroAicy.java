@@ -1,32 +1,14 @@
 package io.github.zeroaicy.aide.aapt2;
-import android.text.TextUtils;
-import com.aide.ui.build.android.AaptService$b;
-import com.sdklite.aapt.Aapt;
-import com.sdklite.aapt.SymbolParser;
-import com.sdklite.aapt.Symbols;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import io.github.zeroaicy.aide.utils.AndroidManifestParser;
-import io.github.zeroaicy.util.FileUtil;
-import io.github.zeroaicy.util.MD5Util;
-import io.github.zeroaicy.util.reflect.ReflectPie;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.CRC32;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import android.text.*;
+import com.aide.ui.build.android.*;
+import com.sdklite.aapt.*;
+import io.github.zeroaicy.aide.preference.*;
+import io.github.zeroaicy.aide.utils.*;
+import io.github.zeroaicy.util.*;
+import io.github.zeroaicy.util.reflect.*;
+import java.io.*;
+import java.util.*;
+import java.util.zip.*;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -92,8 +74,6 @@ public class Aapt2TaskFromZeroAicy {
 			if (mergedErrorInfo != null && mergedErrorInfo.DW != null) {
 				log.println("merged error " + mergedErrorInfo.DW);
 				return mergedErrorInfo;
-			} else {
-				log.println("merged: " + mergedErrorInfo.DW);
 			}
 		}
 		//编译
@@ -312,10 +292,8 @@ public class Aapt2TaskFromZeroAicy {
 						subSymbols.put(mainEntry);				
 					}
 				}
-				//向子项目gen目录写入
-				Aapt.generateR(subRJavaFile, subPackageName, subSymbols);
-				//向主项目gen目录写入
-				//Files.copy(subRJavaFile.toPath(), new File(mainProjectGenDir, subRJavaChildPath).toPath()); 
+				//向主项目gen目录写入，aar子项目不需要
+				Aapt.generateR(new File(mainProjectGenDir, subRJavaChildPath), subPackageName, subSymbols);
 				continue;
 			}
 			
