@@ -408,7 +408,7 @@ public class Aapt2TaskFromZeroAicy {
 		flatByteArray.close();
 		out.close();
 
-		//添加输出
+		//加入链接列表
 		aaptServiceArgs.flatZipFileSet.add(flatsZipFile);
 		
 		return null;
