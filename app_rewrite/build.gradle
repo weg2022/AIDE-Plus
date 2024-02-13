@@ -26,8 +26,6 @@ dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	
 	compile fileTree(dir: 'provider', include: ['.jar'])
-	// shizuku
-	//api "dev.rikka.shizuku:provider:13+"
 	// r8
 	api "com.android.tools:r8:8.2.33"
 	

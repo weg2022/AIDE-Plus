@@ -26,6 +26,8 @@ dependencies {
 	//api project(':material+')
 	
 	//*
+	// shizuku
+	api "dev.rikka.shizuku:provider:13+"
 	api "com.google.guava:listenablefuture:1.0"
 	api "androidx.browser:browser:1.6.0"
 	api "androidx.drawerlayout:drawerlayout:1.2.0"
