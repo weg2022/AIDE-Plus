@@ -12,6 +12,9 @@ import java.util.*;
 import java.util.zip.*;
 
 public class Aapt2TaskFromZeroAicy {
+	public static final byte[] emptyZipBytes = new byte[]{0x50, 0x4B, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 	public static boolean hasError(AaptService$b aaptService$b) {
 		return aaptService$b != null && aaptService$b.DW != null;
@@ -40,14 +43,14 @@ public class Aapt2TaskFromZeroAicy {
 		}
 		catch (Throwable e) {
 			e.printStackTrace(aaptServiceArgs.log);
-			proxyAapt.DW += Log.getStackTraceString(e);
+			proxyAapt = new AaptService$b(Log.getStackTraceString(e));
 		}
 
 		float diffTime = System.currentTimeMillis() - oldTime;
 		aaptServiceArgs.log.println("aapt2 总耗时: " + diffTime / 1000.0f + "s");
 		//日志不在使用，关闭流
 		aaptServiceArgs.log.close();
-		
+
 		return proxyAapt;
 	}
 
@@ -81,18 +84,18 @@ public class Aapt2TaskFromZeroAicy {
 		if (linkError != null) {
 			return linkError;
 		}
-		
+
 		//删除无效缓存
 		deleteCache(aaptServiceArgs);
 
 		//需要将主项目R.java复制到主项目gen--以不同的包名
 		long genRjavaTimeMillis = System.currentTimeMillis();
-		
+
 		//资源文件
 		generateRjava(aaptServiceArgs);
 
 		aaptServiceArgs.log.println("aapt2 生成R耗时: " + (System.currentTimeMillis() - genRjavaTimeMillis) + "ms");
-		
+
 		// ViewBinding
 		if (ZeroAicySetting.isEnableViewBinding()) {
 			try {
@@ -127,10 +130,10 @@ public class Aapt2TaskFromZeroAicy {
 		//主项目R.txt Symbols
 		Symbols mainSymbols = symbolParser.parse(aaptServiceArgs.buildBin + "/intermediates/R.txt");
 		String mainPackageName = aaptServiceArgs.mainPackageName;
-		
+
 		//主项目R.java相对gen路径
 		String mainRJavaChildPath = mainPackageName.replace('.', '/') + "/R.java";
-		
+
 		//主项目R.java文件
 		File mainRJavaFile = new File(mainProjectGenDir, mainRJavaChildPath);
 
@@ -154,7 +157,7 @@ public class Aapt2TaskFromZeroAicy {
 		for (int i = 0; i < rJavaLinelist.size(); i++) {
 			rJavaLinelist.set(i, rJavaLinelist.get(i).replace(" final int ", " int "));
 		}
-		
+
 		//复制R.java到其它包
 		Map<String, String> genPackageNameMap = aaptServiceArgs.genPackageNameMap;
 		//遍历所有包名
@@ -168,7 +171,7 @@ public class Aapt2TaskFromZeroAicy {
 			String subPackageName = genPackageNameMap.get(subGenDirPath);
 			//子项目R.java相对gen路径
 			String subRJavaAbsolutePath = subPackageName.replace('.', '/') + "/R.java";
-			
+
 			String subRtxtPath = getRtxtFile(aaptServiceArgs, subGenDirPath);
 
 			// R怎么只包含自己的资源呢🤔🤔🤔🤔
@@ -178,14 +181,16 @@ public class Aapt2TaskFromZeroAicy {
 				//子项目R.java路径
 				File subRJavaFile = new File(subProjectGen.getKey(), subRJavaAbsolutePath);
 				rJavaLinelist.set(packageNameLineCount, packageNameLine.replace(mainPackageName, subPackageName));
-				
+
 				if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
+					subRJavaFile.getParentFile().mkdirs();
 					AaptServiceArgs.writeLines(subRJavaFile, rJavaLinelist);
 				}
 
 				//向主项目gen目录写入
 				subRJavaFile = new File(mainProjectGenDir, subRJavaAbsolutePath);
 				if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
+					subRJavaFile.getParentFile().mkdirs();
 					AaptServiceArgs.writeLines(subRJavaFile, rJavaLinelist);
 				}
 				continue;
@@ -205,6 +210,7 @@ public class Aapt2TaskFromZeroAicy {
 			//向主项目gen目录写入，aar子项目不需要
 			File subRJavaFile = new File(mainProjectGenDir, subRJavaAbsolutePath);
 			if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
+				subRJavaFile.getParentFile().mkdirs();
 				//跳过此R生成
 				Aapt.generateR(subRJavaFile, subPackageName, subSymbols);
 			}
@@ -239,17 +245,17 @@ public class Aapt2TaskFromZeroAicy {
 
 		//主项目依赖的res路径
 		List<String> resDirs = aaptServiceArgs.genResDirsMap.get(mainProjectGenDir);
-		
+
 		List<String> flatZipFileList = new ArrayList<>();
 		Set<String> flatZipFileSet = aaptServiceArgs.flatZipFileSet;
-		
+
 		//优先添加主项目res的缓存文件
 		for (String resDir : resDirs) {
 			if (resDir.endsWith("/generated")) {
 				continue;
 			}
 			String flatZipPath = getMergedCacheDirFile(aaptServiceArgs, resDir);
-			
+
 			if (!flatZipFileSet.remove(flatZipPath)) {
 				//没有编译
 				AaptService$b compileError = compile(aaptServiceArgs, resDir);
@@ -272,7 +278,7 @@ public class Aapt2TaskFromZeroAicy {
 		flatZipFileList.addAll(flatZipFileSet);
 		//反序 aapt2 link -R 末尾优先
 		Collections.reverse(flatZipFileList);
-		
+
 		//记录有效缓存
 		aaptServiceArgs.flatZipFileSet.addAll(flatZipFileList);
 
@@ -280,13 +286,13 @@ public class Aapt2TaskFromZeroAicy {
 			log.println("跳过link");
 			return null;
 		}
-		
+
 		AaptService$b linkError = link35(aaptServiceArgs, flatZipFileList, aaptServiceArgs.assetsList, mainProjectGenDir, resourcesApPath, false, aaptServiceArgs.getAaptRulesPath(), rTxt);
 		if (linkError != null) {
 			return linkError;
 		}
 		//优化
-		
+
 		return null;
 	}
 
@@ -319,11 +325,12 @@ public class Aapt2TaskFromZeroAicy {
 			return null;
 		}
 		long currentTimeMillis = System.currentTimeMillis();
-		
-		String flatDir = getAapt2ResCacheDir(aaptServiceArgs, resDir);
-		File flatDirFile = new File(flatDir);
 
-		//记录使用的flat缓存目录
+		String flatDir = getAapt2ResCacheDir(aaptServiceArgs, resDir);
+		//flat文件路径
+		File flatDirFile = new File(flatDir);
+		
+		//记录使用的flat缓存目录，用于输出无用缓存
 		aaptServiceArgs.flatDirSet.add(flatDir);
 
 
@@ -349,10 +356,10 @@ public class Aapt2TaskFromZeroAicy {
 			compileType = "增量编译: "; // String.format("增量编译: %s " ,resDir);
 		}
 		currentTimeMillis = System.currentTimeMillis() - currentTimeMillis;
-		if( currentTimeMillis > 30 ){
+		if (currentTimeMillis > 30) {
 			aaptServiceArgs.log.println(compileType + currentTimeMillis + " ms");			
 		}
-		
+
 		return aaptError;
 	}
 
@@ -364,14 +371,21 @@ public class Aapt2TaskFromZeroAicy {
 		//全量编译 合并zip[二级缓存]
 		String flatsZipFile = getMergedCacheDirFile(aaptServiceArgs, resDir);
 
+		File[] flatFiles = flatDirFile.listFiles();
+		// 没有flat中间文件则不链接，无意义
+		if (flatFiles == null 
+			|| flatFiles.length == 0) {
+			// 适配 No entries异常
+			return null;
+		}
+
 		ZipOutputStream out = new ZipOutputStream(new FileOutputStream(flatsZipFile));
 		//无损压缩 link时更快
 		out.setMethod(ZipEntry.STORED);
 
 		FlatByteArray flatByteArray = new FlatByteArray(1024 * 30);
-
 		CRC32 crc = new CRC32();
-		for (File file : FileUtil.findFile(flatDirFile, null)) {
+		for (File file : flatFiles) {
 			flatByteArray.reset();
 
 			FileInputStream input = new FileInputStream(file);
@@ -396,6 +410,7 @@ public class Aapt2TaskFromZeroAicy {
 
 		//添加输出
 		aaptServiceArgs.flatZipFileSet.add(flatsZipFile);
+		
 		return null;
 	}
 
@@ -404,11 +419,11 @@ public class Aapt2TaskFromZeroAicy {
 		if (injectedAndroidManifestXml == null) {
 			return null;
 		}
-		
+
 		String parent = FileSystem.getParent(injectedAndroidManifestXml);
 		parent = parent.substring(0, parent.length() - "/bin/injected".length());
-		
-		if(parent.endsWith(".aar/bin/injected")){
+
+		if (parent.endsWith(".aar/bin/injected")) {
 			//aar库
 			File rTxtFile = new File(parent, "R.txt");
 			if (rTxtFile.exists()) {
@@ -621,7 +636,7 @@ public class Aapt2TaskFromZeroAicy {
 	 */
 	private static AaptService$b incrementalCompile(AaptServiceArgs aaptServiceArgs, String resDir, String resFlatCacheDir) throws IOException {
 		//增量编译
-		List<String> inputFiles = new ArrayList<>();
+		List<String> incrementalInputFiles = new ArrayList<>();
 		List<File> outFiles = new ArrayList<>();
 
 		for (File resourceFile : FileUtil.findFile(new File(resDir), null)) {
@@ -629,22 +644,22 @@ public class Aapt2TaskFromZeroAicy {
 			outFiles.add(flatFile);
 
 			if (!flatFile.exists() || flatFile.lastModified() < resourceFile.lastModified()) {
-				inputFiles.add(resourceFile.getAbsolutePath());
+				incrementalInputFiles.add(resourceFile.getAbsolutePath());
 			}
 		}
 
 		//所有flat中间文件，去除需要的，剩下都是以删除的
-		File aapt2ResCacheDirFile = new File(resFlatCacheDir);
+		File flatDirFile = new File(resFlatCacheDir);
 
-		List<File> oldFlatFiles = FileUtil.findFile(aapt2ResCacheDirFile , null);
+		List<File> oldFlatFiles = FileUtil.findFile(flatDirFile , null);
 		oldFlatFiles.removeAll(outFiles);
 
 		for (File oldFlatFile : oldFlatFiles) {
 			oldFlatFile.delete();
 		}
 
-		if (! inputFiles.isEmpty()) {
-			AaptService$b incrementalCompile = incrementalCompile(aaptServiceArgs, inputFiles, resFlatCacheDir);
+		if (! incrementalInputFiles.isEmpty()) {
+			AaptService$b incrementalCompile = incrementalCompile(aaptServiceArgs, incrementalInputFiles, resFlatCacheDir);
 			if (incrementalCompile != null) {
 				//有错误，直接返回
 				return incrementalCompile;
@@ -652,7 +667,7 @@ public class Aapt2TaskFromZeroAicy {
 		}
 
 
-		File[] flatFiles = aapt2ResCacheDirFile.listFiles();
+		File[] flatFiles = flatDirFile.listFiles();
 		if (flatFiles == null || flatFiles.length == 0) {
 			return null;
 		}
@@ -660,11 +675,13 @@ public class Aapt2TaskFromZeroAicy {
 		String flatsZipFile = getMergedCacheDirFile(aaptServiceArgs, resDir);
 		//被使用，添加输出
 		aaptServiceArgs.flatZipFileSet.add(flatsZipFile);
-
-		if (inputFiles.isEmpty() 
+		//没有变动，增量
+		if (incrementalInputFiles.isEmpty() 
 			&& new File(flatsZipFile).exists()) {
 			return null;
 		}
+
+
 		//合并成zip
 		//增量编译后的[二级缓存]
 		//后面再实现增量更新zip
