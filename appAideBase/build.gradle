@@ -24,7 +24,7 @@ dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	
 	//api project(':material+')
-	
+	//api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
 	//*
 	// shizuku
 	api "dev.rikka.shizuku:provider:13+"
