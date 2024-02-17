@@ -190,7 +190,6 @@ public class Aapt2TaskFromZeroAicy {
 			String subRJavaAbsolutePath = subPackageName.replace('.', '/') + "/R.java";
 
 			String subRtxtPath = getRtxtFile(aaptServiceArgs, subGenDirPath);
-
 			// R怎么只包含自己的资源呢🤔🤔🤔🤔
 			// 根据R.txt生成
 			if (subRtxtPath == null) {
@@ -210,27 +209,29 @@ public class Aapt2TaskFromZeroAicy {
 					subRJavaFile.getParentFile().mkdirs();
 					AaptServiceArgs.writeLines(subRJavaFile, rJavaLinelist);
 				}
-				continue;
-			}
+				
+			} else {
+				Symbols subSymbols = 
+					subRtxtPath.length()  == 0 
+					? symbolParser.emptySymbols : symbolParser.parse(subRtxtPath);
 
-			Symbols subSymbols = 
-				subRtxtPath.length()  == 0 
-				? symbolParser.emptySymbols : symbolParser.parse(subRtxtPath);
-
-			//同步
-			for (Symbols.Entry subEntry : subSymbols.entries()) {
-				Symbols.Entry mainEntry = mainSymbols.getEntry(subEntry.key);
-				if (mainEntry != null) {
-					subSymbols.put(mainEntry);				
+				//同步
+				for (Symbols.Entry subEntry : subSymbols.entries()) {
+					Symbols.Entry mainEntry = mainSymbols.getEntry(subEntry.key);
+					if (mainEntry != null) {
+						subSymbols.put(mainEntry);				
+					}
+				}
+				//向主项目gen目录写入，aar子项目不需要
+				File subRJavaFile = new File(mainProjectGenDir, subRJavaAbsolutePath);
+				if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
+					subRJavaFile.getParentFile().mkdirs();
+					//跳过此R生成
+					Aapt.generateR(subRJavaFile, subPackageName, subSymbols);
 				}
 			}
-			//向主项目gen目录写入，aar子项目不需要
-			File subRJavaFile = new File(mainProjectGenDir, subRJavaAbsolutePath);
-			if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
-				subRJavaFile.getParentFile().mkdirs();
-				//跳过此R生成
-				Aapt.generateR(subRJavaFile, subPackageName, subSymbols);
-			}
+
+
 		}
 	}
 
@@ -346,7 +347,7 @@ public class Aapt2TaskFromZeroAicy {
 		String flatDir = getAapt2ResCacheDir(aaptServiceArgs, resDir);
 		//flat文件路径
 		File flatDirFile = new File(flatDir);
-		
+
 		//记录使用的flat缓存目录，用于输出无用缓存
 		aaptServiceArgs.flatDirSet.add(flatDir);
 
@@ -427,32 +428,29 @@ public class Aapt2TaskFromZeroAicy {
 
 		//加入链接列表
 		aaptServiceArgs.flatZipFileSet.add(flatsZipFile);
-		
+
 		return null;
 	}
 
 	public static String getRtxtFile(AaptServiceArgs aaptServiceArgs, String subGenDirPath) {
-		String injectedAndroidManifestXml = aaptServiceArgs.injectedAManifestMap.get(subGenDirPath);
-		if (injectedAndroidManifestXml == null) {
-			return null;
-		}
-
-		String parent = FileSystem.getParent(injectedAndroidManifestXml);
-		parent = parent.substring(0, parent.length() - "/bin/injected".length());
-
-		if (parent.endsWith(".aar/bin/injected")) {
+		String rTxtPath = subGenDirPath;
+		if (rTxtPath.endsWith(".aar/gen")) {
+			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/gen".length());
 			//aar库
-			File rTxtFile = new File(parent, "R.txt");
+			File rTxtFile = new File(rTxtPath, "R.txt");
 			if (rTxtFile.exists()) {
 				return rTxtFile.getAbsolutePath();
 			}
 			return "";
 		}
-		//子项目
-		parent = FileSystem.getParent(parent);
-		File rTxtFile = new File(parent, "R.txt");
-		if (rTxtFile.exists()) {
-			return rTxtFile.getAbsolutePath();
+
+		if (rTxtPath.endsWith("/build/gen")) {
+			//子项目
+			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/build/gen".length());
+			File rTxtFile = new File(rTxtPath, "R.txt");
+			if (rTxtFile.exists()) {
+				return rTxtFile.getAbsolutePath();
+			}
 		}
 		return null;
 	}
