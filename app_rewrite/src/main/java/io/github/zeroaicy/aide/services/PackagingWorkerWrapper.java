@@ -140,7 +140,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 			this.minSdk = this.getProjectMinSdk();
 			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
-			
+
 			BuildGradle m;
 		}
 
@@ -171,7 +171,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			}
 			return projectMinSdk;
 		}
-		
+
 		private AndroidManifestParser getAndroidManifestParser() {
 			String buildOutDirPath = getBuildOutDirPath();
 			AndroidManifestParser androidManifestParser = null;  
@@ -215,23 +215,27 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 				packaging();
 			}
 			catch (Throwable e) {
-				if (e instanceof CompilationFailedException) {
+				if (e instanceof CompilationFailedException 
+					|| e.getCause() instanceof CompilationFailedException) {
 					e = e.getCause();
 					while (e instanceof CompilationFailedException) {
 						e = e.getCause();	
 					}
 					String message = e.getMessage();
+					Log.d("日志", message);
 					int index;
-					if ((index = message.indexOf(" is defined multiple times: ")) > 0) {
+					if ((index = message.indexOf(" is defined multiple times:")) > 0) {
 						//合并错误
 						String type = message.substring(0, index);
-						String[] files = message.substring(index + " is defined multiple times: ".length()).split(", ");
+						String[] files = message.substring(index + "is defined multiple times: ".length()).split(", ");
 
 						StringBuilder sb = new StringBuilder("合并错误: ")
 							.append(type)
-							.append("在一下文件中重复定义");
+							.append("在以下文件中重复定义");
 						for (String path : files) {
+							sb.append("\n");
 							sb.append(FileSystem.getName(path));
+
 						}
 						throw new Error(sb.toString());
 					}
@@ -239,13 +243,13 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 				}
 				Log.d("打包错误", "堆栈 -> ", e);
 				Throwable cause = e;
-				while ((cause = e.getCause()) != null && cause.getMessage() != null) {
+				while ((cause = e.getCause()) != null) {
 					e = cause;
 				}
-				if( e instanceof Error){
+				if (e instanceof Error) {
 					throw (Error)e;
 				}
-				if( e instanceof RuntimeException){
+				if (e instanceof RuntimeException) {
 					throw (RuntimeException)e;
 				}
 				throw new Error(e);
@@ -330,7 +334,17 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		 */
 		public String getJarDexCachePath(String jarFilePath) {
 			String jarDexCacheDirPath = getJarDexCacheDirPath(jarFilePath);
-			String jarDexZipName = new File(jarFilePath).getName() + ".dex.zip";
+			// 
+
+			File jarFile = new File(jarFilePath);
+			String depFileName = jarFile.getName();
+			if (jarFilePath.endsWith(".exploded.aar/classes.jar")) {
+				String name = jarFile.getParentFile().getName();
+				depFileName = name.substring(0, name.length() - ".exploded.aar".length()) + ".jar";
+			} else {
+
+			}
+			String jarDexZipName = depFileName + ".dex.zip";
 
 			//不会为null
 			if (jarDexCacheDirPath == null) {
@@ -353,8 +367,8 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			 */
 			if (!TextUtils.isEmpty(userM2repositories) 
 				&& dependencyLibPath.startsWith(userM2repositories)) {
-				 //指定了minsdk，会污染缓存，所以只能放项目目录
-				 key = dependencyLibPath.substring(userM2repositories.length());
+				//指定了minsdk，会污染缓存，所以只能放项目目录
+				key = dependencyLibPath.substring(userM2repositories.length());
 			} else if (dependencyLibPath.startsWith(defaultM2repositoriesDirPath)) {
 				key = dependencyLibPath.substring(defaultM2repositoriesDirPath.length());
 			} else {

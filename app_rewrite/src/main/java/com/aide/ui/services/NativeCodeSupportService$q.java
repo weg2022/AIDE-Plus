@@ -43,7 +43,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
     public static Runnable j6(NativeCodeSupportService$q nativeCodeSupportService$q) {
         return nativeCodeSupportService$q.DW;
     }
-	
+
 	private static final BuildGradle.RemoteRepository defaultRemoteRepository = new BuildGradle.RemoteRepository(1, "https://maven.aliyun.com/repository/public");
     @Override
     public Void call() {
@@ -62,18 +62,21 @@ class NativeCodeSupportService$q implements Callable<Void> {
 		//是否有已完成的下载
 		boolean complete = false;
 		int count = 0;
-		for (BuildGradle.MavenDependency dependency : this.FH) {
+		for (BuildGradle.MavenDependency dep : this.FH) {
 			try {
 				//遍历远程仓库
 				for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
-					String mavenMetadataUrl = MavenService.rN(remoteRepository, dependency);
-					String mavenMetadataPath = MavenService.lg(remoteRepository, dependency);
+					String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
+					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
+					
 					try {
+						NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
 						//已存在 长度不一致时更新
 						NativeCodeSupportService.gn(this.v5, mavenMetadataUrl, mavenMetadataPath, false);
 					}
 					catch (Exception unused) {
 					}
+					
 					if (!new File(mavenMetadataPath).exists()) {
 						continue;
 					}
@@ -82,14 +85,16 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					//查看maven-metadata.xml是否下载成功
 					String version;
 					if (new File(mavenMetadataPath).exists() 
-						&& (version = metadataXml.getVersion(dependency.version)) != null) {
-						String pomUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, ".pom");
-						String pomPath = MavenService.getArtifactPath(remoteRepository, dependency, version, ".pom");
+						&& (version = metadataXml.getVersion(dep.version)) != null) {
+						String pomUrl = MavenService.getArtifactUrl(remoteRepository, dep, version, ".pom");
+						String pomPath = MavenService.getArtifactPath(remoteRepository, dep, version, ".pom");
 
 						//pom不存在，下载pom文件
 						File pomFile = new File(pomPath);
 						if (!pomFile.exists()) {
 							try {
+								NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
+								// 下载
 								NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
 							}
 							catch (Exception unused) {
@@ -101,22 +106,23 @@ class NativeCodeSupportService$q implements Callable<Void> {
 						}
 
 
-						final String packaging = PomXml.empty.getConfiguration(pomPath).packaging;
+						final String packaging = PomXml.empty.getConfiguration(pomPath).getPackaging();
 						//更新依赖库packaging
 						//双重验证
 						if ("pom".equals(packaging)
-							&& "pom".equals(dependency.packaging)) {
+							&& "pom".equals(dep.packaging)) {
 							count++;
 							complete = true;
 							//无论成功与否都当做bom
 							break;
 
 						}
-						dependency.packaging = packaging;
+						dep.packaging = packaging;
+
 						String artifactType = "." + packaging;
 
 						//下载
-						if (downloadArtifactFile(remoteRepository, dependency, version, artifactType, count)) {
+						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 							count++;
 							complete = true;
 							break;
@@ -135,8 +141,8 @@ class NativeCodeSupportService$q implements Callable<Void> {
 	}
 
 	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
-		String artifactUrl = MavenService.aM(remoteRepository, dependency, version, artifactType);
-		String artifactPath = MavenService.XL(remoteRepository, dependency, version, artifactType);
+		String artifactUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, artifactType);
+		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
 		File artifactFile = new File(artifactPath);
 
 		if (!artifactFile.exists()) {
@@ -193,8 +199,8 @@ class NativeCodeSupportService$q implements Callable<Void> {
 				BuildGradle.MavenDependency dependency = it.next();
 				for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
 					try {
-						String buildMavenMetadataUrl = MavenService.rN(remoteRepository, dependency);
-						buildMavenMetadataPath = MavenService.lg(remoteRepository, dependency);
+						String buildMavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dependency);
+						buildMavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dependency);
 						//下载
 						NativeCodeSupportService.gn(this.v5, buildMavenMetadataUrl, buildMavenMetadataPath, false);
 					}
@@ -203,14 +209,14 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					// aM url
 					// XL path
 					if (new File(buildMavenMetadataPath).exists() && (version = new MavenMetadataXml().getConfiguration(buildMavenMetadataPath).getVersion(dependency.version)) != null) {
-						String pomUrl = MavenService.aM(remoteRepository, dependency, version, pomType);
-						String pomPath = MavenService.XL(remoteRepository, dependency, version, pomType);
+						String pomUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, pomType);
+						String pomPath = MavenService.getArtifactPath(remoteRepository, dependency, version, pomType);
 
-						String aarUrl = MavenService.aM(remoteRepository, dependency, version, aarType);
-						aarPath = MavenService.XL(remoteRepository, dependency, version, aarType);
+						String aarUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, aarType);
+						aarPath = MavenService.getArtifactPath(remoteRepository, dependency, version, aarType);
 
-						jarUrl = MavenService.aM(remoteRepository, dependency, version, jarType);
-						jarPath = MavenService.XL(remoteRepository, dependency, version, jarType);
+						jarUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, jarType);
+						jarPath = MavenService.getArtifactPath(remoteRepository, dependency, version, jarType);
 
 
 						if ((!new File(jarPath).exists() 
@@ -228,6 +234,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 
 							//通知下载进度
 							NativeCodeSupportService.Hw(this.v5, dependencyString, (i * 100) / this.FH.size(), 0);
+							//下载 复用已有下载[长度一致]
 							NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
 							NativeCodeSupportService.gn(this.v5, aarUrl, aarPath, true);
 							NativeCodeSupportService.gn(this.v5, jarUrl, jarPath, true);
@@ -235,7 +242,8 @@ class NativeCodeSupportService$q implements Callable<Void> {
 
 							i++;
 							if ((new File(jarPath).exists() 
-								|| new File(aarPath).exists()) && new File(pomPath).exists()) {
+								|| new File(aarPath).exists()) 
+								&& new File(pomPath).exists()) {
 								z2 = true;
 								break;
 							}
