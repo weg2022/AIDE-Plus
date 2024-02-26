@@ -33,7 +33,7 @@ import org.apache.maven.model.Parent;
 
 public class PomXml extends Configuration<PomXml> {
 
-	
+
 
 	public static class ArtifactNode extends BuildGradle.MavenDependency {
 		// 依赖排除
@@ -106,6 +106,7 @@ public class PomXml extends Configuration<PomXml> {
 		}
 	}
 	public String getPackaging() {
+
 		return packaging;
 	}
 
@@ -129,9 +130,9 @@ public class PomXml extends Configuration<PomXml> {
 	//子依赖
 	//将一分为二
 	public final List<ArtifactNode> deps;
-	
+
 	public final List<ArtifactNode> depManages;
-	
+
 
 	/**
 	 * 新版解析器
@@ -139,10 +140,10 @@ public class PomXml extends Configuration<PomXml> {
 	private static final MavenXpp3Reader mavenXpp3Reader = new MavenXpp3Reader();
 
     private PomXml(String filePath) {
-		
+
 		this.deps = new ArrayList<>();
 		this.depManages = new ArrayList<>();
-		
+
 		try {
 			File file = new File(filePath);
 			if (!file.exists()) {
@@ -154,18 +155,18 @@ public class PomXml extends Configuration<PomXml> {
 			inputStream.close();
 
 			this.group = model.getGroupId();
-			
+
 			this.artifact = model.getArtifactId();
 			this.curVersion = model.getVersion();
-			this.packaging = model.getPackaging();
-			
+			this.setPackaging(model.getPackaging());
+
 			Parent parent = model.getParent();
-			if( this.group == null ){
+			if (this.group == null) {
 				if (parent != null) {
 					this.group = parent.getGroupId();
 				}
 			}
-			
+
 			init(model);
 		}
 		catch (Throwable e) {
@@ -174,11 +175,11 @@ public class PomXml extends Configuration<PomXml> {
 
 		//Log.d(toString(), deps.toArray());
 		//System.out.println();
-		
+
 	}
 
-	private void init (Model model) {
-		
+	private void init(Model model) {
+
 		DependencyManagement depManagement = model.getDependencyManagement();
 		if (depManagement != null) {
 			// 版本统一
@@ -207,7 +208,7 @@ public class PomXml extends Configuration<PomXml> {
 			deps.add(dependency);
 		}
 	}
-	
+
 	public ArtifactNode make(Model model, Dependency dep) {
 		// 只能先添加，因为自己还未解析
 		String scope = dep.getScope();
@@ -222,9 +223,9 @@ public class PomXml extends Configuration<PomXml> {
 		String groupId = dep.getGroupId();
 		String artifactId = dep.getArtifactId();
 		String version = dep.getVersion();
-		
+
 		String type = dep.getType();
-		
+
 		if (groupId == null) {
 			groupId = "";
 		}

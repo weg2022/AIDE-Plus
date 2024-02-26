@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-
 class NativeCodeSupportService$q implements Callable<Void> {
     private Runnable DW;
     private List<BuildGradle.MavenDependency> FH;
@@ -106,10 +105,13 @@ class NativeCodeSupportService$q implements Callable<Void> {
 						}
 
 
-						final String packaging = PomXml.empty.getConfiguration(pomPath).getPackaging();
+						if( dep.packaging == null 
+						   || dep.packaging.length() == 0){
+							dep.packaging = PomXml.empty.getConfiguration(pomPath).getPackaging();
+						}
 						//更新依赖库packaging
 						//双重验证
-						if ("pom".equals(packaging)
+						if ("pom".equals(dep.packaging)
 							&& "pom".equals(dep.packaging)) {
 							count++;
 							complete = true;
@@ -117,9 +119,8 @@ class NativeCodeSupportService$q implements Callable<Void> {
 							break;
 
 						}
-						dep.packaging = packaging;
 
-						String artifactType = "." + packaging;
+						String artifactType = "." + dep.packaging;
 
 						//下载
 						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {

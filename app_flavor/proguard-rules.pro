@@ -79,6 +79,7 @@
     <fields>;
     <methods>;
 }
+
 # 重写AIDE底包方法类
 -keep class com.aide.** {
     <fields>;
@@ -109,4 +110,5 @@
 -dontwarn abcd.**
 -dontwarn com.aide.**
 -dontwarn java.util.Comparator$_DC 
+-dontwarn
 

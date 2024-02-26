@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import com.aide.common.AppLog;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import com.android.apksig.ApkSigner;
+import com.android.tools.r8.CompilationFailedException;
 import com.android.tools.r8.OutputMode;
 import com.android.tools.r8.R8;
 import com.android.tools.r8.R8Command;
@@ -15,6 +16,7 @@ import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
@@ -22,6 +24,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,17 +32,14 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import sun1.security.pkcs.PKCS8Key;
-import java.util.Comparator;
-import com.android.tools.r8.CompilationFailedException;
-import java.nio.file.Paths;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 	private static final String TAG = "Worker";
 	public ZeroAicyPackagingWorker(ExternalPackagingService service){
 		super(service);
+		//j$.util.Optional F;
 	}
 	@Override
 	public PackagingWorkerWrapper.TaskWrapper 
@@ -698,7 +698,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			
 			R8Command r8Command = builder
 				// 所有类
-				.addProgramFiles()
+				.addProgramFiles(validDepPaths)
 				// 混淆规则
 				.addProguardConfigurationFiles(this.proguardPaths)
 				//主要是为了兼容AIDE的输出类

@@ -453,7 +453,6 @@ public class MavenService {
 			}
 			
 			// 当前依赖路径的实例版本
-
 			{
 				String version = getVersion(depPath);
 				
@@ -466,10 +465,10 @@ public class MavenService {
 				}
 			}
 
+
 			if (depth < 1) {
 				return;
 			}
-
 			String depPomPath = getDepPomPath(depPath);
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
 			

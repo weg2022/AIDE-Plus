@@ -140,8 +140,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 			this.minSdk = this.getProjectMinSdk();
 			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
-
-			BuildGradle m;
+			
 		}
 
 		private int getProjectMinSdk() {
