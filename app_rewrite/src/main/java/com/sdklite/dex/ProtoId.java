@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import com.android.dex.util.Unsigned;
+import com.sdklite.dex.util.Unsigned;
 
 public final class ProtoId implements Comparable<ProtoId> {
     private final Dex dex;

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import com.android.dex.Code.CatchHandler;
-import com.android.dex.Code.Try;
-import com.android.dex.util.ByteInput;
-import com.android.dex.util.ByteOutput;
-import com.android.dex.util.FileUtils;
+import com.sdklite.dex.Code.CatchHandler;
+import com.sdklite.dex.Code.Try;
+import com.sdklite.dex.util.ByteInput;
+import com.sdklite.dex.util.ByteOutput;
+import com.sdklite.dex.util.FileUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

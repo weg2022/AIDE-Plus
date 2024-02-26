@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import com.android.dex.util.ByteArrayByteInput;
-import com.android.dex.util.ByteInput;
+import com.sdklite.dex.util.ByteArrayByteInput;
+import com.sdklite.dex.util.ByteInput;
 
 /**
  * An encoded value or array.

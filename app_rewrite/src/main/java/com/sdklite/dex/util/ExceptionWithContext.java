@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.dex.util;
+package com.sdklite.dex.util;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;

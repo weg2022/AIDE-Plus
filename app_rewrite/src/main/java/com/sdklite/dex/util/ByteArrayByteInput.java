@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2011 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex.util;
 
-/**
- * Thrown when there's an index overflow writing a dex file.
- */
-@SuppressWarnings("serial")
-public final class DexIndexOverflowException extends DexException {
-    public DexIndexOverflowException(String message) {
-        super(message);
+public final class ByteArrayByteInput implements ByteInput {
+
+    private final byte[] bytes;
+    private int position;
+
+    public ByteArrayByteInput(byte... bytes) {
+        this.bytes = bytes;
     }
 
-    public DexIndexOverflowException(Throwable cause) {
-        super(cause);
+    @Override public byte readByte() {
+        return bytes[position++];
     }
 }

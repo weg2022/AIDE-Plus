@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.dex;
-
-import com.android.dex.util.ExceptionWithContext;
+package com.sdklite.dex.util;
 
 /**
- * Thrown when there's a format problem reading, writing, or generally
- * processing a dex file.
+ * A byte sink.
  */
-@SuppressWarnings("serial")
-public class DexException extends ExceptionWithContext {
-    public DexException(String message) {
-        super(message);
-    }
+public interface ByteOutput {
 
-    public DexException(Throwable cause) {
-        super(cause);
-    }
+    /**
+     * Writes a byte.
+     *
+     * @throws IndexOutOfBoundsException if all bytes have been written.
+     */
+    void writeByte(int i);
 }

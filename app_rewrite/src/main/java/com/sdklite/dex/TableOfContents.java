@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

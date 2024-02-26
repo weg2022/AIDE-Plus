@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.android.dex.util;
+package com.sdklite.dex;
 
 /**
- * A byte sink.
+ * Thrown when there's an index overflow writing a dex file.
  */
-public interface ByteOutput {
+@SuppressWarnings("serial")
+public final class DexIndexOverflowException extends DexException {
+    public DexIndexOverflowException(String message) {
+        super(message);
+    }
 
-    /**
-     * Writes a byte.
-     *
-     * @throws IndexOutOfBoundsException if all bytes have been written.
-     */
-    void writeByte(int i);
+    public DexIndexOverflowException(Throwable cause) {
+        super(cause);
+    }
 }

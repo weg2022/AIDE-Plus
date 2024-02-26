@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import static com.android.dex.EncodedValueReader.ENCODED_ANNOTATION;
+import static com.sdklite.dex.EncodedValueReader.ENCODED_ANNOTATION;
 
 /**
  * An annotation.

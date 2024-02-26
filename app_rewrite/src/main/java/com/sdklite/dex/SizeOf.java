@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
 public final class SizeOf {
     private SizeOf() {}

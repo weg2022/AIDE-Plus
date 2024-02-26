@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import com.android.dex.util.ByteInput;
+import com.sdklite.dex.util.ByteInput;
 
 /**
  * Pull parser for encoded values.

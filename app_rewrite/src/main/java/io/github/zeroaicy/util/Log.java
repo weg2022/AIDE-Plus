@@ -374,7 +374,7 @@ public final class Log {
 	public static void disable() {
 		Log.isOut = false;
 	}
-	
+
 	//启用
 	public static void enable(String mNewLogPath) {
 		Log.isOut = true;
@@ -387,38 +387,38 @@ public final class Log {
 			return;
 		}
 		Log.mLogPath = mNewLogPath;
+		// 更新写入路径
+		updateCurLogHold();
 
-		makeLogHold();
-
+		if (Log.getLog() != null) {
+			// 虽然启用，但是没有流
+			return;
+		}
 		//启用了，打印preMsgList
 		while (!preMsgList.isEmpty()) {
 			println(preMsgList.removeFirst());
 		}
 	}
 
-	private static void makeLogHold() {
-		//保存上一个LogHold
-		Log.AsyncOutputStreamHold mLogHoldLast = getLogHold();
-		//创建当前LogHold并更新
-		makeCurLogHold();
+	// 刷新流
+	private static void updateCurLogHold() {
+		Log.AsyncOutputStreamHold mLogHold = getLogHold();
+		if (mLogHold == null) {
+			mLogHold = new AsyncOutputStreamHold(Log.getLogPath());
+		}
+		// 刷新路径
+		mLogHold.update(Log.getLogPath());
 
-		if (mLogHoldLast != null 
-			&& mLogHoldLast != getLogHold()) {
-			//mLogHoldLast已被替换
-			mLogHoldLast.close();
-		}
-	}
-	//
-	private static void makeCurLogHold() {
-		Log.AsyncOutputStreamHold mLogHoldTemp = new AsyncOutputStreamHold(Log.getLogPath());
 		//是否设置系统流
-		if (setSystemOut) {
-			PrintStream log = mLogHoldTemp.getLog();
-			System.setOut(log);
-			System.setErr(log);
+		if (Log.setSystemOut) {
+			PrintStream systemStream = mLogHold.getLog();
+			if (systemStream != null) {
+				System.setOut(systemStream);
+				System.setErr(systemStream);
+			}
 		}
-		//更新Log.mLogHold
-		Log.mLogHold = mLogHoldTemp;
+		// 更新 日志流持有者
+		Log.mLogHold = mLogHold;
 	}
 
 	/**
@@ -475,7 +475,7 @@ public final class Log {
 				break;
 			default : 
 				priorityString = "";
-				Log.getLog().println(priority);
+				//Log.getLog().println(priority);
 				break;
 		}
 
@@ -499,24 +499,50 @@ public final class Log {
 
 	//AsyncOutputStream持有者
 	public static class AsyncOutputStreamHold implements AutoCloseable {
-		private final PrintStream mLog;
-		private final String outPath;
+		private PrintStream mLog;
+		private String logFilePath;
 		//线程安全
 		public AsyncOutputStreamHold(String filePath) {
-			this(filePath, new AsyncOutStream(createOutStream(filePath)));
+			update(filePath);
 		}
-		private AsyncOutputStreamHold(String filePath, OutputStream outputStream) {
-			this.outPath = filePath;
-			if (outputStream == null) {
-				this.mLog = null;
+
+		public synchronized void update(String outPath) {
+			if (outPath == null) {
+				return;
 			}
-			else {
-				this.mLog = new PrintStream(outputStream);
+			if (outPath.equals(this.logFilePath)) {
+				return;
+			}
+			this.logFilePath = outPath;
+			
+			PrintStream lastLog = this.getLog();
+
+			// 是否是系统流
+			boolean isSystemStream = lastLog != System.out
+				&& lastLog != System.err;
+
+			File logFile = new File(this.logFilePath);
+			if (! logFile.canWrite()) {
+				// 过滤不可写
+				return;
+			}
+			// 更新流
+			this.mLog = new PrintStream(new AsyncOutStream(createOutStream(logFile)));
+
+			// 关闭旧的流 
+			if (lastLog != null) {
+				// 关闭上一个流
+				lastLog.close();
+				
+			}
+			if (this.mLog != null && isSystemStream) {
+				System.setErr(this.mLog);
+				System.setOut(this.mLog);
 			}
 		}
 
 		public String getOutPath() {
-			return outPath;
+			return this.logFilePath;
 		}
 		public PrintStream getLog() {
 			return this.mLog;
@@ -539,7 +565,8 @@ public final class Log {
 			try {
 				checkFile(file);
 				return new FileOutputStream(file);
-			} catch (Throwable e) {
+			}
+			catch (Throwable e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
@@ -549,8 +576,7 @@ public final class Log {
 				file = file.getParentFile();
 				if (!file.exists()) {
 					file.mkdirs();
-				}
-				else if (file.isFile()) {
+				} else if (file.isFile()) {
 					file.delete();
 					file.mkdirs();
 				}
@@ -563,7 +589,8 @@ public final class Log {
                 while (true) {
 					try {
 						mQueue.take().run();
-					} catch (InterruptedException e) {
+					}
+					catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 
@@ -582,7 +609,7 @@ public final class Log {
 				this.out = outputStream;
 				checkWriteLogThread();
 			}
-
+			//检查写入日志线程
             private void checkWriteLogThread() {
                 if (mWriteLogThread == null) {
 					mWriteLogThread = new WriteLogThread();
@@ -596,7 +623,8 @@ public final class Log {
 						public void run() {
 							try {
 								out.flush();
-							} catch (IOException e) {
+							}
+							catch (IOException e) {
 								e.printStackTrace();
 							}
 						}
@@ -609,7 +637,8 @@ public final class Log {
 						public void run() {
 							try {
 								out.close();
-							} catch (IOException e) {
+							}
+							catch (IOException e) {
 								e.printStackTrace();
 							}
 						}
@@ -622,7 +651,8 @@ public final class Log {
                     public void run() {
                         try {
                             out.write(b);
-                        } catch (Throwable e) {
+                        }
+						catch (Throwable e) {
 							e.printStackTrace(new PrintStream(out));
                         }
                     }
@@ -639,7 +669,8 @@ public final class Log {
                     public void run() {
                         try {
                             out.write(buf2, off, len);
-                        } catch (IOException e) {
+                        }
+						catch (IOException e) {
 							e.printStackTrace(new PrintStream(out));                        }
                     }
                 };
@@ -651,7 +682,8 @@ public final class Log {
 				try {
 					checkWriteLogThread();
 					mWriteLogThread.mQueue.offer(mRunnable);
-				} catch (Throwable e) {
+				}
+				catch (Throwable e) {
 					e.printStackTrace(new PrintStream(out));
 				}
 			}

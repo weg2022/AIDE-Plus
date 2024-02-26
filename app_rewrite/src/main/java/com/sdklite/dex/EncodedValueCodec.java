@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.dex;
+package com.sdklite.dex;
 
-import com.android.dex.util.ByteInput;
-import com.android.dex.util.ByteOutput;
+import com.sdklite.dex.util.ByteInput;
+import com.sdklite.dex.util.ByteOutput;
 
 /**
  * Read and write {@code encoded_value} primitives.

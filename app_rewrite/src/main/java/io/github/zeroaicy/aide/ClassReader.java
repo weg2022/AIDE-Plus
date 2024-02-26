@@ -47,7 +47,9 @@ public class ClassReader {
 	private static SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChanged;
 
 	static{
-
+		/**
+		 * 动态添加
+		 */
 		if (isDynamic) {
 			Log.d(TAG, "动态调用");
 			loadDynamicDex();
@@ -58,26 +60,25 @@ public class ClassReader {
 			Log.d(TAG, "错误模式，解析库禁用");
 
 		}
-
-
+		
 		try {
 			Context context = ContextUtil.getContext();
 			Log.d(TAG, "context is " +  context.getPackageName());
+			
 			SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-			defaultSharedPreferences.registerOnSharedPreferenceChangeListener(
-				onSharedPreferenceChanged = new SharedPreferences.OnSharedPreferenceChangeListener(){
-					@Override
-					public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String string) {
-						//默认使用新ReaderClass
-						ClassReader.useReaderClassFromZeroAicy = sharedPreferences.getBoolean(useReaderClassKey, true);
-						//默认不禁用默认方法
-						ClassReader.disableDefaultMethod = sharedPreferences.getBoolean(disableDefaultMethodKey, false);
+			onSharedPreferenceChanged = new SharedPreferences.OnSharedPreferenceChangeListener(){
+				@Override
+				public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String string) {
+					//默认使用新ReaderClass
+					ClassReader.useReaderClassFromZeroAicy = sharedPreferences.getBoolean(useReaderClassKey, true);
+					//默认不禁用默认方法
+					ClassReader.disableDefaultMethod = sharedPreferences.getBoolean(disableDefaultMethodKey, false);
 
-						Log.d(TAG, "useReaderClassFromZeroAicy改变为: " +  ClassReader.useReaderClassFromZeroAicy);
-						Log.d(TAG, "disableDefaultMethod改变为: " +  ClassReader.disableDefaultMethod);
-
-					}
-				});
+					Log.d(TAG, "useReaderClassFromZeroAicy改变为: " +  ClassReader.useReaderClassFromZeroAicy);
+					Log.d(TAG, "disableDefaultMethod改变为: " +  ClassReader.disableDefaultMethod);
+				}
+			};
+			defaultSharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChanged);
 			//默认使用新ReaderClass
 			useReaderClassFromZeroAicy = defaultSharedPreferences.getBoolean(useReaderClassKey, true);
 			//默认不禁用默认方法
@@ -110,16 +111,6 @@ public class ClassReader {
 		if (isDirect || isLoadDexError) return false;
 		return true;
 	}
-
-	//Labcd/Dc;->j6(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/Reader;
-	//Labcd/v4;->QX(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/io/Reader;
-	/*
-	 invoke-static {p1, p2}, Lio/github/zeroaicy/aide/ClassReader;->Dc_ReadClassFile(Ljava/lang/String;Ljava/lang/String;)Ljava/io/Reader;
-	 move-result-object v1
-	 if-eqz v1, :cond_19
-	 return-object v1
-	 :cond_19
-	 */
 	/**
 	 * 固定api
 	 */

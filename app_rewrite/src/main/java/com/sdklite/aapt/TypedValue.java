@@ -1,3 +1,4 @@
+package com.sdklite.aapt;
 /*
  * Copyright (C) 2007 The Android Open Source Project
  *
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package android.util;
 
 /**
  * Container for a dynamically typed data value. Primarily used with
@@ -239,10 +238,10 @@ public class TypedValue {
 
     private static final float MANTISSA_MULT = 1.0f / (1 << TypedValue.COMPLEX_MANTISSA_SHIFT);
     private static final float[] RADIX_MULTS = new float[] {
-            1.0f * MANTISSA_MULT,
-            1.0f / (1 << 7) * MANTISSA_MULT,
-            1.0f / (1 << 15) * MANTISSA_MULT,
-            1.0f / (1 << 23) * MANTISSA_MULT
+		1.0f * MANTISSA_MULT,
+		1.0f / (1 << 7) * MANTISSA_MULT,
+		1.0f / (1 << 15) * MANTISSA_MULT,
+		1.0f / (1 << 23) * MANTISSA_MULT
     };
 
     /**
@@ -279,10 +278,10 @@ public class TypedValue {
      */
     public static float complexToFraction(int data, float base, float pbase) {
         switch ((data >> COMPLEX_UNIT_SHIFT) & COMPLEX_UNIT_MASK) {
-        case COMPLEX_UNIT_FRACTION:
-            return complexToFloat(data) * base;
-        case COMPLEX_UNIT_FRACTION_PARENT:
-            return complexToFloat(data) * pbase;
+			case COMPLEX_UNIT_FRACTION:
+				return complexToFloat(data) * base;
+			case COMPLEX_UNIT_FRACTION_PARENT:
+				return complexToFloat(data) * pbase;
         }
         return 0;
     }
@@ -338,22 +337,22 @@ public class TypedValue {
      */
     public static final String coerceToString(int type, int data) {
         switch (type) {
-        case TYPE_NULL:
-            return null;
-        case TYPE_REFERENCE:
-            return String.format("@0x%08x", data);
-        case TYPE_ATTRIBUTE:
-            return String.format("?0x%08x", data);
-        case TYPE_FLOAT:
-            return Float.toString(Float.intBitsToFloat(data));
-        case TYPE_DIMENSION:
-            return Float.toString(complexToFloat(data)) + DIMENSION_UNIT_STRS[(data >> COMPLEX_UNIT_SHIFT) & COMPLEX_UNIT_MASK];
-        case TYPE_FRACTION:
-            return Float.toString(complexToFloat(data) * 100) + FRACTION_UNIT_STRS[(data >> COMPLEX_UNIT_SHIFT) & COMPLEX_UNIT_MASK];
-        case TYPE_INT_HEX:
-            return String.format("0x%08x", data);
-        case TYPE_INT_BOOLEAN:
-            return data != 0 ? "true" : "false";
+			case TYPE_NULL:
+				return null;
+			case TYPE_REFERENCE:
+				return String.format("@0x%08x", data);
+			case TYPE_ATTRIBUTE:
+				return String.format("?0x%08x", data);
+			case TYPE_FLOAT:
+				return Float.toString(Float.intBitsToFloat(data));
+			case TYPE_DIMENSION:
+				return Float.toString(complexToFloat(data)) + DIMENSION_UNIT_STRS[(data >> COMPLEX_UNIT_SHIFT) & COMPLEX_UNIT_MASK];
+			case TYPE_FRACTION:
+				return Float.toString(complexToFloat(data) * 100) + FRACTION_UNIT_STRS[(data >> COMPLEX_UNIT_SHIFT) & COMPLEX_UNIT_MASK];
+			case TYPE_INT_HEX:
+				return String.format("0x%08x", data);
+			case TYPE_INT_BOOLEAN:
+				return data != 0 ? "true" : "false";
         }
 
         if (type >= TYPE_FIRST_COLOR_INT && type <= TYPE_LAST_COLOR_INT) {
