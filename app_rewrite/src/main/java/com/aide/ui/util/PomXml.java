@@ -260,7 +260,7 @@ public class PomXml extends Configuration<PomXml> {
 			}
 		}
 		if (version == null) {
-			version = "-1";
+			version = "+";
 		}
 		if (version.startsWith("${")) {
 			//${project.version}
