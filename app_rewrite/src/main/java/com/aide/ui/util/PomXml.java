@@ -37,10 +37,6 @@ public class PomXml extends Configuration<PomXml> {
 
 	public static class ArtifactNode extends BuildGradle.MavenDependency {
 		// 依赖排除
-		private List<Exclusion> exclusions;
-		public ArtifactNode() {
-			super(1);
-		}
 		public static ArtifactNode pack(BuildGradle.MavenDependency dep) {
 			if (dep instanceof ArtifactNode) {
 				return (ArtifactNode)dep;
@@ -48,20 +44,27 @@ public class PomXml extends Configuration<PomXml> {
 			return new ArtifactNode(dep, dep.version);
 		}
 
-		public ArtifactNode(PomXml pom) {
-			this();
-			this.groupId = pom.group;
-			this.artifactId = pom.artifact;
-			this.version = pom.curVersion;
-			this.packaging = pom.packaging;
-		}
-
+		private List<Exclusion> exclusions;
 		public ArtifactNode(BuildGradle.MavenDependency dep, String version) {
 			super(dep, version);
 			if (dep instanceof ArtifactNode) {
 				// 直接用字段，getExclusions可能返回emptyList
 				setExclusions(((ArtifactNode)dep).exclusions);
 			}
+			// 保留 packaging
+			this.packaging = dep.packaging;
+		}
+		
+		public ArtifactNode() {
+			super(1);
+		}
+		public ArtifactNode(PomXml pom) {
+			this();
+			this.groupId = pom.group;
+			this.artifactId = pom.artifact;
+			this.version = pom.curVersion;
+			// 从pom解析出来的
+			this.packaging = pom.getPackaging();
 		}
 
 		public void setExclusions(List<Exclusion> exclusions) {
@@ -90,7 +93,7 @@ public class PomXml extends Configuration<PomXml> {
 	String artifact = "";
 	String curVersion = "";
 
-	String packaging = "jar";
+	String packaging = null;
 
 	public PomXml() {
 		this.deps = null;
@@ -106,8 +109,7 @@ public class PomXml extends Configuration<PomXml> {
 		}
 	}
 	public String getPackaging() {
-
-		return packaging;
+		return this.packaging;
 	}
 
     public PomXml makeConfiguration(String str) {

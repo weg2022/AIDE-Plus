@@ -67,7 +67,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 				for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
 					String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
 					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
-					
+
 					try {
 						NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
 						//已存在 长度不一致时更新
@@ -75,7 +75,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					}
 					catch (Exception unused) {
 					}
-					
+
 					if (!new File(mavenMetadataPath).exists()) {
 						continue;
 					}
@@ -96,28 +96,34 @@ class NativeCodeSupportService$q implements Callable<Void> {
 								// 下载
 								NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
 							}
-							catch (Exception unused) {
+							catch (Throwable unused) {
 							}
 						}
 						if (!pomFile.exists()) {
 							//仓库有问题，跳过
 							continue;
 						}
+						PomXml configuration = PomXml.empty.getConfiguration(pomPath);
+						// pom中的 packaging 
+						String packaging = configuration.getPackaging();
 
-
-						if( dep.packaging == null 
-						   || dep.packaging.length() == 0){
-							dep.packaging = PomXml.empty.getConfiguration(pomPath).getPackaging();
+						// 从父依赖解析出来的，最为准确
+						if (dep.packaging == null) {
+							dep.packaging = packaging;
 						}
 						//更新依赖库packaging
 						//双重验证
-						if ("pom".equals(dep.packaging)
-							&& "pom".equals(dep.packaging)) {
+						if ("pom".equals(dep.packaging)) {
 							count++;
 							complete = true;
 							//无论成功与否都当做bom
 							break;
-
+						}
+						boolean isAttemptn = false;
+						if (dep.packaging == null) {
+							// 启用尝试 下载aar模式
+							isAttemptn = true;
+							dep.packaging = "jar";
 						}
 
 						String artifactType = "." + dep.packaging;
@@ -126,7 +132,17 @@ class NativeCodeSupportService$q implements Callable<Void> {
 						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 							count++;
 							complete = true;
+							
 							break;
+
+						} else if (isAttemptn) {
+							dep.packaging = "aar";
+							artifactType = "." + dep.packaging;
+							if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
+								count++;
+								complete = true;
+								break;
+							}
 						}
 
 					}
@@ -163,7 +179,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 				//如果文件存在且长度一致则不下载
 				NativeCodeSupportService.gn(this.v5, artifactUrl, artifactPath, true);
 			}
-			catch (Exception unused) {}
+			catch (Throwable unused) {}
 		}
 
 		return artifactFile.exists();
