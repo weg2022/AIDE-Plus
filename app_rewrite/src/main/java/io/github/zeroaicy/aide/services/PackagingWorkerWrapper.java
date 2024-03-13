@@ -51,25 +51,28 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 	public abstract class TaskWrapper extends Task {
 		//class转dex默认输出目录
 		private final String defaultClassDexCacheDirPath;
+		
 		private final String defaultIntermediatesDirPath;
 
 		/**
 		 * android:extractNativeLibs="false"必须无压缩
 		 */
 		private boolean androidFxtractNativeLibs = true;
+		// 低于21时d8无法dexing AIDE产生的class文件
 		private int minSdk = 21;
 
 		/*************************参数*********************************/
 		// 主项目.class file缓存目录
 		private final String mainClassCacheDir;
-		//所有class顶级父目录
+		//所有class文件，顶级父目录
 		private String[] allClassFileRootDirs;
 
-		//outFilePath的父目录
+		//构建时缓存文件的父目录
 		private String outDirPath;
 
 		//构建文件地址[类型分为apk和zip]
 		private String outFilePath;
+		// .ap_文件(aapt2 link产物)
 		private String aaptResourcePath;
 
 
@@ -82,7 +85,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		private String[] sourceDirs;
 		//源码目录
 		private String[] nativeLibDirs;
-
+		//构建刷新
 		private final boolean buildRefresh;
 
 		private final String zipalignPath;

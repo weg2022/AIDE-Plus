@@ -591,15 +591,16 @@ public class Aapt2TaskFromZeroAicy {
 	 */
 	private static String getAndroidManifestXml(AaptServiceArgs aaptServiceArgs, String subProjectGen) throws RuntimeException {
 		String manifestXml = aaptServiceArgs.mergedAManifestMap.get(subProjectGen);
-		if (FileSystem.exists(manifestXml)) {
+		
+		if (manifestXml != null && FileSystem.exists(manifestXml)) {
 			return manifestXml;
 		}
 		manifestXml = aaptServiceArgs.injectedAManifestMap.get(subProjectGen);
-		if (FileSystem.exists(manifestXml)) {
+		if (manifestXml != null && FileSystem.exists(manifestXml)) {
 			return manifestXml;
 		}
 		manifestXml = aaptServiceArgs.aManifestMap.get(manifestXml);
-		if (FileSystem.exists(manifestXml)) {
+		if (manifestXml != null && FileSystem.exists(manifestXml)) {
 			return manifestXml;
 		}
 		aaptServiceArgs.log.println("没有AndroidManifest文件玩尼玛\n");
