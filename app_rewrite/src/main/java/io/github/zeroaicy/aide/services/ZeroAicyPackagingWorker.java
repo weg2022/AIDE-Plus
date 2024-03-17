@@ -1133,7 +1133,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					//已被转换器过滤
 					return;
 				}
-
+				
+				// 检查是否无压缩模式
 				if ( zipEntry.getMethod() == ZipEntry.STORED ){
 					//未压缩时设置未压缩条目数据的CRC-32校验和
 					zipEntry.setCrc(getFileCRC32(file));
@@ -1193,7 +1194,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				zipFileInput = new ZipInputStream(new FileInputStream(zipFilePath));
 				ZipEntry originalZipEntry;
 				while ( (originalZipEntry = zipFileInput.getNextEntry()) != null ){
-					ZipEntry newZipEntry;
+					ZipEntry newZipEntry = originalZipEntry;
+					
 					if ( transformer != null ){
 						newZipEntry = transformer.transformer(originalZipEntry, packagingZipOutput);
 						//转换器过滤此条目
@@ -1201,23 +1203,24 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 							continue;
 						}
 					}
-					else{
-						newZipEntry = originalZipEntry;
-					}
-
+					
+					// 转换器未修改
 					if ( newZipEntry == originalZipEntry ){
 						newZipEntry = new ZipEntry(originalZipEntry.getName());
 					}
 
 					if ( followZipEntryMethod 
 						&& originalZipEntry.getMethod() != -1 ){
-						if ( originalZipEntry.getMethod() == ZipEntry.STORED ){
-							newZipEntry.setCrc(originalZipEntry.getCrc());
-							newZipEntry.setSize(originalZipEntry.getSize());
-						}
 						newZipEntry.setMethod(originalZipEntry.getMethod());
 					}
-
+					
+					// 检查 转换后以及跟随压缩方式后是否无压缩
+					if ( newZipEntry.getMethod() == ZipEntry.STORED ){
+						newZipEntry.setCrc(originalZipEntry.getCrc());
+						newZipEntry.setSize(originalZipEntry.getSize());
+					}
+					
+					
 					packagingZipOutput.putNextEntry(newZipEntry);
 					streamTransfer(zipFileInput, packagingZipOutput);
 					//Entry写入完成
