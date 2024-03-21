@@ -2,6 +2,8 @@ package io.github.zeroaicy.aide.activity;
 
 
 import abcd.iy;
+import abcd.jw;
+import abcd.nw;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -13,6 +15,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,13 +25,34 @@ import android.webkit.MimeTypeMap;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import com.aide.common.AndroidHelper;
+import com.aide.common.AppLog;
+import com.aide.common.KeyStrokeDetector;
+import com.aide.common.MessageBox;
+import com.aide.ui.ActionBarNoTabs;
 import com.aide.ui.App;
+import com.aide.ui.App;
+import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
+import com.aide.ui.PromoNotificationAlarmReceiver;
+import com.aide.ui.QuickActionMenu;
+import com.aide.ui.QuickKeysBar;
+import com.aide.ui.SearchBarNoTabs;
+import com.aide.ui.ThemedActionbarActivity;
+import com.aide.ui.activities.TrainerCourseActivity;
+import com.aide.ui.firebase.FireBaseLogEvent;
+import com.aide.ui.marketing.WhatsNewDialog;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
+import com.android.tools.r8.internal.Mr;
+import com.android.tools.r8.internal.U2;
+import com.android.tools.r8.internal.WB;
+import com.android.tools.r8.internal.gW;
+import com.android.tools.r8.internal.iW;
+import com.android.tools.r8.internal.pN;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
+import io.github.zeroaicy.ZeroAicyAIDEApplication;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
@@ -36,26 +60,191 @@ import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-
+import com.aide.ui.y;
+import android.graphics.drawable.Drawable;
 public class ZeroAicyMainActivity extends MainActivity {
 
+	private static final String TAG = "ZeroAicyMainActivity";
 	@Override
 	public void onCreate(Bundle bundle) {
+		
 		super.onCreate(bundle);
-		//初始化Shizuku库
-		ShizukuUtil.initialized(this);
+		
+		// 检查并申请管理外部储存权限
 		showRequestManageExternalStorage();
 	}
+
+	
+	
+
+	protected void superonCreate(Bundle bundle) {
+		ReflectPie that = ReflectPie.on(this);
+		
+		AppLog.Zo(this, "onCreate");
+
+		if (AndroidHelper.er()) {
+			tv.ouya.console.api.e.v5().Zo(this, "9b57b7e2-2fa3-44db-9131-04b76a1f491c");
+		}
+		App.sh(this);
+		AndroidHelper.v5(this);
+
+		boolean z = true;
+		that.set("Gj", true); //this.Gj = true;
+		that.set("e3", new Handler()); // this.e3 = new Handler();
+		that.set("n5", AppPreferences.yS(this));//this.n5 = AppPreferences.yS(this);
+
+		AndroidHelper.cn(this, App.U2());
+		if (!FireBaseLogEvent.gn()) {
+			abcd.b0 mainActivity$q = ReflectPie.onClass("com.aide.ui.MainActivity$q").create(this).get();
+			FireBaseLogEvent.Zo(this, mainActivity$q);
+		}
+		
+		ThemedActionbarActivity.onCreate2((ThemedActionbarActivity)(Object)this, bundle);
+		
+		if (!App.isTrainerMode() && !((Boolean)that.call("pN").get())) {
+			getWindow().requestFeature(9);
+		}
+		String str = null;
+		if (getIntent() != null && getIntent().getData() != null) {
+			str = getIntent().getData().getPath();
+		}
+		App.cb(this, str);
+		that.set("sg", ReflectPie.onClass("com.aide.ui.QuickActionMenu").create(this, 0x7f0b0005).get()); //this.sg = new QuickActionMenu(this, 0x7f0b0005);
+		that.set("fY", ReflectPie.onClass("com.aide.common.KeyStrokeDetector").create(this).get()); //this.fY = new KeyStrokeDetector(this);
+		AppPreferences.cb(this, this);
+		that.set("eU", AppPreferences.Hw()); //this.eU = AppPreferences.Hw();
+		setContentView(0x7f0a0026);// R.layout.main
+
+		AndroidHelper.gW(this);
+		if (!App.isTrainerMode()) {
+			AndroidHelper.KD(findViewById(0x7f0800f3));
+		}
+		that.set("pO", ReflectPie.onClass("com.aide.ui.QuickKeysBar").create(this).get()); //this.pO = new QuickKeysBar(this);
+		that.call("iW");
+		com.aide.ui.m mVar = new com.aide.ui.m(this, 0x7f0800f4);
+		that.set("cT", mVar); //this.cT = mVar;
+		mVar.FH(App.isTrainerMode());
+
+		android.view.View.OnClickListener get = ReflectPie.onClass("com.aide.ui.MainActivity$r").create(this).get();
+		mVar.DW(get);
+
+		br().setSwipeEnabled(!App.isTrainerMode() && AppPreferences.we());
+		com.aide.ui.views.SplitView.OnSplitChangeListener get2 = ReflectPie.onClass("com.aide.ui.MainActivity$s").create(this).get();
+		br().setOnSplitChangeListener(get2);
+		findViewById(0x7f08011e).setOnClickListener((android.view.View.OnClickListener)ReflectPie.onClass("com.aide.ui.MainActivity$t").create(this).get());
+		if (App.isTrainerMode()) {
+			getActionBar().setDisplayHomeAsUpEnabled(true);
+			getActionBar().setDisplayShowHomeEnabled(true);
+		} else if ((Boolean)that.call("pN").get()) {
+			getActionBar().setDisplayShowTitleEnabled(false);
+			getActionBar().setNavigationMode(2);
+			if (!AndroidHelper.lg(this) && App.ro().dx()) {
+				getActionBar().setDisplayHomeAsUpEnabled(true);
+			}
+			getActionBar().setDisplayShowHomeEnabled(true);
+		} else {
+			getActionBar().setDisplayOptions(16);
+			getActionBar().setDisplayShowCustomEnabled(true);
+			getActionBar().setBackgroundDrawable(getResources().getDrawable(0x7f070001));
+			findViewById(0x7f0800ed).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.ActionBarNoTabs").create(this).get());
+			findViewById(0x7f080121).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.SearchBarNoTabs").create(this).get());
+		}
+		if (App.isTrainerMode()) {
+			com.aide.ui.build.BuildService.BuildListener get3 = ReflectPie.onClass("com.aide.ui.MainActivity$u").create(this).get();
+			App.Zo().FH(get3);
+		}
+		if (App.isTrainerMode() && AndroidHelper.U2(this)) {
+			getActionBar().hide();
+		}
+		App.getOpenFileService().yS(str);
+		if (!App.P8.equals("com.aide.web")) {
+			g3().Ws();
+			cn().Hw();
+		}
+		App.aM().VH(sh().getCurrentFileSpan());
+		App.J0().u7(this);
+		sh().setSoftKeyboardListener(this);
+		setHasEmbeddedTabs();
+		q7();
+		that.call("U2");
+		if ((Boolean)that.get("kf")) {
+			FireBaseLogEvent.tp("First run after inital install");
+		}
+		if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_TRAINER_NOTIFICATION", false)) {
+			FireBaseLogEvent.tp("Shown from trainer notification");
+		}
+		if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false)) {
+			FireBaseLogEvent.tp("Shown from promo notification");
+		}
+		if (!App.I() && !App.isTrainerMode() && App.getProjectService().I()) {
+			App.j6(false);
+		}
+		if (com.aide.ui.n.EQ() && !App.a8().QX() && !App.a8().Ws() && !App.a8().g3() && ((App.isTrainerMode() || !App.I()) && new GregorianCalendar().before(com.aide.ui.n.FH()))) {
+			PromoNotificationAlarmReceiver.FH(App.getContext(), com.aide.ui.n.FH().getTimeInMillis(), that.call("nw", this).get(), "20% off special offer", "Special offer", "Save 20% on an annual subscription");
+		} else {
+			PromoNotificationAlarmReceiver.DW(App.getContext());
+		}
+		if (AndroidHelper.er() && !tv.ouya.console.api.e.v5().gn()) {
+			MessageBox.SI(this, "AIDE for OUYA", "This version of AIDE is only intended to run on the OUYA. Contact info@appfour.com for details.", false, (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$v").create(this).get(), (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$a").create(this).get());
+		} else if (App.isTrainerMode()) {
+			App.ro().aq();
+			if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
+				TrainerCourseActivity.rN(this);
+			} else {
+				y.XL(this);
+			}
+		} else {
+			that.call("WB");
+			if (getLastNonConfigurationInstance() == null) {
+				z = false;
+			}
+			if (!z) {
+				if (App.getOpenFileService().j3()) {
+					App.EQ().g3(App.getOpenFileService().u7());
+				}
+				if (App.getProjectService().I()) {
+					App.EQ().ca(App.getProjectService().P8());
+				}
+				that.call("gW");
+				that.call("Mr");
+				if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().getBoolean("EXTRA_NAVIGATE_BREAKPOINT")) {
+					that.call("jw");
+					return;
+				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
+					TrainerCourseActivity.rN(this);
+					return;
+				} else if (App.P8.equals("com.aide.ui") && getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) && !App.isTrainerMode()) {
+					y.XL(this);
+					return;
+				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_GCM_NOTIFICATION", false) && getIntent().hasExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID")) {
+					FireBaseLogEvent.tp("Shown from GCM notification");
+					y.EQ(this, getIntent().getStringExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID"));
+					return;
+				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_UPGRADE_NOTIFICATION_CLICKED", false)) {
+					FireBaseLogEvent.tp("Shown from upgrade notification");
+					WhatsNewDialog.Hw(this, (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$b").create(this).get());
+					return;
+				} else {
+					y.J8(this);
+					return;
+				}
+			}
+			y.u7(this);
+		}
+	}
+
+
 	/**
 	 * 显示授权请求弹窗
 	 */
 	public void showRequestManageExternalStorage() {
-		if( XXPermissions.isGranted(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)){
+		if (XXPermissions.isGranted(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
 			return;
 		}
 		String app_name = getString(R.string.app_name);

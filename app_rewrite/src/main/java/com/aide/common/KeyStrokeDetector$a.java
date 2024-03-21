@@ -6,10 +6,6 @@
 package com.aide.common;
 
 import android.os.Build;
-import android.text.ParcelableSpan;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.method.MetaKeyKeyListener;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
@@ -22,7 +18,7 @@ import com.aide.ui.MainActivity;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.views.editor.OEditor;
 import java.io.StringReader;
-import com.aide.ui.views.editor.EditorModel;
+import io.github.zeroaicy.util.Log;
 
 
 
@@ -60,108 +56,104 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		}
     }
 
+	// 全选时，讯飞输入法在 getExtractedText 以及 extractedText.text
+	// 不为null时调用此方法
+	@Override
+	public boolean setSelection(int start, int end) {
+		if (start == 0 && end == 4) {
+			// setSelection(0, getExtractedText().text.length)
+			// 就是selectAll
+			return performContextMenuAction(android.R.id.selectAll);
+		}
+		return super.setSelection(start, end);
+	}
 	/*修改*/
 	@Override
 	public ExtractedText getExtractedText(ExtractedTextRequest request, int i) {
-		/*
-		 ExtractedText extractedText = new ExtractedText();
-		 extractedText.selectionStart = 1;
-		 extractedText.text = "Test";
-		 extractedText.startOffset = 0;
-		 int flags = J0() ? ExtractedText.FLAG_SELECTING : ExtractedText.FLAG_SINGLE_LINE;
-		 extractedText.flags = flags;
-		 extractedText.selectionEnd = flags;
-		 */
 		ExtractedText outText = new ExtractedText();
 		if (extractTextInternal(request, outText)) {
 			return outText;
 		}
-
 		return null;
 	}
-	private boolean extractTextInternal(ExtractedTextRequest request, ExtractedText outText) {
 
-        if (request == null 
-			|| outText == null 
-			|| this.editorTextView == null) {
+	private boolean extractTextInternal(ExtractedTextRequest request, ExtractedText outText) {
+        if (outText == null) {
             return false;
         }
-		outText.partialStartOffset = 0;
-		outText.partialEndOffset = 0;
-		outText.text = "";
 
-        outText.flags = 0;
-		outText.flags |= ExtractedText.FLAG_SELECTING;
-
-        outText.startOffset = 0;
-        outText.selectionStart = -1; // this.mTextView.getSelectionStart();
-        outText.selectionEnd = -1; // this.mTextView.getSelectionEnd();
-
-        //outText.hint = "";
-
+		outText.text = "1234";
+		if (this.oEditor !=  null && this.oEditor.kf()) {
+			outText.flags = ExtractedText.FLAG_SELECTING;
+			outText.selectionStart = 0; 
+			outText.selectionEnd = 1; 
+		}
+		outText.startOffset = 0;
         return true;
     }
 
 	@Override
 	public boolean performContextMenuAction(int id) {
         switch (id) {
-			
-			// 无效
 			case android.R.id.selectAll:
-				LogD("全选--start");
                 MainActivity rN = App.getMainActivity();
                 if (rN == null) return true;
-				
                 rN.w9();
                 FileSpan currentFileSpan = App.getMainActivity().sh().getCurrentFileSpan();
                 com.aide.ui.App.we().QX(currentFileSpan.j6, currentFileSpan.DW, currentFileSpan.FH, currentFileSpan.Hw, currentFileSpan.v5);
-				LogD("全选--end");
-				
                 return true;
 
 			case android.R.id.cut:
                 if (this.oEditor != null) {
-                    LogD("剪切--start");
 					this.oEditor.b();
-					LogD("剪切--end");
                 }
                 return true;
 
 			case android.R.id.copy:
                 if (this.oEditor != null) {
-                    LogD("复制--start");
 					this.oEditor.vJ();
 					// 取消选择模式
                     this.oEditor.setSelectionVisibility(false);
-					LogD("复制--end");
 				}
                 return true;
-			case android.R.id.paste:
 
+				// 无效
+			case android.R.id.paste:
                 if (this.oEditor != null) {
                     this.oEditor.tj();
                 }
 				return true;
-
 		}
 		return super.performContextMenuAction(id);
 	}
 
-    private void DW(CharSequence commitText, boolean z, View view) {
-		if (KeyStrokeDetector.gn(this.keyStrokeDetector) == null) {
-			KeyStrokeDetector.u7(this.keyStrokeDetector, KeyCharacterMap.load(0));
+	/**
+	 * commitText为"\n"
+	 */
+    private void DW(CharSequence commitText, boolean isSoftKeyboard, View view) {
+		// getKeyCharacterMap
+		KeyCharacterMap keyCharacterMap = KeyStrokeDetector.gn(this.keyStrokeDetector);
+		if (keyCharacterMap == null) {
+			// setKeyCharacterMap
+			keyCharacterMap = KeyStrokeDetector.u7(this.keyStrokeDetector, KeyCharacterMap.load(0));
 		}
 		for (int i = 0; i < commitText.length(); i++) {
 			char charAt = commitText.charAt(i);
-			if (!z) {
-				if (KeyStrokeDetector.v5(this.keyStrokeDetector) 
-					|| KeyStrokeDetector.Zo(this.keyStrokeDetector)) {
+			// 物理键盘
+			if (!isSoftKeyboard) {
+				// 物理键 Shift
+				boolean isLeftShiftPhysical = KeyStrokeDetector.v5(this.keyStrokeDetector);
+				boolean isRightShiftPhysical = KeyStrokeDetector.Zo(this.keyStrokeDetector);
+				if (isLeftShiftPhysical
+					|| isRightShiftPhysical) {
+					//大写
 					charAt = Character.toUpperCase(charAt);
 				} else {
+					// 小写
 					charAt = Character.toLowerCase(charAt);
 				}
 			}
-			KeyEvent[] events = KeyStrokeDetector.gn(this.keyStrokeDetector).getEvents(new char[]{charAt});
+			KeyEvent[] events = keyCharacterMap.getEvents(new char[]{charAt});
 			if (events != null) {
 				for (KeyEvent keyEvent : events) {
 					sendKeyEvent(keyEvent);
@@ -169,7 +161,6 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			}
 		}
     }
-
 
     private void j6(CharSequence text, boolean z, KeyStrokeDetector.KeyStrokeHandler bVar) {
         for (int index = 0; index < text.length(); index++) {
@@ -215,34 +206,45 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		KeyStrokeDetector.FH(this.keyStrokeDetector, 0);
 
 		if ("\n".equals(commitText)) {
-			DW(commitText, KeyStrokeDetector.Hw(this.keyStrokeDetector), this.editorTextView);
-		} else if (oEditor != null 
+			//换行 Hw[isSoftKeyboard]
+			boolean isSoftKeyboard = KeyStrokeDetector.Hw(this.keyStrokeDetector);
+			DW(commitText, isSoftKeyboard, this.editorTextView);
+		} else if (this.oEditor != null 
 				   && commitText.indexOf('\n') >= 0) {
+			// 多行模式
 
+			// OEditor::tj()
+			//  kf() == getSelectionVisibility
+			// 删除已经选中的字符串
+			if (this.oEditor.kf()) {
+				this.oEditor.getEditorModel().b1();
+				this.oEditor.k4();
+				this.oEditor.setSelectionVisibility(false);
+			}
+
+			// OEditor::pn()
 			int newLineNumber = 0;
 			for (int offset = 0; offset < commitText.length(); offset++) {
 				if (commitText.charAt(offset) == '\n') {
 					newLineNumber++;
 				}
 			}
-
 			int caretLine = oEditor.getCaretLine();
 			int endLineNumber = newLineNumber + caretLine;
 			//粘贴
 			oEditor.getEditorModel().ys(oEditor.getCaretColumn(), oEditor.getCaretLine(), oEditor.jw(), oEditor.getTabSize(), new StringReader(commitText), this);
+
 			//更新行信息
 			oEditor.eN(caretLine, endLineNumber);
 
 			return true;
 		} else {
-			//不是OEditor或
+			// 输入内容非多行模式
+			// 或不是 OEditor
 			j6(commitText, KeyStrokeDetector.Hw(this.keyStrokeDetector), this.KeyStrokeHandler);
 		}
 		return true;
     }
-
-
-
 
 	// del功能
     @Override
@@ -303,6 +305,9 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		//KeyStrokeDetector.j6(keyStrokeDetector, charSequence);
 		//Log.d(TAG, charSequence);
 	}
+
+
+
 
 }
 

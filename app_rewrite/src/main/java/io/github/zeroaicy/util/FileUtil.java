@@ -16,6 +16,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.stream.Stream;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import com.hjq.permissions.XXPermissions;
 
 public class FileUtil {
 
@@ -74,8 +75,8 @@ public class FileUtil {
 		///内置储存器
 		File logRootDirectory = new File(Environment.getExternalStorageDirectory(), "Download");
 		Context context = ContextUtil.getContext();
-		if (! logRootDirectory.canWrite()
-			|| context.checkSelfPermission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+		
+		if (! XXPermissions.isGranted(context, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
 			// 更改为: /内置储存器/Android/data/${PackageName}/cache
 			logRootDirectory = context.getExternalCacheDir();
 		}

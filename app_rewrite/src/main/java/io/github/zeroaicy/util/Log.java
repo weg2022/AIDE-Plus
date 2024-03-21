@@ -391,10 +391,12 @@ public final class Log {
 		updateCurLogHold();
 
 		if (Log.getLog() != null) {
-			// 虽然启用，但是没有流
-			return;
+			//启用了，打印preMsgList
+			printPreMsgList();
 		}
-		//启用了，打印preMsgList
+	}
+
+	private static void printPreMsgList() {
 		while (!preMsgList.isEmpty()) {
 			println(preMsgList.removeFirst());
 		}
@@ -405,20 +407,21 @@ public final class Log {
 		Log.AsyncOutputStreamHold mLogHold = getLogHold();
 		if (mLogHold == null) {
 			mLogHold = new AsyncOutputStreamHold(Log.getLogPath());
+			// 更新 日志流持有者
+			Log.mLogHold = mLogHold;
+		} else {
+			// 刷新路径
+			mLogHold.update(Log.getLogPath());
 		}
-		// 刷新路径
-		mLogHold.update(Log.getLogPath());
-
+		
 		//是否设置系统流
 		if (Log.setSystemOut) {
-			PrintStream systemStream = mLogHold.getLog();
-			if (systemStream != null) {
-				System.setOut(systemStream);
-				System.setErr(systemStream);
+			PrintStream mLog = mLogHold.getLog();
+			if (mLog != null) {
+				System.setOut(mLog);
+				System.setErr(mLog);
 			}
 		}
-		// 更新 日志流持有者
-		Log.mLogHold = mLogHold;
 	}
 
 	/**
@@ -500,49 +503,51 @@ public final class Log {
 	//AsyncOutputStream持有者
 	public static class AsyncOutputStreamHold implements AutoCloseable {
 		private PrintStream mLog;
-		private String logFilePath;
+		private String logPath;
 		//线程安全
 		public AsyncOutputStreamHold(String filePath) {
 			update(filePath);
 		}
 
-		public synchronized void update(String outPath) {
-			if (outPath == null) {
+		// 构造器中调用此方法
+		// 因此设置为final
+		public final synchronized void update(String newLogPath) {
+			if (newLogPath == null) {
 				return;
 			}
-			if (outPath.equals(this.logFilePath)) {
+			if (newLogPath.equals(this.logPath)) {
 				return;
 			}
-			this.logFilePath = outPath;
-			
+			this.logPath = newLogPath;
+
 			PrintStream lastLog = this.getLog();
 
 			// 是否是系统流
-			boolean isSystemStream = lastLog != System.out
-				&& lastLog != System.err;
+			boolean isSystemStream = lastLog != null 
+				&& lastLog == System.out
+				&& lastLog == System.err;
 
-			File logFile = new File(this.logFilePath);
-			if (! logFile.canWrite()) {
-				// 过滤不可写
-				return;
-			}
+			File logFile = new File(this.logPath);
 			// 更新流
 			this.mLog = new PrintStream(new AsyncOutStream(createOutStream(logFile)));
-
-			// 关闭旧的流 
-			if (lastLog != null) {
-				// 关闭上一个流
-				lastLog.close();
-				
-			}
+			
+			// 如果上一个流流是系统流则平滑的替换
+			// 因为lastLog是异步流，不太放心
 			if (this.mLog != null && isSystemStream) {
 				System.setErr(this.mLog);
 				System.setOut(this.mLog);
 			}
+			
+			boolean closeLastLog = !isSystemStream || this.mLog != null;
+			// 关闭旧的流 
+			if (closeLastLog && lastLog != null) {
+				// 关闭上一个流
+				lastLog.close();
+			}
 		}
 
 		public String getOutPath() {
-			return this.logFilePath;
+			return this.logPath;
 		}
 		public PrintStream getLog() {
 			return this.mLog;

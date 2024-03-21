@@ -9,7 +9,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 
-public class KeyStrokeDetector2 extends KeyStrokeDetector {
+public class KeyStrokeDetector2 extends KeyStrokeDetector{
 
 
     private boolean rightAlt;
@@ -26,17 +26,18 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
 
     private boolean rightCtrl;
 
-    private boolean gn;
+    private boolean rightShiftPhysical;
 
     private boolean leftAlt;
 
     private int tp;
 
-    private boolean u7;
+    private boolean leftShiftPhysical;
 
     private boolean leftCtrl;
-
-    private KeyCharacterMap we;
+	
+	
+    private KeyCharacterMap keyCharacterMap;
 
 
     public KeyStrokeDetector2(Context context) {
@@ -117,9 +118,12 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
 
         this.leftShift &= keyCode != KeyEvent.KEYCODE_SHIFT_LEFT; /*59*/
         this.rightShift &= keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT; /*60*/
-
-        this.u7 &= keyCode != KeyEvent.KEYCODE_SHIFT_LEFT || isSoftKeyBoard;
-        this.gn &= keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT || isSoftKeyBoard;
+		
+		// this.leftShiftPhysical &= !(keyCode == KeyEvent.KEYCODE_SHIFT_LEFT && !isSoftKeyBoard);
+		// 再次按下物理leftShift键，取消leftShift状态
+        this.leftShiftPhysical &= (keyCode != KeyEvent.KEYCODE_SHIFT_LEFT || isSoftKeyBoard);
+		
+        this.rightShiftPhysical &= (keyCode != KeyEvent.KEYCODE_SHIFT_RIGHT || isSoftKeyBoard);
 
         this.VH &= keyCode != KeyEvent.KEYCODE_UNKNOWN;
 
@@ -140,9 +144,9 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
 		this.leftShift |= keyCode == KeyEvent.KEYCODE_SHIFT_LEFT;
 		this.rightShift |= keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT;
 		
-		// 非软键盘 shift
-		this.u7 |= keyCode == KeyEvent.KEYCODE_SHIFT_LEFT && !isSoftKeyBoard;
-		this.gn |= keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT && !isSoftKeyBoard;
+		// 物理键盘 leftShift
+		this.leftShiftPhysical |= (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT && !isSoftKeyBoard);
+		this.rightShiftPhysical |= keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT && !isSoftKeyBoard;
 
 		this.VH |= keyCode == KeyEvent.KEYCODE_UNKNOWN;
 
@@ -162,15 +166,15 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
     }
 
     static boolean Zo(KeyStrokeDetector2 KeyStrokeDetector2) {
-        return KeyStrokeDetector2.gn;
+        return KeyStrokeDetector2.rightShiftPhysical;
     }
 
     static KeyCharacterMap gn(KeyStrokeDetector2 KeyStrokeDetector2) {
-        return KeyStrokeDetector2.we;
+        return KeyStrokeDetector2.keyCharacterMap;
     }
 
-    private KeyStroke j3(char c) {
-		return new KeyStroke(-1, c, this.u7 | this.gn | Character.isUpperCase(c), false, false);
+    private KeyStroke j3(char unicodeChar) {
+		return new KeyStroke(-1, unicodeChar, this.leftShiftPhysical | this.rightShiftPhysical | Character.isUpperCase(unicodeChar), false, false);
     }
 
     static void j6(KeyStrokeDetector2 KeyStrokeDetector2, String str) {
@@ -180,44 +184,44 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
     static Context tp(KeyStrokeDetector2 KeyStrokeDetector2) {
         return KeyStrokeDetector2.J0;
     }
-
+	
+	// setKeyCharacterMap
     static KeyCharacterMap u7(KeyStrokeDetector2 KeyStrokeDetector2, KeyCharacterMap keyCharacterMap) {
-        KeyStrokeDetector2.we = keyCharacterMap;
+        KeyStrokeDetector2.keyCharacterMap = keyCharacterMap;
         return keyCharacterMap;
     }
 
     static boolean v5(KeyStrokeDetector2 KeyStrokeDetector2) {
-        return KeyStrokeDetector2.u7;
+        return KeyStrokeDetector2.leftShiftPhysical;
     }
 
 	/**
 	 * log
 	 */
-    private void we(String str) {
+    private void we(String log) {
 
     }
 
     public InputConnection EQ(View view, KeyStrokeHandler keyStrokeHandler) {
-		return new KeyStrokeDetector$a(this, view, true, keyStrokeHandler, view);
+		return null; //new KeyStrokeDetector$a(this, view, true, keyStrokeHandler, view);
     }
 
     public void U2() {
 		this.tp = 0;
     }
 
-    public void a8(int i, KeyEvent keyEvent) {
-		Ws(i, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
+    public void a8(int keyCode, KeyEvent keyEvent) {
+		Ws(keyCode, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
     }
-
+	
+	/**
+	 * isCtrl
+	 */
     public boolean aM() {
-		if (!this.leftCtrl) {
-			if (!this.rightCtrl) {
-				return false;
-			}
-		}
-		return true;
+		return this.leftCtrl || this.rightCtrl;
     }
-
+	
+	// onKeyDown
     public boolean er(int keyCode, KeyEvent keyEvent, KeyStrokeHandler keyStrokeHandler) {
 		J0("onKeyDown", keyCode, keyEvent);
 		int keyCode2 = keyCode == KeyEvent.KEYCODE_SEARCH ? KeyEvent.KEYCODE_ALT_LEFT : keyCode;
@@ -237,26 +241,24 @@ public class KeyStrokeDetector2 extends KeyStrokeDetector {
 		return true;
 	}
 
-    public void lg(int i, KeyEvent keyEvent) {
-        QX(i, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
+    public void lg(int keyCode, KeyEvent keyEvent) {
+        QX(keyCode, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
 
     }
 
     public void rN(Context context) {
-		boolean z = true;
-		if (context.getResources().getConfiguration().keyboard != 1) {
-			z = false;
-		}
+		boolean z = context.getResources().getConfiguration().keyboard == 1;
 		this.EQ = z;
 		we("KeyStrokeDetector2.onConfigChange() - isSoftKeyboard: " + this.EQ);
-		this.we = null;
+		this.keyCharacterMap = null;
     }
 
-    public boolean yS(int i, KeyEvent keyEvent, KeyStrokeHandler keyStrokeHandler) {
-		J0("onKeyUp", i, keyEvent);
-		int i2 = i == 84 ? 57 : i;
-		QX(i2, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
-		return i == 84;
+    public boolean yS(int keyCode, KeyEvent keyEvent, KeyStrokeHandler keyStrokeHandler) {
+		J0("onKeyUp", keyCode, keyEvent);
+		int keyCode2 = keyCode == KeyEvent.KEYCODE_SEARCH ? KeyEvent.KEYCODE_ALT_LEFT : keyCode;
+		QX(keyCode2, (keyEvent.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0);
+		
+		return keyCode == KeyEvent.KEYCODE_SEARCH;
 
     }
 
