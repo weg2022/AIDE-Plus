@@ -24,7 +24,6 @@ import io.github.zeroaicy.util.Log;
 
 public class KeyStrokeDetector$a extends BaseInputConnection {
     public static final String TAG = "KeyStrokeDetector$a";
-
 	/*
 	 KeyStrokeEditText[EdittextView] 
 	 || CodeEditText$EditorView[OEditor[OConsole[View]]]

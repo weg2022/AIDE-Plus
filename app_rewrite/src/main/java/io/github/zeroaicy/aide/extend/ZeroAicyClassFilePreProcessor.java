@@ -28,6 +28,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 	public static boolean isDefaultMethod(String methodSignature) {
 		return ClassReader.hasDefaultMethod(methodSignature);
 	}
+	
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyClassFilePreProcessor();
@@ -41,12 +42,9 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 		if (readClassFile != null) {
 			return readClassFile;
 		}
-		if (readClassFile == null) {
-			Log.d(zipFilePath, className);
-
-		}
-		return super.QX(zipFilePath, className, str3);
+		return null;//super.QX(zipFilePath, className, str3);
 	}
+	
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName) {
 
@@ -109,7 +107,8 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			throw new Error(th);
 		}
 	}
-
+	
+	@Override
 	public void aM(String str, String str2, Vector<String> vector) {
         try {
             if (str2.length() > 0) {
@@ -134,7 +133,8 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
         }
     }
-
+	
+	@Override
 	public String[] Ws(String str) {
         try {
             Vector<String> vector = new Vector<>();

@@ -13,6 +13,7 @@ import io.github.zeroaicy.aide.utils.AndroidManifestParser;
 import com.android.tools.r8.CompilationFailedException;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.util.BuildGradle;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 
 public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker {
 
@@ -51,7 +52,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 	public abstract class TaskWrapper extends Task {
 		//class转dex默认输出目录
 		private final String defaultClassDexCacheDirPath;
-		
+
 		private final String defaultIntermediatesDirPath;
 
 		/**
@@ -109,15 +110,20 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String getZipalignPath() {
 			return this.zipalignPath;
 		}
+
+		public final boolean isNotDebugFormAIDE;
 		public TaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aaptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX) {
 			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aaptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
 
 			this.mainClassCacheDir = mainClassCacheDir;
 
 			File mainProjectClassCacheDirFile = new File(this.mainClassCacheDir);
+			String classCacheDirFileName = mainProjectClassCacheDirFile.getName();
+
 			File parentFile = mainProjectClassCacheDirFile.getParentFile();
 			this.defaultIntermediatesDirPath = new File(parentFile, "intermediates").getAbsolutePath();
-			this.defaultClassDexCacheDirPath = this.getIntermediatesChildDirPath(mainProjectClassCacheDirFile.getName());
+
+			this.defaultClassDexCacheDirPath = this.getIntermediatesChildDirPath(classCacheDirFileName);
 			this.mergerCachePath = getIntermediatesChildDirPath("dex");
 
 			this.allClassFileRootDirs = classFileRootDirs;
@@ -143,6 +149,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 			this.minSdk = this.getProjectMinSdk();
 			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
+			
+
+			// 安卓且输出是classesdebug 也没debug-aide
+			this.isNotDebugFormAIDE = isAndroidProject() && !"classesdebug".equals(classCacheDirFileName);
 			
 		}
 
@@ -174,6 +184,29 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			return projectMinSdk;
 		}
 
+		private ZeroAicyBuildGradle zeroAicyBuildGradle;
+		public ZeroAicyBuildGradle getZeroAicyBuildGradle() {
+			if (zeroAicyBuildGradle != null) {
+				return zeroAicyBuildGradle;
+			}
+			ZeroAicyBuildGradle singleton = ZeroAicyBuildGradle.getSingleton();
+			String buildOutDirPath = this.getBuildOutDirPath();
+
+			// 不是gradle项目
+			String suffix = "/build/bin";
+
+			if (!buildOutDirPath.endsWith(suffix)) {
+				this.zeroAicyBuildGradle = singleton;
+				return singleton;
+			}
+
+			File buildGradleFile = new File(buildOutDirPath.substring(0, buildOutDirPath.length() - suffix.length()), "build.gradle");
+			if (!buildGradleFile.exists()) {
+				this.zeroAicyBuildGradle = singleton;
+				return singleton;				
+			}
+			return this.zeroAicyBuildGradle = singleton.getConfiguration(buildGradleFile.getAbsolutePath());
+		}
 		private AndroidManifestParser getAndroidManifestParser() {
 			String buildOutDirPath = getBuildOutDirPath();
 			AndroidManifestParser androidManifestParser = null;  
@@ -190,7 +223,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			return androidManifestParser;
 		}
 
-		private boolean isAndroidProject() {
+		public boolean isAndroidProject() {
 			return getOutFilePath().endsWith(".apk");
 		}
 
@@ -413,6 +446,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		//resource.ap_文件
 		public String getAAptResourceFilePath() {
+			if (getZeroAicyBuildGradle().isShrinkResources()) {
+				String resourcesAp_Dir = new File(this.aaptResourcePath).getParent();
+				return new File(resourcesAp_Dir, "resources_optimize.ap_").getAbsolutePath();
+			}
 			return this.aaptResourcePath;
 		}
 

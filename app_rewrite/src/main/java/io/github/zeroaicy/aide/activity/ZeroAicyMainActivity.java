@@ -2,8 +2,6 @@ package io.github.zeroaicy.aide.activity;
 
 
 import abcd.iy;
-import abcd.jw;
-import abcd.nw;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -12,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,17 +25,11 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
-import com.aide.common.KeyStrokeDetector;
 import com.aide.common.MessageBox;
-import com.aide.ui.ActionBarNoTabs;
-import com.aide.ui.App;
 import com.aide.ui.App;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
 import com.aide.ui.PromoNotificationAlarmReceiver;
-import com.aide.ui.QuickActionMenu;
-import com.aide.ui.QuickKeysBar;
-import com.aide.ui.SearchBarNoTabs;
 import com.aide.ui.ThemedActionbarActivity;
 import com.aide.ui.activities.TrainerCourseActivity;
 import com.aide.ui.firebase.FireBaseLogEvent;
@@ -44,18 +37,11 @@ import com.aide.ui.marketing.WhatsNewDialog;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
-import com.android.tools.r8.internal.Mr;
-import com.android.tools.r8.internal.U2;
-import com.android.tools.r8.internal.WB;
-import com.android.tools.r8.internal.gW;
-import com.android.tools.r8.internal.iW;
-import com.android.tools.r8.internal.pN;
+import com.aide.ui.y;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
-import io.github.zeroaicy.ZeroAicyAIDEApplication;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.File;
@@ -66,8 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.aide.ui.y;
-import android.graphics.drawable.Drawable;
+
 public class ZeroAicyMainActivity extends MainActivity {
 
 	private static final String TAG = "ZeroAicyMainActivity";
@@ -75,7 +60,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	public void onCreate(Bundle bundle) {
 		
 		super.onCreate(bundle);
-		
+		getActionBar().setDisplayShowHomeEnabled(false);
 		// 检查并申请管理外部储存权限
 		showRequestManageExternalStorage();
 	}
@@ -285,7 +270,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	public void onDestroy() {
 		super.onDestroy();
 		//移除注册的监听器
-		ShizukuUtil.removeBinderListener();
+		//ShizukuUtil.removeBinderListener();
 	}
 
 	@Override

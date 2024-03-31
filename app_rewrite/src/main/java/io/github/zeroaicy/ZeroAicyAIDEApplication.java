@@ -11,13 +11,17 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import io.github.zeroaicy.util.ContextUtil;
+import io.github.zeroaicy.aide.shizuku.ShizukuProvider;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	private static final String TAG = "ZeroAicyAIDEApplication";
 
 	public static final long now = System.currentTimeMillis();
-	
+	static{
+		ShizukuProvider.enableMultiProcessSupport(true);
+	}
 	@Override
 	public void onCreate(){
 		super.onCreate();
@@ -31,9 +35,10 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
-		
-		//初始化Shizuku库
-		ShizukuUtil.initialized(this);
+		if( ContextUtil.isMainProcess()){
+			//初始化Shizuku库
+			ShizukuUtil.initialized(this);
+		}
 		
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 

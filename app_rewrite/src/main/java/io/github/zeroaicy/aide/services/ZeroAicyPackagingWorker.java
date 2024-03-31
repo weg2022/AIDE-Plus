@@ -33,6 +33,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import sun1.security.pkcs.PKCS8Key;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -77,7 +78,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			this.initBuildEnvironment();
 
-			if ( !getOutFilePath().endsWith(".zip") 
+			if ( isAndroidProject() 
 				&& isMinify() ){
 				packagingAndroidMinify();
 				logDebug("混淆打包共用时: " + (nowTime() - now) + "ms");
@@ -640,15 +641,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 			
 			/**
-			 * 添加主项目混淆规则
+			 * 从主项目build.gradle添加混淆规则文件
 			 */
-			String buildOutDirPath = getBuildOutDirPath();
-			if ( buildOutDirPath.endsWith("/build/bin") ){
-				String projectPath = buildOutDirPath.substring(0, buildOutDirPath.length() - "/build/bin".length());
-				File proguardPulesProFile = new File(projectPath, "proguard-rules.pro");
-				if ( proguardPulesProFile.isFile() ){
-					//主项目混淆混淆，子项目的就先不加了
-					proguardPaths.add(proguardPulesProFile.toPath());
+			for( String proguardPulesFilePath  : getZeroAicyBuildGradle().getProguardFiles()){
+				if( TextUtils.isEmpty( proguardPulesFilePath)){continue;}
+				File proguardPulesFile  = new File(proguardPulesFilePath);
+				if (proguardPulesFile.exists() && proguardPulesFile.isFile() ){
+					proguardPaths.add(proguardPulesFile.toPath());
 				}
 			}
 			
@@ -690,11 +689,17 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			int minSdk = getMinSdk();
 			// android.jar
 			Path androidJarPath = Paths.get(getUserAndroidJar());
-			// 仅编译[库]
-			List<Path> compileOnlyPaths = new ArrayList<>();
-			for ( String jarPath : this.compileOnlyLibs ){
-				compileOnlyPaths.add(Paths.get(jarPath));
-			}
+			// 仅编译[库] 有bug 
+			// 需要按优先级依次添加 过滤重复
+//			List<Path> compileOnlyPaths = new ArrayList<>();
+//			for ( String jarPath : this.compileOnlyLibs ){
+//				compileOnlyPaths.add(Paths.get(jarPath));
+//			}
+//			// 依赖库
+//			builder.addClasspathFiles(compileOnlyPaths);
+			 
+		
+			
 			
 			R8Command r8Command = builder
 				// 所有类
@@ -705,8 +710,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				.setMinApiLevel(minSdk < 21 ? 21 : minSdk)
 				// Android SDK
 				.addLibraryFiles(androidJarPath)
-				// 依赖库
-				.addClasspathFiles(compileOnlyPaths)
 				// 输出
 				.setOutput(mixUpDexZipFile.toPath(), OutputMode.DexIndexed)
 				// 输出 ProguardMap
@@ -748,7 +751,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 * 
 		 */
 		private boolean isMinify(){
-			return ZeroAicySetting.isEnableMinify();
+			// 不是debug-aide变体 无法简单区分 debug 与 release
+			// 可以从用 sp的ProjectService 但是 sp不能跨进程
+			// 还是算了
+			ZeroAicyBuildGradle zeroAicyBuildGradle = getZeroAicyBuildGradle();
+			
+			return this.isNotDebugFormAIDE && zeroAicyBuildGradle.isMinifyEnabled();
 		}
 		
 		// 安卓支持混淆才有意义，也只能是安卓
@@ -887,7 +895,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			else{
 				//为设置签名文件使用内置签名文件
 				String keyName = "testkey";
-				Class clazz = getClass();
+				Class clazz = this.getClass();
 				InputStream certInputStream = clazz.getResourceAsStream("/keys/" + keyName + ".x509.pem");
 				certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(certInputStream);
 				certInputStream.close();
