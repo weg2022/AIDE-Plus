@@ -67,6 +67,7 @@
 		<!-- 新增 -->
 		<!-- Show Crash Log -->
 		<activity
+			android:process=":crash"
 			android:name="io.github.zeroaicy.util.crash.CrashActivity">
 		</activity>
 
