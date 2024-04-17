@@ -16,6 +16,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import io.github.zeroaicy.util.Log;
+import android.text.TextUtils;
+import com.aide.ui.rewrite.BuildConfig;
 
 class NativeCodeSupportService$q implements Callable<Void> {
     private Runnable DW;
@@ -69,13 +72,17 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
 
 					try {
+						// 下载清单文件
 						NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
 						//已存在 长度不一致时更新
 						NativeCodeSupportService.gn(this.v5, mavenMetadataUrl, mavenMetadataPath, false);
 					}
-					catch (Exception unused) {
+					catch (Throwable unused) {
+						// 仓库有问题
+						continue;
 					}
 
+					// 判断是否存在
 					if (!new File(mavenMetadataPath).exists()) {
 						continue;
 					}
@@ -97,6 +104,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 								NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
 							}
 							catch (Throwable unused) {
+//								Log.d(" Maven Download", Log.getStackTraceString(unused));
 							}
 						}
 						if (!pomFile.exists()) {
@@ -120,7 +128,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 							break;
 						}
 						boolean isAttemptn = false;
-						if (dep.packaging == null) {
+						if (TextUtils.isEmpty(dep.packaging)) {
 							// 启用尝试 下载aar模式
 							isAttemptn = true;
 							dep.packaging = "jar";
@@ -132,10 +140,10 @@ class NativeCodeSupportService$q implements Callable<Void> {
 						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 							count++;
 							complete = true;
-							
 							break;
 
-						} else if (isAttemptn) {
+						}
+						if (isAttemptn) {
 							dep.packaging = "aar";
 							artifactType = "." + dep.packaging;
 							if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
@@ -179,7 +187,12 @@ class NativeCodeSupportService$q implements Callable<Void> {
 				//如果文件存在且长度一致则不下载
 				NativeCodeSupportService.gn(this.v5, artifactUrl, artifactPath, true);
 			}
-			catch (Throwable unused) {}
+			catch (Throwable unused) {
+//				Log.d(" Maven Download", "dep", dependencyString);
+//				Log.d(" Maven Download", Log.getStackTraceString(unused));					
+
+				return false;
+			}
 		}
 
 		return artifactFile.exists();
