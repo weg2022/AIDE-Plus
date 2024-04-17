@@ -33,290 +33,152 @@ import com.aide.codemodel.language.java.JavaSyntax;
 
 public class AidlCodeModel implements CodeModel {
 
-	@gy
-    private static boolean EQ;
 
-    @fy
-    private static boolean tp;
+    private final JavaBinaryLanguage language;
 
-    @dy(field = -4074038619139024941L)
-    private final JavaBinaryLanguage DW;
+    private final JSharpCommentsLanguage commentsLanguage;
 
-    @dy(field = 6125048507907414968L)
-    private final JSharpCommentsLanguage FH;
-
-    @dy(field = -2589009784882602773L)
     private g6 VH;
 
-    @dy(field = -1766239070954761056L)
-    private JavaParser Zo;
+    private JavaParser parser;
 
-    @dy(field = 1974644574678873456L)
-    private JavaCompiler gn;
+    //private JavaCompiler gn;
+	//private JavaDebugger u7;
 
-    @dy(field = 1235911872478228400L)
-    private final Model j6;
+    private final Model model;
 
-    @dy(field = -3496342180201515488L)
-    private JavaDebugger u7;
 
-    @dy(field = -1749024221705949075L)
     private t6 v5;
 
 
-    @ey(method = -140764856981626773L)
     public AidlCodeModel(Model model) {
         try {
-            if (tp) {
-                iy.tp(70129601982276585L, (Object) null, model);
-            }
-            this.j6 = model;
-            this.DW = new JavaBinaryLanguage(model);
-            this.FH = new JSharpCommentsLanguage(model, false);
+            this.model = model;
+            this.language = new AidlLanguage(model);
+            this.commentsLanguage = new JSharpCommentsLanguage(model, false);
             if (model != null) {
-                this.gn = new JavaCompiler(model, this.DW);
-                this.u7 = new JavaDebugger(model, this.DW, this);
-                this.v5 = new t6(model.identifierSpace, model.Mr, false, this.DW, this.FH);
-                this.Zo = new JavaParser(model.identifierSpace, model.Mr, model.entitySpace, (JavaSyntax)this.DW.getSyntax(), true);
+                //this.gn = new JavaCompiler(model, this.language);
+                //this.u7 = new JavaDebugger(model, this.language, this);
+                this.v5 = new t6(model.identifierSpace, model.Mr, false, this.language, this.commentsLanguage);
+                this.parser = new JavaParser(model.identifierSpace, model.Mr, model.entitySpace, (JavaSyntax)this.language.getSyntax(), true){
+					@Override
+					public void DW(String string) {}
+				};
                 this.VH = new g6(model);
             }
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.j3(th, 70129601982276585L, (Object) null, model);
-            }
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
 
-    @ey(method = -1263038087072428472L)
     public void closeArchive() {
-        
-    }
 
-    @ey(method = -794337822234581292L)
+    }
+	@Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeSytles> map) {
         try {
-            if (tp) {
-                iy.we(710567281588557536L, this, fileEntry, reader, map);
-            }
-            this.v5.Zo(fileEntry, reader, false, false, false, false, map.get(this.DW), map.get(this.FH));
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.U2(th, 710567281588557536L, this, fileEntry, reader, map);
-            }
+            this.v5.Zo(fileEntry, reader, false, false, false, false, map.get(this.language), map.get(this.commentsLanguage));
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
 
-    @ey(method = -1350429167961427507L)
+	@Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean z) {
         try {
-            if (tp) {
-                iy.J0(-218034071159248377L, this, fileEntry, reader, map, new Boolean(z));
+            SyntaxTreeSytles syntaxTreeSytles = this.model.U2.j6();
+            SyntaxTreeSytles syntaxTreeSytles2 = this.model.U2.j6();
+            this.v5.Zo(fileEntry, reader, false, false, map.containsKey(this.language), map.containsKey(this.commentsLanguage), syntaxTreeSytles, syntaxTreeSytles2);
+
+            if (map.containsKey(this.language)) {
+                this.parser.v5(syntaxTreeSytles, fileEntry, z, map.get(this.language));
             }
-            SyntaxTreeSytles j6 = this.j6.U2.j6();
-            SyntaxTreeSytles j62 = this.j6.U2.j6();
-            this.v5.Zo(fileEntry, reader, false, false, map.containsKey(this.DW), map.containsKey(this.FH), j6, j62);
-            if (map.containsKey(this.DW)) {
-                this.Zo.v5(j6, fileEntry, z, map.get(this.DW));
+            this.model.U2.DW(syntaxTreeSytles);
+
+            if (map.containsKey(this.commentsLanguage)) {
+                this.VH.j6(syntaxTreeSytles2, fileEntry, z, map.get(this.commentsLanguage));
             }
-            this.j6.U2.DW(j6);
-            if (map.containsKey(this.FH)) {
-                this.VH.j6(j62, fileEntry, z, map.get(this.FH));
-            }
-            this.j6.U2.DW(j62);
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.a8(th, -218034071159248377L, this, fileEntry, reader, map, new Boolean(z));
-            }
+            this.model.U2.DW(syntaxTreeSytles2);
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
 
-    @ey(method = 3316152580554248640L)
+    @Override
     public String[] getArchiveEntries(String str) {
         return new String[0];
     }
 
-    @ey(method = 2872003654743124741L)
+    @Override
     public Reader getArchiveEntryReader(String str, String str2, String str3) {
         return null;
     }
 
-    @ey(method = -489673516924675904L)
+    @Override
     public long getArchiveVersion(String str) {
-        try {
-            if (tp) {
-                iy.tp(-5998745651620362160L, this, str);
-            }
-            return 0L;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.j3(th, -5998745651620362160L, this, str);
-            }
-            throw new Error(th);
-        }
+        return 0L;
     }
 
-    @ey(method = 543554144713219595L)
+    @Override
     public Compiler getCompiler() {
-        try {
-            if (tp) {
-                iy.gn(2902163857507914125L, this);
-            }
-            return this.gn;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 2902163857507914125L, this);
-            }
-            throw new Error(th);
-        }
+		return null;
     }
 
-    @ey(method = 3208054804161263595L)
+    @Override
     public Debugger getDebugger() {
-        try {
-            if (tp) {
-                iy.gn(-3386532466675789015L, this);
-            }
-            return this.u7;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, -3386532466675789015L, this);
-            }
-            throw new Error(th);
-        }
-    }
+		return null;
+	}
 
-    @ey(method = 4604163969011308L)
+    @Override
     public String[] getDefaultFilePatterns() {
-        try {
-            if (tp) {
-                iy.gn(1524412646518513528L, this);
-            }
-            return new String[]{"*.aidl"};
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 1524412646518513528L, this);
-            }
-            throw new Error(th);
-        }
+        return new String[]{"*.aidl"};
     }
 
-    @ey(method = 35910227245426699L)
+    @Override
     public String[] getExtendFilePatterns() {
-        try {
-            if (tp) {
-                iy.gn(6600921524517248785L, this);
-            }
-            return new String[0];
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 6600921524517248785L, this);
-            }
-            throw new Error(th);
-        }
+        return new String[0];
     }
 
-    @ey(method = -1283683696029590559L)
+    @Override
     public List<Language> getLanguages() {
-        try {
-            if (tp) {
-                iy.gn(3427234482816124071L, this);
-            }
-            ArrayList arrayList = new ArrayList();
-            arrayList.add(this.DW);
-            arrayList.add(this.FH);
-            return arrayList;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 3427234482816124071L, this);
-            }
-            throw new Error(th);
-        }
+        ArrayList<Language> arrayList = new ArrayList<>();
+		arrayList.add(this.language);
+		arrayList.add(this.commentsLanguage);
+		return arrayList;
     }
 
-    @ey(method = -344292127604006240L)
+    @Override
     public String getName() {
-        try {
-            if (!tp) {
-                return "AIDL";
-            }
-            iy.gn(1637614501702413600L, this);
-            return "AIDL";
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 1637614501702413600L, this);
-            }
-            throw new Error(th);
-        }
+        return "AIDL";
     }
 
-    @ey(method = 2667161872060147275L)
+    @Override
     public Preprocessor getPreprocessor() {
-        try {
-            if (!tp) {
-                return null;
-            }
-            iy.gn(2639016714457629289L, this);
-            return null;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 2639016714457629289L, this);
-            }
-            throw new Error(th);
-        }
+        return null;
     }
 
-    @ey(method = 2791350172500256731L)
+    @Override
     public boolean isSupportArchiveFile() {
-        try {
-            if (!tp) {
-                return true;
-            }
-            iy.gn(2718291995474413845L, this);
-            return true;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, 2718291995474413845L, this);
-            }
-            throw new Error(th);
-        }
+        return false;
     }
 
-    @ey(method = -743969176713109587L)
+    @Override
     public void processVersion(FileEntry fileEntry, Language language) {
-        try {
-            if (tp) {
-                iy.EQ(1751226635276461475L, this, fileEntry, language);
-            }
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.Mr(th, 1751226635276461475L, this, fileEntry, language);
-            }
-            throw new Error(th);
-        }
+
     }
 
-    @ey(method = 3926369485678524849L)
+	@Override
     public boolean u7() {
-        try {
-            if (!tp) {
-                return false;
-            }
-            iy.gn(-1192286148093177885L, this);
-            return false;
-        } catch (Throwable th) {
-            if (EQ) {
-                iy.aM(th, -1192286148093177885L, this);
-            }
-            throw new Error(th);
-        }
+        return false;
     }
 
-    @ey(method = 944753589858639645L)
-    public void update() {
-        
+    @Override
+	public void update() {
+
     }
 }
+
 
