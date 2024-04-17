@@ -1,16 +1,19 @@
 package com.aide.ui.build.android;
 
 import abcd.cy;
+import abcd.dy;
 import abcd.ed;
 import abcd.ey;
 import abcd.fy;
 import abcd.gy;
+import abcd.hy;
 import abcd.iy;
 import abcd.qq0;
 import android.app.Activity;
-import com.aide.common.AppLog;
 import com.aide.common.MessageBox;
+import com.aide.common.ValueRunnable;
 import com.aide.ui.App;
+import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
@@ -27,10 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import javax.security.auth.x500.X500Principal;
-import abcd.dy;
-import abcd.hy;
-import com.aide.common.ValueRunnable;
-import com.aide.ui.AppPreferences;
 
 public class SigningService {
     @gy
@@ -42,7 +41,7 @@ public class SigningService {
     /* loaded from: /storage/emulated/0/AppProjects1/.ZeroAicy/git/classes.dex */
     public interface SigningRunnable {
         @ey(method = 1826402226779581395L)
-        void j6(String str, String str2, String str3, String str4);
+       public void j6(String str, String str2, String str3, String str4);
     }
 
     @cy(clazz = -2971104453650556349L, container = 1054312504720486788L, user = true)
@@ -198,7 +197,7 @@ public class SigningService {
         final Activity j6;
 
 
-        d(SigningService signingService, Activity activity) {
+        public d(SigningService signingService, Activity activity) {
             this.j6 = activity;
         }
 
@@ -259,6 +258,7 @@ public class SigningService {
 				if ( keystorePath.endsWith(".x509.pem") 
 					|| keystorePath.endsWith(".pk8") ){
 					signingRunnable.j6(keystorePath, str2, str3, str4);
+					return;
 				}
                 JKSKeyStore jKSKeyStore = new JKSKeyStore();
                 jKSKeyStore.load(new FileInputStream(keystorePath), str2.toCharArray());
@@ -290,12 +290,13 @@ public class SigningService {
 				if ( keystorePath.endsWith(".x509.pem") 
 					|| keystorePath.endsWith(".pk8") ){
 					signingRunnable.j6(keystorePath, "", "", "");
+					return;
 				}
                 JKSKeyStore jKSKeyStore = new JKSKeyStore();
                 jKSKeyStore.load(new FileInputStream(keystorePath), str2.toCharArray());
-                ArrayList list = Collections.list(jKSKeyStore.aliases());
+                ArrayList<String> list = Collections.list(jKSKeyStore.aliases());
                 if (list.size() == 1) {
-                    gn(keystorePath, str2, (String) list.get(0), signingRunnable);
+                    gn(keystorePath, str2, list.get(0), signingRunnable);
                 } else {
                     MessageBox.VH(App.getMainActivity(), "Select keystore alias", list, new b(this, keystorePath, str2, signingRunnable));
                 }
@@ -384,38 +385,28 @@ public class SigningService {
 
     @ey(method = 374861035471152168L)
     public void Zo(String str, BuildGradle.SigningConfig signingConfig, SigningRunnable signingRunnable) {
-        try {
-            if (j6) {
-                iy.we(759067435658049504L, this, str, signingConfig, signingRunnable);
-            }
-            if (signingConfig != null) {
-                try {
-                    String storeFilePath = signingConfig.getStoreFilePath();
-					if ( storeFilePath.endsWith(".x509.pem") 
-						|| storeFilePath.endsWith(".pk8") ){
-						signingRunnable.j6(storeFilePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
-					}
-                    JKSKeyStore jKSKeyStore = new JKSKeyStore();
-                    jKSKeyStore.load(new FileInputStream(storeFilePath), signingConfig.storePassword.toCharArray());
-                    if (jKSKeyStore.getKey(signingConfig.keyAlias, signingConfig.keyPassword.toCharArray()) != null) {
-                        signingRunnable.j6(storeFilePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
-                        return;
-                    }
-                    throw new Exception("can not read keystore");
-                }
-				catch (Exception unused) {
-                    MessageBox.rN(App.getMainActivity(), "Build Error", "Failed to open signingConfig from build.gradle. Use alternative signing?", new a(this, str, signingRunnable), (Runnable) null);
-                    return;
-                }
-            }
-            v5(str, signingRunnable);
-        }
-		catch (Throwable th) {
-            if (DW) {
-                iy.U2(th, 759067435658049504L, this, str, signingConfig, signingRunnable);
-            }
-            throw new Error(th);
-        }
+        if (signingConfig != null) {
+			try {
+				String storeFilePath = signingConfig.getStoreFilePath();
+				if ( storeFilePath.endsWith(".x509.pem") 
+					|| storeFilePath.endsWith(".pk8") ){
+					signingRunnable.j6(storeFilePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
+					return;
+				}
+				JKSKeyStore jKSKeyStore = new JKSKeyStore();
+				jKSKeyStore.load(new FileInputStream(storeFilePath), signingConfig.storePassword.toCharArray());
+				if (jKSKeyStore.getKey(signingConfig.keyAlias, signingConfig.keyPassword.toCharArray()) != null) {
+					signingRunnable.j6(storeFilePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
+					return;
+				}
+				throw new Exception("can not read keystore");
+			}
+			catch (Exception unused) {
+				MessageBox.rN(App.getMainActivity(), "Build Error", "Failed to open signingConfig from build.gradle. Use alternative signing?\n" + android.util.Log.getStackTraceString(unused), new a(this, str, signingRunnable), (Runnable) null);
+				return;
+			}
+		}
+		v5(str, signingRunnable);
     }
 
     @ey(method = 402808675949028321L)
