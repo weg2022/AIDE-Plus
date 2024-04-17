@@ -39,6 +39,8 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
+		//初始化Shizuku库
+		ShizukuUtil.initialized(this);
 		
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
