@@ -145,7 +145,8 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 
 		int status = -1;
 
-		StringBuilder res = new StringBuilder();
+		StringBuilder infoBuilder = new StringBuilder();
+		
         try {
             // the reason for use "com.android.shell" as installer package under adb is that getMySessions will check installer package's owner
 			String installerPackageName = "com.android.shell";
@@ -167,13 +168,14 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
             session = createSession(_session);
 
 			String name = apkFile.getName();
+			
 			InputStream is = new FileInputStream(apkFile);
 			OutputStream os = session.openWrite(name, 0, -1);
 			writeApk(is, os, session);
+			
 			Thread.sleep(100);
 
             final Intent[] results = new Intent[]{null};
-			
             final CountDownLatch countDownLatch = new CountDownLatch(1);
             IntentSender intentSender = newInstance(new IIntentSenderAdaptor() {
 					@Override
@@ -189,14 +191,15 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 			status = result.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
 
             String message = result.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
-            res.append("status: ")
+            
+			infoBuilder.append("status: ")
 				.append(status)
 				.append(" (")
 				.append(message)
 				.append(")");
 
         } catch (Throwable tr) {
-            res.append(tr);
+            infoBuilder.append(tr);
 			Log.e(TAG, "doInstallApk", tr);
         }
 		finally {
@@ -204,16 +207,16 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
                 try {
                     session.close();
                 } catch (Throwable tr) {
-                    res.append(tr);
+                    infoBuilder.append(tr);
                 }
             }
-			Log.d(TAG, res.toString().trim());
+			Log.d(TAG, infoBuilder.toString().trim());
         }
 		if (status == 0) {
 			//安装成功
 			return null;
 		}
-		return res.toString().trim();
+		return infoBuilder.toString().trim();
     }
 
 	private void writeApk(InputStream is, OutputStream os, PackageInstaller.Session session) throws IOException {
@@ -241,14 +244,17 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 	}
 
 	public static IntentSender newInstance(IIntentSender binder) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        //noinspection JavaReflectionMemberAccess
         return IntentSender.class.getConstructor(IIntentSender.class).newInstance(binder);
     }
 	
 	
     public static IPackageInstaller PackageManager_getPackageInstaller() throws RemoteException {
-		IPackageManager PACKAGE_MANAGER = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")));
-        IPackageInstaller packageInstaller = PACKAGE_MANAGER.getPackageInstaller();
+		// 系统服务[package]
+		IBinder systemService = SystemServiceHelper.getSystemService("package");
+		
+		IPackageManager packageManager = IPackageManager.Stub.asInterface(new ShizukuBinderWrapper(systemService));
+		
+        IPackageInstaller packageInstaller = packageManager.getPackageInstaller();
         return IPackageInstaller.Stub.asInterface(new ShizukuBinderWrapper(packageInstaller.asBinder()));
     }
 

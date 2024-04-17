@@ -73,7 +73,7 @@
 
 		<!-- Shizuku rikka.shizuku.ShizukuProvider  -->
         <provider
-            android:name="io.github.zeroaicy.aide.shizuku.ShizukuProvider"
+            android:name="io.github.zeroaicy.aide.shizuku.ZeroAicyShizukuProvider"
             android:authorities="${applicationId}.shizuku"
             android:enabled="true"
             android:exported="true"
