@@ -28,7 +28,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 	public static boolean isDefaultMethod(String methodSignature) {
 		return ClassReader.hasDefaultMethod(methodSignature);
 	}
-	
+
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyClassFilePreProcessor();
@@ -38,13 +38,31 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
 	@Override
 	public Reader QX(String zipFilePath, String className, String str3) {
-		Reader readClassFile = ClassReader.Dc_ReadClassFile(zipFilePath, className);
-		if (readClassFile != null) {
-			return readClassFile;
+		if (className.endsWith(".class")) {
+			Reader readClassFile = ClassReader.Dc_ReadClassFile(zipFilePath, className);
+			if (readClassFile != null) {
+				return readClassFile;
+			}
 		}
-		return null;//super.QX(zipFilePath, className, str3);
+		/*else if (className.endsWith(".java")) {
+		 // 复用 ZipFile
+		 ZipFile zip = yS(zipFilePath);
+		 ZipEntry entry = zip.getEntry(className);
+		 if (entry == null) {
+		 entry = zip.getEntry("src/" + className);
+		 }
+		 if (entry == null) {
+		 entry = zip.getEntry("src\\" + className);
+		 }
+		 c cVar = new c(zip.getInputStream(entry), entry.getSize());
+		 if (str3 == null) {
+		 return new InputStreamReader(cVar);
+		 }
+		 return new InputStreamReader((InputStream) cVar, str3);
+		 }*/
+		return super.QX(zipFilePath, className, str3);
 	}
-	
+
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName) {
 
@@ -61,40 +79,55 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 				ZipEntry zipEntry = entries.nextElement();
 				String zipEntryName = zipEntry.getName();
 
+				if (zipEntryName.startsWith("src/") 
+					&& zipEntryName.endsWith(".java")) {
+					zipEntryName = zipEntryName.substring(4);
+				}
+				
 				if (zipEntryName.endsWith("/")) {
 					//去除路径末尾 /
 					zipEntryName = zipEntryName.substring(0, zipEntryName.length() - 1);
 				}
+
 				if (zipEntryName.equals(listZipEntryName)
 					|| !zipEntryName.startsWith(listZipEntryName)) {
 					continue;
 				}
-
-				if (listZipEntryName.length() > 0 && zipEntryName.charAt(listZipEntryName.length()) != '/') {
-					//除了根目录 list ZipEntry子目录应该从/还是
+				if (listZipEntryName.length() > 0 
+					&& zipEntryName.charAt(listZipEntryName.length()) != '/') {
+					//除了根目录 list ZipEntry子目录应该从 / 开始
 					continue;
 				}
 
+				// 过滤自己的子文件夹
 				int indexOf = zipEntryName.indexOf('/', listZipEntryName.length() + 1);
 				if (indexOf > 0) {
 					listZipNames.add(zipFilePath + '/' + zipEntryName.substring(0, indexOf));
-				} else {
-					String lowerEntryName = zipEntryName.toLowerCase();
-
-					if (zipEntry.isDirectory()) {
-						listZipNames.add(zipFilePath + '/' + zipEntryName);
-					} else if ((lowerEntryName.endsWith(".class")
-							   && lowerEntryName.lastIndexOf('/') >= lowerEntryName.lastIndexOf('$'))) {
-						// || lowerEntryName.endsWith(".dex")
-						listZipNames.add(zipFilePath + '/' + zipEntryName);							
-					} else if (lowerEntryName.endsWith(".java")) {
-						if (lowerEntryName.startsWith("src/")) {
-							zipEntryName = zipEntryName.substring(4, zipEntryName.length());
-						} else {
-							listZipNames.add(zipFilePath + '/' + zipEntryName);
-						}
-					}
+					continue;
 				}
+
+				String lowerEntryName = zipEntryName.toLowerCase();
+
+				if (zipEntry.isDirectory()) {
+					listZipNames.add(zipFilePath + '/' + zipEntryName);
+					continue;
+
+				} 
+				if ((lowerEntryName.endsWith(".class")
+					&& lowerEntryName.lastIndexOf('/') >= lowerEntryName.lastIndexOf('$'))) {
+
+					listZipNames.add(zipFilePath + '/' + zipEntryName);
+					continue;
+
+				} 
+				if (lowerEntryName.endsWith(".java")) {
+					if (lowerEntryName.startsWith("src/")) {
+						zipEntryName = zipEntryName.substring(4);
+					}
+					listZipNames.add(zipFilePath + '/' + zipEntryName);
+					continue;
+				}
+
 			}
 
 			return Arrays.asList(listZipNames.toArray(new String[listZipNames.size()]));
@@ -107,7 +140,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			throw new Error(th);
 		}
 	}
-	
+
 	@Override
 	public void aM(String str, String str2, Vector<String> vector) {
         try {
@@ -133,7 +166,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
         }
     }
-	
+
 	@Override
 	public String[] Ws(String str) {
         try {
