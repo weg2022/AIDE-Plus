@@ -62,7 +62,7 @@ class NativeCodeSupportService$q implements Callable<Void> {
 			}
 		}
 		//是否有已完成的下载
-		boolean complete = false;
+		boolean downloadComplete = false;
 		int count = 0;
 		for (BuildGradle.MavenDependency dep : this.FH) {
 			try {
@@ -89,80 +89,84 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
 
 					//查看maven-metadata.xml是否下载成功
-					String version;
-					if (new File(mavenMetadataPath).exists() 
-						&& (version = metadataXml.getVersion(dep.version)) != null) {
-						String pomUrl = MavenService.getArtifactUrl(remoteRepository, dep, version, ".pom");
-						String pomPath = MavenService.getArtifactPath(remoteRepository, dep, version, ".pom");
+					String version = metadataXml.getVersion(dep.version);
+					if (version == null) continue;
+					// 更新依赖库版本
+					dep.version = version;
+					
+					String pomUrl = MavenService.getArtifactUrl(remoteRepository, dep, dep.version, ".pom");
+					String pomPath = MavenService.getArtifactPath(remoteRepository, dep, dep.version, ".pom");
 
-						//pom不存在，下载pom文件
-						File pomFile = new File(pomPath);
-						if (!pomFile.exists()) {
-							try {
-								NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
-								// 下载
-								NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
-							}
-							catch (Throwable unused) {
-//								Log.d(" Maven Download", Log.getStackTraceString(unused));
-							}
-						}
-						if (!pomFile.exists()) {
-							//仓库有问题，跳过
-							continue;
-						}
-						PomXml configuration = PomXml.empty.getConfiguration(pomPath);
-						// pom中的 packaging 
-						String packaging = configuration.getPackaging();
-
-						// 从父依赖解析出来的，最为准确
-						if (dep.packaging == null) {
-							dep.packaging = packaging;
-						}
-						//更新依赖库packaging
-						//双重验证
-						if ("pom".equals(dep.packaging)) {
-							count++;
-							complete = true;
-							//无论成功与否都当做bom
-							break;
-						}
-						boolean isAttemptn = false;
-						if (TextUtils.isEmpty(dep.packaging)) {
-							// 启用尝试 下载aar模式
-							isAttemptn = true;
-							dep.packaging = "jar";
-						}
-
-						String artifactType = "." + dep.packaging;
-
-						//下载
-						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
-							count++;
-							complete = true;
-							break;
-
-						}
-						if (isAttemptn) {
-							dep.packaging = "aar";
-							artifactType = "." + dep.packaging;
-							if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
-								count++;
-								complete = true;
-								break;
-							}
-						}
-
+					// 下载pom文件
+					if (!downloadPomFile(pomPath, dep, count, pomUrl)) {
+						//仓库有问题，跳过
+						continue;
 					}
 
+					PomXml configuration = PomXml.empty.getConfiguration(pomPath);
+					// pom中的 packaging 
+					String curPackaging = configuration.getPackaging();
+					
+					// 父类依赖认为是 pom
+					// 或当前pom 声明是pom
+					if ("pom".equals(curPackaging)
+						|| "pom".equals(dep.packaging)) {
+						count++;
+						downloadComplete = true;
+						break;
+					}
+					
+					// 从父依赖解析出来的，最为准确
+					boolean isAttemptn = false;
+					if (TextUtils.isEmpty(dep.packaging)) {
+						// 启用尝试 下载aar模式
+						isAttemptn = true;
+						dep.packaging = "aar";
+						dep.packaging = curPackaging;
+					}
+
+					String artifactType = "." + dep.packaging;
+					//下载
+					if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
+						count++;
+						downloadComplete = true;
+						break;
+					}
+
+					if (isAttemptn) {
+						dep.packaging = "jar";
+						artifactType = "." + dep.packaging;
+						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
+							count++;
+							downloadComplete = true;
+							break;
+						}
+					}
 				}
 			}
 			catch (Throwable e) {
 
 			}
 		}
-		App.aj(new NativeCodeSupportService$q$a(this, complete));
+		App.aj(new NativeCodeSupportService$q$a(this, downloadComplete));
 		return null;
+	}
+
+	private boolean downloadPomFile(String pomPath, BuildGradle.MavenDependency dep, int count, String pomUrl) {
+		File pomFile = new File(pomPath);
+		if (pomFile.exists()) return true;
+
+		try {
+			NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
+			// 下载
+			NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
+		}
+		catch (Throwable unused) {
+//			Log.d(" Maven Download", Log.getStackTraceString(unused));
+			return false;
+		}
+
+		return pomFile.exists();
 	}
 
 	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
