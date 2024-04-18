@@ -70,10 +70,9 @@ class NativeCodeSupportService$q implements Callable<Void> {
 				for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
 					String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
 					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
-
 					try {
 						// 下载清单文件
-						NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
+						//NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
 						//已存在 长度不一致时更新
 						NativeCodeSupportService.gn(this.v5, mavenMetadataUrl, mavenMetadataPath, false);
 					}
@@ -86,27 +85,26 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					if (!new File(mavenMetadataPath).exists()) {
 						continue;
 					}
-					MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
 
+					MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
 					//查看maven-metadata.xml是否下载成功
 					String version = metadataXml.getVersion(dep.version);
 					if (version == null) continue;
+
 					// 更新依赖库版本
 					dep.version = version;
-					
-					String pomUrl = MavenService.getArtifactUrl(remoteRepository, dep, dep.version, ".pom");
-					String pomPath = MavenService.getArtifactPath(remoteRepository, dep, dep.version, ".pom");
 
 					// 下载pom文件
-					if (!downloadPomFile(pomPath, dep, count, pomUrl)) {
+					if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
 						//仓库有问题，跳过
 						continue;
 					}
 
+					String pomPath = MavenService.getArtifactPath(remoteRepository, dep, dep.version, ".pom");
 					PomXml configuration = PomXml.empty.getConfiguration(pomPath);
 					// pom中的 packaging 
 					String curPackaging = configuration.getPackaging();
-					
+
 					// 父类依赖认为是 pom
 					// 或当前pom 声明是pom
 					if ("pom".equals(curPackaging)
@@ -115,14 +113,14 @@ class NativeCodeSupportService$q implements Callable<Void> {
 						downloadComplete = true;
 						break;
 					}
-					
+					// 更新type
+					dep.packaging = curPackaging;
 					// 从父依赖解析出来的，最为准确
 					boolean isAttemptn = false;
 					if (TextUtils.isEmpty(dep.packaging)) {
 						// 启用尝试 下载aar模式
 						isAttemptn = true;
 						dep.packaging = "aar";
-						dep.packaging = curPackaging;
 					}
 
 					String artifactType = "." + dep.packaging;
@@ -148,55 +146,42 @@ class NativeCodeSupportService$q implements Callable<Void> {
 
 			}
 		}
+		// 回调通知[下载完成]
 		App.aj(new NativeCodeSupportService$q$a(this, downloadComplete));
 		return null;
 	}
 
-	private boolean downloadPomFile(String pomPath, BuildGradle.MavenDependency dep, int count, String pomUrl) {
-		File pomFile = new File(pomPath);
-		if (pomFile.exists()) return true;
-
-		try {
-			NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
-			// 下载
-			NativeCodeSupportService.gn(this.v5, pomUrl, pomPath, true);
-		}
-		catch (Throwable unused) {
-//			Log.d(" Maven Download", Log.getStackTraceString(unused));
-			return false;
-		}
-
-		return pomFile.exists();
-	}
-
 	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
+
 		String artifactUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, artifactType);
 		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
+
 		File artifactFile = new File(artifactPath);
+		if (artifactFile.exists()) {
+			return true;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(dependency.groupId);
+		sb.append(":");
+		sb.append(dependency.artifactId);
+		sb.append(":");
+		sb.append(version);
+		sb.append("@");
+		sb.append(dependency.packaging);
 
-		if (!artifactFile.exists()) {
-			StringBuilder sb = new StringBuilder();
-			sb.append(dependency.groupId);
-			sb.append(":");
-			sb.append(dependency.artifactId);
-			sb.append(":");
-			sb.append(version);
-			sb.append("@");
-			sb.append(dependency.packaging);
+		String dependencyString = sb.toString();
 
-			String dependencyString = sb.toString();
+		try {
 			//通知下载进度
 			NativeCodeSupportService.Hw(this.v5, dependencyString, (count * 100) / this.FH.size(), 0);
-			try {
-				//如果文件存在且长度一致则不下载
-				NativeCodeSupportService.gn(this.v5, artifactUrl, artifactPath, true);
-			}
-			catch (Throwable unused) {
+			//如果文件存在且长度一致则不下载
+			NativeCodeSupportService.gn(this.v5, artifactUrl, artifactPath, true);
+		}
+		catch (Throwable unused) {
 //				Log.d(" Maven Download", "dep", dependencyString);
 //				Log.d(" Maven Download", Log.getStackTraceString(unused));					
 
-				return false;
-			}
+			return false;
 		}
 
 		return artifactFile.exists();
