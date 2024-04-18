@@ -34,9 +34,9 @@ import com.aide.codemodel.language.java.JavaSyntax;
 public class AidlCodeModel implements CodeModel {
 
 
-    private final JavaBinaryLanguage language;
+    private JavaBinaryLanguage language;
 
-    private final JSharpCommentsLanguage commentsLanguage;
+    private JSharpCommentsLanguage commentsLanguage;
 
     private g6 VH;
 
@@ -50,8 +50,11 @@ public class AidlCodeModel implements CodeModel {
 
     private t6 v5;
 
-
-    public AidlCodeModel(Model model) {
+	public AidlCodeModel(Model model) {
+		this.model = model;
+	}
+    
+    public AidlCodeModel(Model model, int T) {
         try {
             this.model = model;
             this.language = new AidlLanguage(model);
@@ -78,7 +81,7 @@ public class AidlCodeModel implements CodeModel {
 	@Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeSytles> map) {
         try {
-            this.v5.Zo(fileEntry, reader, false, false, false, false, map.get(this.language), map.get(this.commentsLanguage));
+            //this.v5.Zo(fileEntry, reader, false, false, false, false, map.get(this.language), map.get(this.commentsLanguage));
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -87,7 +90,7 @@ public class AidlCodeModel implements CodeModel {
 
 	@Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean z) {
-        try {
+        /*try {
             SyntaxTreeSytles syntaxTreeSytles = this.model.U2.j6();
             SyntaxTreeSytles syntaxTreeSytles2 = this.model.U2.j6();
             this.v5.Zo(fileEntry, reader, false, false, map.containsKey(this.language), map.containsKey(this.commentsLanguage), syntaxTreeSytles, syntaxTreeSytles2);
@@ -104,7 +107,7 @@ public class AidlCodeModel implements CodeModel {
         }
 		catch (Throwable th) {
             throw new Error(th);
-        }
+        }//*/
     }
 
     @Override
@@ -145,8 +148,8 @@ public class AidlCodeModel implements CodeModel {
     @Override
     public List<Language> getLanguages() {
         ArrayList<Language> arrayList = new ArrayList<>();
-		arrayList.add(this.language);
-		arrayList.add(this.commentsLanguage);
+		//arrayList.add(this.language);
+		//arrayList.add(this.commentsLanguage);
 		return arrayList;
     }
 
