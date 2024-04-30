@@ -1,7 +1,5 @@
 package io.github.zeroaicy.aide.services;
 
-import java.io.*;
-
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 import com.aide.common.AppLog;
@@ -13,14 +11,32 @@ import com.android.tools.r8.R8;
 import com.android.tools.r8.R8Command;
 import com.android.tools.r8.origin.Origin;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,12 +48,12 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import sun1.security.pkcs.PKCS8Key;
-import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import java.io.ByteArrayOutputStream;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 	private static final String TAG = "Worker";
+	
 	public ZeroAicyPackagingWorker(ExternalPackagingService service){
 		super(service);
 		//j$.util.Optional F;
@@ -206,7 +222,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("Merging - Libraries", 65);
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null;
-			fillD8Args(argsList, getMinSdk(), false, true, user_androidjar, null, dependencyLibDexZipFilePath);
+			// 合并*.jar.dex
+			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, dependencyLibDexZipFilePath);
 
 			//输入dexs
 			argsList.addAll(dependencyLibDexs);
@@ -317,7 +334,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			List<String> argsList = new ArrayList<>();
 
 			String user_androidjar = getUserAndroidJar();
-			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, getValidDependencyLibs(), dexZipTempFile.getAbsolutePath());
+			
+			
+			// dexing *.jar 提前脱糖
+			fillD8Args(argsList, getMinSdk(), false, true, user_androidjar, /*null/*/getValidDependencyLibs()/**/, dexZipTempFile.getAbsolutePath());
 			
 			//添加需要编译的jar
 			argsList.add(dependencyLibPath);
@@ -417,7 +437,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			 argsList.add("--desugared-lib");
 			 argsList.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/META-INF/desugar/d8/desugar.json");
 			 } */
-
+			 
+			 // 测试 32线程编译
+			argsList.add("--thread-count");
+			argsList.add("32");
+			
 			argsList.add("--output");
 			argsList.add(outPath);
 		}
@@ -427,7 +451,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 */
 		private boolean isCompileOnly(String libFileNameLowerCase){
 			return libFileNameLowerCase.endsWith("_compileonly.jar");
-		}
+		} 
 		/**
 		 * 是否仅打包，接受小写
 		 */
@@ -458,6 +482,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				//minSdk＜21，无法编译生成的class
 				minSdk = 21;
 			}
+			// AIDE生成的dex不会与库依赖合并
+			// 合并dex时 并不会脱糖
+			// 因此必须在 dexing时添加库信息
+			// 所以必须提前脱糖
+			
+			// dexing AIDE编译的 *.class
 			fillD8Args(argsList, minSdk, true, true, user_androidjar, getCompileDependencyLibs(), outPath);
 			//添加需要编译的jar
 			argsList.addAll(dexingClassFiles);
@@ -473,6 +503,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null; 
+			// 合并 AIDE编译的 *.class.dex
 			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, outDexZipPath);
 
 			//输入dexs
@@ -867,11 +898,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					InputStream cert = new FileInputStream(new File(keyNamePrefix + ".x509.pem"));
 					certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(cert);
 					cert.close();
-
-					InputStream key = new FileInputStream(new File(keyNamePrefix + ".pk8"));
-					PKCS8Key pkcs8 = new PKCS8Key();
-					pkcs8.decode(key);
-					privateKey = pkcs8;
+					
+					privateKey = readPrivateKeyFromFile(new FileInputStream(keyNamePrefix + ".pk8"));
 					cert.close();
 				}
 				else{
@@ -883,7 +911,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 					FileInputStream keystoreIs = new FileInputStream(keystorePath);
 
-					KeyStore ks = new com.aide.ui.build.android.JKSKeyStore();
+					KeyStore ks = new JksKeyStore();
 					ks.load(keystoreIs, password.toCharArray());
 
 					privateKey = (PrivateKey) ks.getKey(alias, keyPass.toCharArray());
@@ -896,15 +924,13 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				//为设置签名文件使用内置签名文件
 				String keyName = "testkey";
 				Class clazz = this.getClass();
+				
 				InputStream certInputStream = clazz.getResourceAsStream("/keys/" + keyName + ".x509.pem");
 				certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(certInputStream);
 				certInputStream.close();
-
-				InputStream pk8InputStream = clazz.getResourceAsStream("/keys/" + keyName + ".pk8");
-				PKCS8Key pkcs8 = new PKCS8Key();
-				pkcs8.decode(pk8InputStream);
-				privateKey = pkcs8;
-				certInputStream.close();
+				
+				privateKey = readPrivateKeyFromFile(clazz.getResourceAsStream("/keys/" + keyName + ".pk8"));
+				
 			}
 			//签名
 			signApk(privateKey, certificate, unsignedApk, signedApk);
@@ -936,7 +962,21 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				.build()
 				.sign();
 		}
+		// 流将自动关闭
+		private PrivateKey readPrivateKeyFromFile(InputStream inputStream) throws NoSuchProviderException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+			byte[] readAllBytes = FileUtil.readAllBytes(inputStream);
+			
+			return readPrivateKeyFromFile(readAllBytes);
+		}
 
+		  
+
+		private PrivateKey readPrivateKeyFromFile(byte[] keyBytes) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {  
+			// 使用Bouncy Castle的PKCS8EncodedKeySpec来解析私钥  
+			PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);  
+			KeyFactory kf = KeyFactory.getInstance("RSA", "BC"); // 或者 "EC", "DSA" 等，取决于你的私钥类型  
+			return kf.generatePrivate(spec);  
+		}  
 
 		/**
 		 * 打包Java项目即zip

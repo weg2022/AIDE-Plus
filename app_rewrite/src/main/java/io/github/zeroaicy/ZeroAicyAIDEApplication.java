@@ -12,6 +12,7 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -25,7 +26,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		//解除反射
 		Log.d(TAG, "解除反射: " + ReflectPie.reflectAll());
 		
-		String crashProcessName = getPackageName() + ".crash";
+		String crashProcessName = getPackageName() + ":crash";
 		String curProcessName = ContextUtil.getProcessName();
 		if (crashProcessName.equals(curProcessName)) {
 			return;
@@ -38,6 +39,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		ZeroAicySetting.init(this);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
+		JksKeyStore.initBouncyCastleProvider();
 		
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}

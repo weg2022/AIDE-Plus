@@ -13,6 +13,9 @@ import com.aide.ui.rewrite.R;
 import android.content.DialogInterface;
 import com.aide.ui.services.MavenService;
 
+/**
+ * 增量maven仓库刷新，二级确认弹窗
+ */
 class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListener {
     CompilerPreferencesFragment$c(CompilerPreferencesFragment compilerPreferencesFragment) {}
 	
@@ -32,7 +35,6 @@ class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListe
 				});
             builder.setNegativeButton(android.R.string.cancel, (DialogInterface.OnClickListener) null);
             builder.show();
-			
             return true;
         } catch (Throwable th) {
             throw new Error(th);

@@ -18,7 +18,6 @@ import com.aide.ui.MainActivity;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.views.editor.OEditor;
 import java.io.StringReader;
-import io.github.zeroaicy.util.Log;
 
 
 

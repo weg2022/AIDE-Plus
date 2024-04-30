@@ -46,7 +46,7 @@ public enum SyntaxStyleType{
     private final int lightResId;
     private final int typefaceStyle;
 
-    private SyntaxStyleType(String str, int lightResId, int darkResId, int typefaceStyle) {
+    private SyntaxStyleType(String enumName, int lightResId, int darkResId, int typefaceStyle) {
 		this.lightResId = lightResId;
 		this.darkResId = darkResId;
 		this.typefaceStyle = typefaceStyle;

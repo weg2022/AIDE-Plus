@@ -53,15 +53,12 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 
 	@Override
 	public void onBinderReceived() {
-		this.onBinderReceived = true;
-		//已建立连接
-		//Shizuku活着，开始检查权限并申请
-		Log.d(TAG, "onBinderReceived[已建立连接]");
-
-		//提前检查权限并申请
-		if (checkPermission(defaultRequestCode)) {
-			Toast.makeText(context, "Shizuku授权成功", 0).show();
+		if(this.onBinderReceived && checkPermission(defaultRequestCode)){
+			return;
 		}
+		this.onBinderReceived = true;
+		//Shizuku建立连接后，立即开始检查权限并申请
+		Log.d(TAG, "onBinderReceived[已建立连接]");
 	}
 
 	@Override
@@ -69,12 +66,11 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 		this.onBinderReceived = false;
 		//Shizuku 服务死了
 		Log.d(TAG, "onBinderDead[Shizuku 服务死了]");
-
 	}
 
 	@Override
 	public void onRequestPermissionResult(int requestCode, int grantResult) {
-		if (!onBinderReceived && grantResult == PackageManager.PERMISSION_GRANTED) {
+		if (!this.onBinderReceived && grantResult == PackageManager.PERMISSION_GRANTED) {
 			Toast.makeText(context, "Shizuku授权成功", 0).show();
 		}
 	}
@@ -85,20 +81,30 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 	//添加监听器
 	public static void initialized(Context context) {
 		Log.d(TAG, "Shizuku初始化");
+		if( ShizukuUtil.shizukuListener != null){
+			ShizukuUtil.shizukuListener.removeBinderListener();
+			ShizukuUtil.shizukuListener.addBinderListener();
+			return;
+		}
+		
 		ShizukuUtil.shizukuListener = new ShizukuUtil(context);
+		ShizukuUtil.shizukuListener.addBinderListener();
+	}
+
+	private void addBinderListener() {
 		//监听是否连接
-		Shizuku.addBinderReceivedListenerSticky(shizukuListener);
+		Shizuku.addBinderReceivedListenerSticky(this);
 		//监听Binder死亡
-        Shizuku.addBinderDeadListener(shizukuListener);
+        Shizuku.addBinderDeadListener(this);
 		//添加申请权限回调
-        Shizuku.addRequestPermissionResultListener(shizukuListener);
+        Shizuku.addRequestPermissionResultListener(this);
 	}
 	
 	//移除监听器
-	public static void removeBinderListener(){
-		Shizuku.removeBinderReceivedListener(shizukuListener);
-        Shizuku.removeBinderDeadListener(shizukuListener);
-        Shizuku.removeRequestPermissionResultListener(shizukuListener);
+	public void removeBinderListener(){
+		Shizuku.removeBinderReceivedListener(this);
+        Shizuku.removeBinderDeadListener(this);
+        Shizuku.removeRequestPermissionResultListener(this);
 	}
 
 	public static boolean checkPermission() {
@@ -111,20 +117,17 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
         }
         try {
 			//检查自己是否有权限。
-			//return PERMISSION_DENIED(-1) | PERMISSION_GRANTED(0)
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 return true;
             }
-			else if (Shizuku.shouldShowRequestPermissionRationale()) {
-				// “用户被拒绝权限（shouldShowRequestPermissionReason=true
+			if (Shizuku.shouldShowRequestPermissionRationale()) {
 				return false;
             }
-			else {
-				//申请权限
-				//结果异步返回 addRequestPermissionResultListener中添加的回调
-				Shizuku.requestPermission(code);
-                return false;
-            }
+			//申请权限
+			//结果异步返回 addRequestPermissionResultListener中添加的回调
+			Shizuku.requestPermission(code);
+			
+			return false;
         } catch (Throwable e) {
 			Log.e(TAG, "checkPermission", e);
         }

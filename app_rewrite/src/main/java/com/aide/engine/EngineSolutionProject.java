@@ -20,9 +20,43 @@ import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import com.aide.ui.project.JavaProjectSupport;
+import com.aide.ui.util.ClassPath;
 
 public class EngineSolutionProject implements Parcelable {
-    public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
+
+	private static EngineSolutionProject Hw(String projectPath, List<ClassPath.Entry> list) {
+		
+		//
+		String debugOutputPath = JavaProjectSupport.vJ(projectPath, true);
+		String releaseOutputPath = JavaProjectSupport.vJ(projectPath, false);
+		
+		ArrayList<EngineSolution.File> sourcePaths = new ArrayList<>();
+		ArrayList<String> depProjectNamespaces = new ArrayList<>();
+		
+		
+		for (ClassPath.Entry entry : list) {
+			if (entry.isSrcKind()) {
+				sourcePaths.add(new EngineSolution.File(entry.VH(projectPath), "Java", (String) null, false, false));
+			}
+			if (entry.isLibKind()) {
+				depProjectNamespaces.add(entry.j6());
+			}
+			if (entry.isOutputIKind()) {
+				String VH = entry.VH(projectPath);
+				debugOutputPath = VH + "/debug";
+				releaseOutputPath = VH + "/release";
+			}
+		}
+		//
+		depProjectNamespaces.add(projectPath);
+		depProjectNamespaces.add("rt.jar");
+		
+		return new EngineSolutionProject(projectPath, projectPath, projectPath, sourcePaths, depProjectNamespaces, true, "", debugOutputPath, releaseOutputPath, "1.5", false, false, false, false, "", new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
+
+	}
+
+	public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 
     public final String projectName;
 
@@ -46,13 +80,16 @@ public class EngineSolutionProject implements Parcelable {
 
 
 	private boolean compress = false;
-    public EngineSolutionProject(String projectName, String str2, String str3, List<EngineSolution.File> list, List<String> list2, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5){
-		this.projectName = projectName;
-
-        this.mb = str2;
+    public EngineSolutionProject(String projectNamespace, String projectPath, String str3, List<EngineSolution.File> sourceSolutionFiles, List<String> depProjectNamespaces, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5) {
+		// 项目名 此EngineSolutionProject唯一id
+		// 项目命名空间
+		this.projectName = projectNamespace;
+		// 
+        this.mb = projectPath;
+		// 和projectNamespace一样
         this.jw = str3;
-        this.fY = list;
-        this.qp = list2;
+        this.fY = sourceSolutionFiles;
+        this.qp = depProjectNamespaces;
         this.k2 = z;
         this.zh = str4;
         this.AL = str5;
@@ -71,19 +108,19 @@ public class EngineSolutionProject implements Parcelable {
 
 
     @Override
-    public int describeContents(){
+    public int describeContents() {
 		return 0;
     }
-	
+
 	private static SharedPreferences sharedPreferences;
-	public static SharedPreferences getSharedPreferences(){
-		if ( sharedPreferences == null ){
+	public static SharedPreferences getSharedPreferences() {
+		if (sharedPreferences == null) {
 			sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ContextUtil.getContext());
 		}
 		return sharedPreferences;
 	}
 	@Override
-    public void writeToParcel(Parcel dest, int flags){
+    public void writeToParcel(Parcel dest, int flags) {
 
 		Parcel obtain = Parcel.obtain();
 		//写入数据
@@ -92,36 +129,35 @@ public class EngineSolutionProject implements Parcelable {
 		compression(obtain, dest);
     }
 
-	private void compression(Parcel obtain, Parcel dest) throws Error{
+	private void compression(Parcel obtain, Parcel dest) throws Error {
 		boolean data_compression_enable = getSharedPreferences().getBoolean("data_compression_enable", false);
 		int data_compression_threshold = 25;
-		try{
+		try {
 			data_compression_threshold = Integer.parseInt(getSharedPreferences().getString("data_compression_threshold", "25"));
 		}
-		catch (NumberFormatException e){}
+		catch (NumberFormatException e) {}
 		int data_compression_level = Deflater.DEFLATED;
-		try{
+		try {
 			data_compression_level = Integer.parseInt(getSharedPreferences().getString("data_compression_level", "9"));
 		}
-		catch (NumberFormatException e){}
-		if ( data_compression_level < 0 || data_compression_level > 9 ){
+		catch (NumberFormatException e) {}
+		if (data_compression_level < 0 || data_compression_level > 9) {
 			data_compression_level = Deflater.DEFLATED;
 		}
 		//此处1000作为1KB
 		compress = data_compression_enable && obtain.dataSize() > data_compression_threshold * 1000;
 		//是否压缩标识
 		dest.writeInt(compress ? 1 : 0);
-		if ( compress ){
-			try{
+		if (compress) {
+			try {
 				//压缩数据
 				byte[] data = compressParcelData(obtain, data_compression_level);
 				dest.writeByteArray(data, 0, data.length);
 			}
-			catch (Throwable e){
+			catch (Throwable e) {
 				throw new Error(e);
 			}
-		}
-		else{
+		} else {
 			//System.out.println("非＊压缩模式");
 			dest.appendFrom(obtain, 0, obtain.dataSize());
 		}
@@ -129,26 +165,26 @@ public class EngineSolutionProject implements Parcelable {
 		obtain.recycle();
 	}
 
-	private byte[] compressParcelData(Parcel obtain, final int level) throws IOException{
+	private byte[] compressParcelData(Parcel obtain, final int level) throws IOException {
 		ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
 		GZIPOutputStream zipParcelOut = new GZIPOutputStream(byteArrayOut){{this.def.setLevel(level);}};
-		
+
 		//序列化
 		byte[] marshall = obtain.marshall();
 		//压缩
 		zipParcelOut.write(marshall);
 		zipParcelOut.close();
-		
+
 
 		//写入数据
 		byte[] data = byteArrayOut.toByteArray();
-		
+
 		byteArrayOut.close();
-		
+
 		return data;
 	}
 
-	private void writeToParcel(Parcel parcel){
+	private void writeToParcel(Parcel parcel) {
 		parcel.writeString(this.projectName);
 		parcel.writeString(this.mb);
 		parcel.writeString(this.jw);
@@ -172,12 +208,12 @@ public class EngineSolutionProject implements Parcelable {
 	}
 
     @ey(method = -54924251532196657L)
-    public EngineSolutionProject(Parcel dest){
+    public EngineSolutionProject(Parcel dest) {
 
 		Parcel readParcel = dest;
 
 		compress = dest.readInt() == 1;
-		if ( compress ){
+		if (compress) {
 			AppLog.DW("解压模式");
 			readParcel = decompression(dest);
 		}
@@ -195,7 +231,7 @@ public class EngineSolutionProject implements Parcelable {
 		this.Z1 = readParcel.readInt() != 0;
 
 		boolean z = true;
-		if ( readParcel.readInt() == 0 ){
+		if (readParcel.readInt() == 0) {
 			z = false;
 		}
 		this.n5 = z;
@@ -219,13 +255,13 @@ public class EngineSolutionProject implements Parcelable {
 		ArrayList<EngineSolution.File> arrayList5 = new ArrayList<EngineSolution.File>();
 		this.fY = arrayList5;
 		readParcel.readList(arrayList5, getClass().getClassLoader());
-		if ( readParcel != dest ){
+		if (readParcel != dest) {
 			readParcel.recycle();
 		}
     }
 
-	private Parcel decompression(Parcel dest){
-		try{
+	private Parcel decompression(Parcel dest) {
+		try {
 			//读取数据长度
 			byte[] buf = dest.createByteArray();
 			GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(buf));
@@ -239,7 +275,7 @@ public class EngineSolutionProject implements Parcelable {
 
 			return obtain;
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.d("EngineSolutionProject", "unZipParcel", e);
 
 			throw new Error(e);

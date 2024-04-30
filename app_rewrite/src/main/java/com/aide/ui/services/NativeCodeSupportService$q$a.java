@@ -3,22 +3,15 @@
 //
 package com.aide.ui.services;
 
-import abcd.cy;
-import abcd.dy;
-import abcd.ey;
-import abcd.fy;
-import abcd.gy;
-import abcd.iy;
 import com.aide.ui.services.NativeCodeSupportService;
-import com.aide.ui.build.packagingservice.ExternalPackagingService;
 
 class NativeCodeSupportService$q$a implements Runnable {
     final boolean WB;
     final NativeCodeSupportService$q mb;
     public NativeCodeSupportService$q$a(NativeCodeSupportService$q qVar, boolean z) {
         this.mb = qVar;
-        this.WB = z;ExternalPackagingService m;
-    }
+        this.WB = z;
+	}
 
     @Override
     public void run() {

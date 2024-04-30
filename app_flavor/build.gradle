@@ -9,7 +9,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
-        versionName "2.1.1.4-[3.2.210316]"
+        versionName "2.1.1.6-[3.2.210316]"
     }
 	
     productFlavors {
@@ -30,12 +30,24 @@ android {
 		
 	}
 	signingConfigs{
-		storeFile file("debug.keystore")
+		release{
+			keyAlias "AIDE+"
+			keyPassword "123789456"
+			storePassword "123789456"
+			storeFile file("release.jks")
+		}
+		debug{
+			keyAlias "androiddebug"
+			keyPassword "123789456"
+			storePassword "123789456"
+			storeFile file("debug.jks")
+		}
+		
 	}
     buildTypes {
         release {
             minifyEnabled false
-			shrinkResources false
+			shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

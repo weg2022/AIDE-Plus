@@ -26,7 +26,9 @@ import java.util.Set;
 import java.util.HashSet;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
-
+	
+	private static String TAG = "ZeroAicyBuildGradle";
+	
 	private static ZeroAicyBuildGradle singleton;
 
 
@@ -47,7 +49,10 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		}
 		return this.proguardFiles;
 	}
-
+	
+	/**
+	 * 单例
+	 */
 	public static ZeroAicyBuildGradle getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyBuildGradle();
@@ -65,12 +70,14 @@ public class ZeroAicyBuildGradle extends BuildGradle {
     }
 
 	public ZeroAicyBuildGradle() {
+		super();
 		init();
     }
 
 
 
 	public ZeroAicyBuildGradle(String filePath) {
+		super();
 		// getConfiguration在调用 makeConfiguration后会赋值
 		// 导致解析时无法使用此变量, 赋值
 		this.configurationPath = filePath;
@@ -91,11 +98,15 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			for (AST ast = groovyRecognizer.getAST(); ast != null; ast = getNextSibling(ast)) {
 				nw(ast, "");
 			}
+			
+			// 打印
+			Log.d(TAG, "signingConfigMap", signingConfigMap);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
     }
+	
 	private void init() {
 		this.defaultConfigProductFlavor = new BuildGradle.ProductFlavor();
 		this.curAndroidNodeLine = -1;
@@ -375,13 +386,13 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 							mavenDependency.artifactId = split[1];
 						}
 						if (split.length > 2) {
-							String str2 = split[2];
-							if (str2.indexOf("@") >= 0) {
-								mavenDependency.version = str2.substring(0, str2.indexOf("@"));
-								mavenDependency.packaging = str2.substring(str2.indexOf("@") + 1);
+							String version = split[2];
+							if (version.indexOf("@") >= 0) {
+								mavenDependency.version = version.substring(0, version.indexOf("@"));
+								mavenDependency.packaging = version.substring(version.indexOf("@") + 1);
 								return;
 							}
-							mavenDependency.version = str2;
+							mavenDependency.version = version;
 							return;
 						}
 						return;
@@ -558,13 +569,13 @@ public class ZeroAicyBuildGradle extends BuildGradle {
     }
 
     private void ro(AST ast, String str, int i) {
-		String j32 = getNodeSimpleNameAt(str, i);
-		if (!this.signingConfigMap.containsKey(j32)) {
-			this.signingConfigMap.put(j32, new SigningConfig());
+		String signingConfigName = getNodeSimpleNameAt(str, i);
+		if (!this.signingConfigMap.containsKey(signingConfigName)) {
+			this.signingConfigMap.put(signingConfigName, new SigningConfig());
 		}
 		String Mr2 = Mr(str, i + 1);
 		if (Mr2 != null) {
-			cn(ast, Mr2, this.signingConfigMap.get(j32));
+			cn(ast, Mr2, this.signingConfigMap.get(signingConfigName));
 		}
 
     }
@@ -644,11 +655,11 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
     }
 
-    public SigningConfig getSigningConfig(String str) {
-		if (str == null) {
+    public SigningConfig getSigningConfig(String signingConfigName) {
+		if (signingConfigName == null) {
 			return null;
 		}
-		return this.signingConfigMap.get(str);
+		return this.signingConfigMap.get(signingConfigName);
 
     }
 

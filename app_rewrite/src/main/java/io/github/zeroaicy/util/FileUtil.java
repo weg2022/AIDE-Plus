@@ -1,22 +1,21 @@
 package io.github.zeroaicy.util;
+import android.content.Context;
 import android.os.Environment;
+import com.hjq.permissions.XXPermissions;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.LinkOption;
-import java.nio.file.attribute.FileAttribute;
 import java.util.stream.Stream;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import com.hjq.permissions.XXPermissions;
 
 public class FileUtil {
 
@@ -161,4 +160,22 @@ public class FileUtil {
 		catch (IOException e) {
         }
     }
+	public static byte[] readAllBytes(InputStream inputStream) throws IOException {
+		return readAllBytes(inputStream, true);
+	}
+	
+	public static byte[] readAllBytes(InputStream inputStream, boolean autoClose) throws IOException {
+		byte[] data = new byte[4096];
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		int count;
+		while ((count = inputStream.read(data)) > 0) {
+			baos.write(data, 0, count);
+		}
+		byte[] readAllBytes = baos.toByteArray();
+		baos.close();
+		if( autoClose ) {
+			inputStream.close();
+		}
+		return readAllBytes;
+	}
 }

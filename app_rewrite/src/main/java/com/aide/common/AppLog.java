@@ -5,7 +5,9 @@ package com.aide.common;
 
 import io.github.zeroaicy.util.Log;
 
-
+/**
+ * AIDE日志类
+ */
 public class AppLog {
     public AppLog() {}
 	

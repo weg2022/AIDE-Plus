@@ -20,17 +20,19 @@ import java.io.InputStream;
 import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
 
 public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
-    @hy
-    final CodeAnalysisEngineService v5;
+    final CodeAnalysisEngineService codeAnalysisEngineService;
 	
 	public CodeAnalysisEngineService$a(CodeAnalysisEngineService codeAnalysisEngineService){
-        this.v5 = codeAnalysisEngineService;
+        this.codeAnalysisEngineService = codeAnalysisEngineService;
     }
-
+	
+	/**
+	 * 拦截调试器，动态修改调试器宿主包名
+	 */
+	@Override
     public InputStream getResourceInputStream(String fileName){
-
         try{
-			AssetManager assets = this.v5.getAssets();
+			AssetManager assets = this.codeAnalysisEngineService.getAssets();
 			InputStream open = assets.open(fileName);
 
 			if ( "adrt/ADRT.class".equals(fileName) ){
@@ -43,9 +45,13 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 			throw new Error(e);
 		}
     }
-
+	
+	/**
+	 * 调试器注入包名
+	 */
+	@Override
     public String getHostPackageName(){
-		return this.v5.getPackageName();
+		return this.codeAnalysisEngineService.getPackageName();
     }
 }
 
