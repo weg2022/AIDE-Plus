@@ -1,12 +1,6 @@
 package com.aide.ui.build.android;
 
-import abcd.cy;
-import abcd.dy;
 import abcd.ey;
-import abcd.fy;
-import abcd.gy;
-import abcd.hy;
-import abcd.iy;
 import abcd.wf;
 import abcd.xf;
 import android.os.Build;
@@ -34,47 +28,59 @@ public class AaptService$c {
     private final Map<String, List<String>> DW;
     private final Map<String, String> EQ;
     private final String FH;
-	
+
 	//androidJar File
     private final String Hw;
-	
+
     private final List<String> J0;
-	
-    private final Map<String, String> J8;
-	
+
+
     final AaptService Mr;
-	
-    private final Map<String, String> QX;
-    private final List<String> VH;
+
+	// aManifestMap
+	// key: injected xml value: original manifest xml
     private final Map<String, String> Ws;
+	// injectedAManifestMap
+	// key: gen路径 value: injected xml
+	private final Map<String, String> QX;
+	// mergedAManifestMap
+	// key: gen路径 value: merged xml
+    private final Map<String, String> J8;
+
+    private final List<String> VH;
+
     private boolean XL;
+
+	// mainProjectGenDir
     private final String Zo;
     private boolean aM;
-	
+
 	//resource.ap_
     private final String gn;
     private boolean j3;
-	
+
     private final String j6;
     private final Map<String, List<String>> tp;
     private final Map<String, String> u7;
     private final String v5;
+
+	// subProjectGens
     private final List<String> we;
 
 	//被Callable调用
     public AaptService$b we() {
         try {
 
-			if( ZeroAicySetting.isEnableAapt2()){
+			if (ZeroAicySetting.isEnableAapt2()) {
 				//aapt2实现
 				return Aapt2Task.proxyAapt(this);
 			}
-			
+
             // aapt实现
             AndroidProjectSupport.Qq(this.DW, this.v5);
-            AaptService$b EQ = EQ();
-            if (EQ.DW != null) {
-                return EQ;
+            AaptService$b mergedAndroidManifestxml = EQ();
+            if (mergedAndroidManifestxml.DW != null) {
+                return mergedAndroidManifestxml;
             }
             for (String str : this.QX.keySet()) {
                 if (!new File(str).exists()) {
@@ -99,13 +105,14 @@ public class AaptService$c {
                 return Ws.DW != null ? Ws : QX();
             }
             return new AaptService$b(false);
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
-	
+
     public AaptService$c(AaptService aaptService, String str, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
-        
+
 		this.Mr = aaptService;
         this.j6 = str2;
         this.DW = map;
@@ -117,10 +124,10 @@ public class AaptService$c {
         this.Zo = str5;
         this.VH = list3;
         this.gn = resourceAp_FilePath;
-		
+
 		//genDir -> packageName，但只有子项目，子项目的子项目没有
         this.EQ = genPackageNameMap;
-		
+
         this.u7 = map3;
         this.J8 = map5;
         this.tp = map6;
@@ -141,40 +148,62 @@ public class AaptService$c {
     private AaptService$b EQ() {
         try {
             if (this.we.size() > 0 || this.J0.size() > 0) {
-                String str = this.QX.get(this.Zo);
-                String str2 = this.Ws.get(str);
-                String str3 = this.J8.get(this.Zo);
-                int size = this.we.size();
-                String[] strArr = new String[size];
-                for (int i = 0; i < this.we.size(); i++) {
-                    strArr[i] = this.QX.get(this.we.get(i));
+				// injectedAManifestMap
+                String mainProjectInjectedManifestPath = this.QX.get(this.Zo);
+				// aManifestMap
+                String mainProjectManifestPath = this.Ws.get(mainProjectInjectedManifestPath);
+				// mergedAManifestMap
+                String mainProjectMergedManifestPath = this.J8.get(this.Zo);
+
+				// subProjectGens
+                int subProjectGensSize = this.we.size();
+
+                String[] subProjectInjectedManifestPaths = new String[subProjectGensSize];
+                for (int i = 0; i < subProjectGensSize; i++) {
+					// 所有子项目的injectedManifest
+                    subProjectInjectedManifestPaths[i] = this.QX.get(this.we.get(i));
                 }
+
                 int size2 = this.J0.size();
-                String[] strArr2 = new String[size2];
+                String[] variantManifestPaths = new String[size2];
                 for (int i2 = 0; i2 < this.J0.size(); i2++) {
-                    strArr2[i2] = this.J0.get(i2);
+                    variantManifestPaths[i2] = this.J0.get(i2);
                 }
-                this.QX.put(this.Zo, str3);
-                this.Ws.put(str3, str2);
-                ArrayList<File> arrayList = new ArrayList<>();
-                arrayList.add(new File(str));
-                for (int i3 = 0; i3 < size; i3++) {
-                    arrayList.add(new File(strArr[i3]));
+
+				/**
+				 * 将所有xmlmMap中的主项目manifest xml更新为 merged xml
+				 */
+				// key: gen路径 value: injected xml
+                this.QX.put(this.Zo, mainProjectMergedManifestPath);
+				// key: injected xml value: original manifest xml
+                this.Ws.put(mainProjectMergedManifestPath, mainProjectManifestPath);
+
+                ArrayList<File> manifestPaths = new ArrayList<>();
+				// 添加 主项目的injected xml[属于合并的输入xml]
+                manifestPaths.add(new File(mainProjectInjectedManifestPath));
+
+                for (int index = 0; index < subProjectGensSize; index++) {
+                    manifestPaths.add(new File(subProjectInjectedManifestPaths[index]));
                 }
-                for (int i4 = 0; i4 < size2; i4++) {
-                    arrayList.add(new File(strArr2[i4]));
+                for (int index = 0; index < size2; index++) {
+                    manifestPaths.add(new File(variantManifestPaths[index]));
                 }
-                if (new File(str3).exists() && u7(arrayList, Collections.singletonList(new File(str3)))) {
-                    AppLog.DW("Omitting merge " + str3);
-                }
-                AppLog.DW("Merging " + str3);
-                String j6 = l.j6(AaptService.Zo(this.Mr), str3, str, strArr2, strArr);
-                if (j6 != null) {
-                    return new AaptService$b(j6);
-                }
+                if (new File(mainProjectMergedManifestPath).exists() 
+					&& u7(manifestPaths, Collections.singletonList(new File(mainProjectMergedManifestPath)))) {
+					// 省略合并
+                    AppLog.DW("Omitting merge " + mainProjectMergedManifestPath);
+                } else {
+					AppLog.DW("Merging " + mainProjectMergedManifestPath);
+					// 合并
+					String mergedInfo = l.j6(AaptService.Zo(this.Mr), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
+					if (mergedInfo != null) {
+						return new AaptService$b(mergedInfo);
+					}
+				}
             }
             return new AaptService$b(false);
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -193,12 +222,12 @@ public class AaptService$c {
             for (File file2 : listFiles) {
                 if (file2.isDirectory()) {
                     Hw(file2, str, list);
-                }
-				else if (str == null || str.equals(file2.getName())) {
+                } else if (str == null || str.equals(file2.getName())) {
                     list.add(file2);
                 }
             }
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -215,8 +244,7 @@ public class AaptService$c {
                             return J8;
                         }
                     }
-                }
-				else {
+                } else {
                     throw new InterruptedException();
                 }
             }
@@ -227,7 +255,8 @@ public class AaptService$c {
                 }
             }
             return new AaptService$b(false);
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -235,7 +264,7 @@ public class AaptService$c {
     @ey(method = -917848650515497287L)
     private AaptService$b J8(String str, List<String> list) {
         try {
-            
+
             String str2 = this.QX.get(str);
             ArrayList<File> arrayList = new ArrayList<>();
             for (String str3 : list) {
@@ -256,8 +285,7 @@ public class AaptService$c {
             ArrayList<String> arrayList3 = new ArrayList<>();
             if (str.equals(this.Zo)) {
                 arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.Hw, "--no-version-vectors"}));
-            }
-			else {
+            } else {
                 arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.Hw, "--no-version-vectors"}));
             }
             for (String str4 : list) {
@@ -285,14 +313,15 @@ public class AaptService$c {
                 return new AaptService$b(false);
             }
             return new AaptService$b(VH(j6.j6(), j6.DW()));
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
 			throw new Error(th);
         }
     }
 
     private AaptService$b QX() {
         try {
-            
+
             if (!Thread.interrupted()) {
                 List<String> list = this.tp.get(this.Zo);
                 String str = this.QX.get(this.Zo);
@@ -319,8 +348,7 @@ public class AaptService$c {
                 ArrayList<String> arrayList3 = new ArrayList<>();
                 if (this.j3) {
                     arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "-I", this.Hw, "-F", this.gn}));
-                }
-				else {
+                } else {
                     arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "--debug-mode", "-I", this.Hw, "-F", this.gn}));
                 }
                 for (String str4 : this.VH) {
@@ -357,34 +385,34 @@ public class AaptService$c {
                 return new AaptService$b(VH(j6.j6(), j6.DW()));
             }
             throw new InterruptedException();
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
 
     private String VH(byte[] bArr, int i) {
         try {
-            
+
 			String FH = StreamUtilities.FH(new InputStreamReader(new ByteArrayInputStream(bArr)));
 
             String trim = FH.trim();
             if (trim.length() == 0) {
                 return "aapt exited with code " + i;
-            }
-			else if (i != 1) {
+            } else if (i != 1) {
                 return trim + "\naapt exited with code " + i;
-            }
-			else {
+            } else {
                 return trim;
             }
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
 
     private AaptService$b Ws() {
         try {
-            
+
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
                 if (!Thread.interrupted()) {
                     String key = entry.getKey();
@@ -396,8 +424,7 @@ public class AaptService$c {
                         Hw(new File(value), null, arrayList2);
                         if (u7(arrayList, arrayList2)) {
                             AppLog.DW("Omitting aapt crunch call (is uptodate)");
-                        }
-						else {
+                        } else {
                             List<String> asList = Arrays.asList(new String[]{this.FH, "crunch", "-S", key, "-C", value, "--no-version-vectors"});
                             tp(asList);
                             long currentTimeMillis = System.currentTimeMillis();
@@ -408,13 +435,13 @@ public class AaptService$c {
                             }
                         }
                     }
-                }
-				else {
+                } else {
                     throw new InterruptedException();
                 }
             }
             return new AaptService$b(false);
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -432,7 +459,8 @@ public class AaptService$c {
                     c.j6(file2, value, this.j3);
                 }
             }
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -458,7 +486,8 @@ public class AaptService$c {
                 sb.append(str);
             }
             return sb.toString();
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -479,7 +508,8 @@ public class AaptService$c {
                 return;
             }
             throw new InterruptedException();
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -497,25 +527,36 @@ public class AaptService$c {
                 }
             }
             AppLog.DW(sb.toString());
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
-    private boolean u7(List<File> list, List<File> list2) {
+	/**
+	 * 检查输出文件 是否新于输入文件
+	 */
+    private boolean u7(List<File> inputFiles, List<File> outputFiles) {
         try {
-            if (list.isEmpty() || !list2.isEmpty()) {
-                long j = Long.MAX_VALUE;
-                for (File file : list2) {
-                    j = Math.min(j, file.lastModified());
-                }
-                long j2 = 0;
-                for (File file2 : list) {
-                    j2 = Math.max(j2, file2.lastModified());
-                }
-                return j > j2;
-            }
-            return false;
-        } catch (Throwable th) {
+			// ! (inputFiles.isEmpty() || !outputFiles.isEmpty())
+			if (!inputFiles.isEmpty() && outputFiles.isEmpty()) {
+				return false;
+			}
+			// 获取最旧输出文件的时间戳
+			long outputFileMinLastModified = Long.MAX_VALUE;
+			for (File outputFile : outputFiles) {
+				outputFileMinLastModified = Math.min(outputFileMinLastModified, outputFile.lastModified());
+			}
+			// 获取最新输入文件的时间戳
+			long inputFileMaxLastModified = 0;
+			for (File inputFile : inputFiles) {
+				inputFileMaxLastModified = Math.max(inputFileMaxLastModified, inputFile.lastModified());
+			}
+			// 如果最旧输出文件的时间戳，仍新于最新输入文件的时间戳
+			// 则为true，可忽略
+			return outputFileMinLastModified > inputFileMaxLastModified;
+
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }
@@ -528,12 +569,12 @@ public class AaptService$c {
                     if (new File(value).exists()) {
                         FileSystem.VH(value);
                     }
-                }
-				else {
+                } else {
                     throw new InterruptedException();
                 }
             }
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             throw new Error(th);
         }
     }

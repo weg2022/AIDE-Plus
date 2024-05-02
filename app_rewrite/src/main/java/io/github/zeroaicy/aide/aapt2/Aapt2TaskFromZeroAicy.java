@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import com.aide.common.AppLog;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -297,23 +298,31 @@ public class Aapt2TaskFromZeroAicy {
 		// skipLink规则 resourcesApFile已存在
 		// 主项目R.java存在 R.txt存在
 		// flat.zip没有更新
+		// resourcesAp_文件
 		boolean skipLink = resourcesApFile.exists();
+		// R.Java文件
 		skipLink &= mainRJavaFile.exists();
+		// R.txt
 		skipLink &= FileSystem.exists(rTxt);
 
 		//主项目依赖的res路径
 		List<String> resDirs = aaptServiceArgs.genResDirsMap.get(mainProjectGenDir);
 
 		List<String> flatZipFileList = new ArrayList<>();
+		// flat
 		Set<String> flatZipFileSet = aaptServiceArgs.flatZipFileSet;
 
-		//优先添加主项目res的缓存文件
+		/**
+		 * 检查flatZip是否存在 以及按照依赖顺序填加
+		 */
 		for (String resDir : resDirs) {
+			// 过滤无线目录
 			if (resDir.endsWith("/generated")) {
 				continue;
 			}
 			String flatZipPath = getMergedCacheDirFile(aaptServiceArgs, resDir);
 
+			// 检查是否没有编译
 			if (!flatZipFileSet.remove(flatZipPath)) {
 				//没有编译
 				AaptService$b compileError = compile(aaptServiceArgs, resDir);
@@ -321,15 +330,33 @@ public class Aapt2TaskFromZeroAicy {
 					return compileError;
 				}
 			}
-			if (FileSystem.exists(flatZipPath)) {
-				//按照res依赖顺序添加，从底层到顶层
-				flatZipFileList.add(flatZipPath);
-
-				//缓存新于资源文件
-				File flatZipFile = new File(flatZipPath);
-				skipLink &= flatZipFile.lastModified() < resourcesApLastModified;
+			if (!FileSystem.exists(flatZipPath)) {
+				// flatZip文件不存在，目前策略忽略
+				continue;
 			}
 
+			//按照res依赖顺序添加，从底层到顶层
+			flatZipFileList.add(flatZipPath);
+
+			//缓存新于资源文件
+			File flatZipFile = new File(flatZipPath);
+			// 中间文件flat时间戳新于 resource.ap_
+			if (flatZipFile.lastModified() >= resourcesApLastModified) {
+				// 只要有改变，link则不能跳过
+				skipLink = false;
+				break;
+			}
+		}
+		// 需要考虑过 安卓清单文件是否改动
+		String mainProjectMergedManifestPath = getAndroidManifestXml(aaptServiceArgs, mainProjectGenDir);
+		// 合并后的主项目清单文件
+		// 也可能是injected的 但一定是最终的
+		File mergedManifestFile = new File(mainProjectMergedManifestPath);
+		if (mergedManifestFile.exists() 
+			&& mergedManifestFile.lastModified() > resourcesApLastModified) {
+			// 最终清单新于resourcesAp_文件
+			// 不能跳过
+			skipLink = false;
 		}
 
 		//添加已编译的缓存路径
@@ -353,6 +380,7 @@ public class Aapt2TaskFromZeroAicy {
 
 		return null;
 	}
+	
 
 	private static void deleteCache(AaptServiceArgs aaptServiceArgs) {
 		Set<String> flatDirSet = aaptServiceArgs.flatDirSet;
@@ -421,6 +449,9 @@ public class Aapt2TaskFromZeroAicy {
 		return aaptError;
 	}
 
+	/**
+	 * 软件编译
+	 */
 	private static AaptService$b fullCompile(AaptServiceArgs aaptServiceArgs, String resDir, String flatDir, File flatDirFile) throws IOException {
 		AaptService$b aaptError = fullCompile(aaptServiceArgs, resDir, flatDir);
 		if (aaptError != null) {
@@ -717,8 +748,9 @@ public class Aapt2TaskFromZeroAicy {
 		}
 
 		String flatsZipFile = getMergedCacheDirFile(aaptServiceArgs, resDir);
-		//被使用，添加输出
+		//被引用，添加到输出Set
 		aaptServiceArgs.flatZipFileSet.add(flatsZipFile);
+
 		//没有变动，增量
 		if (incrementalInputFiles.isEmpty() 
 			&& new File(flatsZipFile).exists()) {
@@ -805,6 +837,7 @@ public class Aapt2TaskFromZeroAicy {
 	private static String getAapt2ResCacheDir(AaptServiceArgs aaptServiceArgs, String resPath) {
 		return (aaptServiceArgs.getCompileDirPath() + "/" + MD5Util.stringMD5(resPath));
 	}
+	// 返回合并缓存文件夹文件路径
 	private static String getMergedCacheDirFile(AaptServiceArgs aaptServiceArgs, String resPath) {
 		return (aaptServiceArgs.getMergedDirFile() + "/" + MD5Util.stringMD5(resPath) + ".zip");
 	}

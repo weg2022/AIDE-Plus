@@ -168,7 +168,9 @@ public class AaptServiceArgs {
 
 		// 子项目的gen目录
 		this.subProjectGens = mAaptS$cRef.get("we");
-
+		
+		this.variantManifestPaths = mAaptS$cRef.get("J0");
+		
 		this.mergedAManifestMap = mAaptS$cRef.get("J8");
 
 		this.injectedAManifestMap = mAaptS$cRef.get("QX");
@@ -262,7 +264,9 @@ public class AaptServiceArgs {
 
 	//所有的子项目gen路径
 	public final List<String> subProjectGens;
-
+	//所有的variantManifestPaths
+	public final List<String> variantManifestPaths;
+	
 	public final Map<String, String> mergedAManifestMap;
 
 	public final Map<String, String> injectedAManifestMap;
