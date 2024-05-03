@@ -17,8 +17,7 @@ import com.aide.ui.services.MavenService;
  * 增量maven仓库刷新，二级确认弹窗
  */
 class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListener {
-    CompilerPreferencesFragment$c(CompilerPreferencesFragment compilerPreferencesFragment) {}
-	
+    public CompilerPreferencesFragment$c(CompilerPreferencesFragment compilerPreferencesFragment) {}
 	// refresh_maven_repository
     @Override
     public boolean onPreferenceClick(Preference preference) {
@@ -29,8 +28,8 @@ class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListe
             builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						MavenService mavenService = (MavenService)(Object)App.getMavenService();
-						mavenService.refresh();
+						// nw() -> refreshMavenCache
+						App.getMavenService().nw();
 					}
 				});
             builder.setNegativeButton(android.R.string.cancel, (DialogInterface.OnClickListener) null);

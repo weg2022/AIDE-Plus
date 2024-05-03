@@ -4,39 +4,31 @@
 package com.aide.ui.util;
 
 import com.aide.ui.util.BuildGradle;
+import io.github.zeroaicy.util.Log;
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import io.github.zeroaicy.util.Log;
-import java.io.FileNotFoundException;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Dependency;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import java.io.IOException;
-import com.aide.ui.util.BuildGradle.MavenDependency;
-import org.apache.maven.model.Exclusion;
 import java.util.Collections;
-import java.util.Set;
 import java.util.HashSet;
-import java.io.File;
-import com.aide.ui.util.PomXml.ArtifactNode;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Exclusion;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
+/**
+ * 同名覆盖底包中的类
+ * 已保持
+ */
 public class PomXml extends Configuration<PomXml> {
 
 
 
 	public static class ArtifactNode extends BuildGradle.MavenDependency {
-		// 依赖排除
+		// 装箱
 		public static ArtifactNode pack(BuildGradle.MavenDependency dep) {
 			if (dep instanceof ArtifactNode) {
 				return (ArtifactNode)dep;
@@ -44,6 +36,7 @@ public class PomXml extends Configuration<PomXml> {
 			return new ArtifactNode(dep, dep.version);
 		}
 
+		// 依赖排除
 		private List<Exclusion> exclusions;
 		public ArtifactNode(BuildGradle.MavenDependency dep, String version) {
 			super(dep, version);
@@ -174,9 +167,6 @@ public class PomXml extends Configuration<PomXml> {
 		catch (Throwable e) {
 			Log.d(e.getMessage(), e);
 		}
-
-		//Log.d(toString(), deps.toArray());
-		//System.out.println();
 
 	}
 
