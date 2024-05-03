@@ -75,6 +75,10 @@ public class ZeroAicySetting {
 	/*
 	 * 界面
 	 */
+	//启用Drawer
+	public static boolean enableActionDrawerLayout() {
+		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_enable_actionbar_drawer_layout", false);
+	}
 	public static boolean enableActionBarSpinner() {
 		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_enable_actionbar_tab_spinner", true);
 	}

@@ -8,12 +8,18 @@
         <PreferenceCategory 
 			android:title="窗口"
 			android:summary="设置界面">
+			<SwitchPreference
+                android:title="启用侧滑栏"
+                android:key="zero_aicy_enable_actionbar_drawer_layout"
+                android:summary="MainActivity重启生效"
+                android:defaultValue="false" />
 			
             <SwitchPreference
                 android:title="启用ActionBar TabSpinner模式"
                 android:key="zero_aicy_enable_actionbar_tab_spinner"
                 android:summary="重启生效"
                 android:defaultValue="true" />
+			
 			<SwitchPreference
                 android:title="主题跟随系统"
                 android:key="zero_aicy_enable_follow_system"
