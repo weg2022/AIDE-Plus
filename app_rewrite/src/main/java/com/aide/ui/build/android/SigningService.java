@@ -1,10 +1,6 @@
 package com.aide.ui.build.android;
 
-import abcd.cy;
 import abcd.ed;
-import abcd.ey;
-import abcd.fy;
-import abcd.gy;
 import android.app.Activity;
 import androidx.annotation.Keep;
 import com.aide.common.MessageBox;
@@ -22,6 +18,7 @@ import java.io.FileOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -29,14 +26,14 @@ import java.util.Collections;
 import java.util.Date;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
-import io.github.zeroaicy.util.Log;
-import java.security.UnrecoverableKeyException;
 
 public class SigningService {
 
 	private static String TAG = "SigningService";
-
+	
+	@Keep
     public interface SigningRunnable {
+		@Keep
 		public void j6(String storePath, String storePassword, String aliasName, String aliasPassword);
     }
 
@@ -68,18 +65,18 @@ public class SigningService {
         final SigningRunnable FH;
 
         final SigningService Hw;
-        final String j6;
+        final String storePath;
 
-        private b(SigningService signingService, String str, String str2, SigningRunnable signingRunnable) {
+        private b(SigningService signingService, String storePath, String str2, SigningRunnable signingRunnable) {
             this.Hw = signingService;
-            this.j6 = str;
+            this.storePath = storePath;
             this.DW = str2;
             this.FH = signingRunnable;
         }
 
         public void DW(String str) {
             try {
-                SigningService.j6(this.Hw, this.j6, this.DW, str, this.FH);
+                SigningService.j6(this.Hw, this.storePath, this.DW, str, this.FH);
             }
 			catch (Throwable th) {
                 throw new Error(th);
@@ -90,17 +87,14 @@ public class SigningService {
             DW(obj);
         }
     }
-
-    @cy(clazz = -2971311645518541765L, container = 1054312504720486788L, user = true)
     public static class c implements ValueRunnable<String> {
         final String DW;
         final String FH;
         final SigningRunnable Hw;
         final String j6;
         final SigningService v5;
-
-
-        c(SigningService signingService, String str, String str2, String str3, SigningRunnable signingRunnable) {
+		
+		private c(SigningService signingService, String str, String str2, String str3, SigningRunnable signingRunnable) {
             this.v5 = signingService;
             this.j6 = str;
             this.DW = str2;
@@ -108,7 +102,6 @@ public class SigningService {
             this.Hw = signingRunnable;
         }
 
-        @ey(method = -3768758292758685135L)
         public void DW(String str) {
             try {
                 SigningService.DW(this.v5, this.j6, this.DW, this.FH, str, this.Hw);
@@ -118,7 +111,6 @@ public class SigningService {
             }
         }
 
-        @ey(method = -7297015113097814044L)
         public /* bridge */ void j6(String obj) {
             DW(obj);
         }
@@ -274,12 +266,12 @@ public class SigningService {
             v3CertGen.setSignatureAlgorithm("SHA256withRSA");
 
 			//生成证书
-            X509Certificate PKCertificate = v3CertGen.generate(keyPair.getPrivate(), "BC");
+            X509Certificate x509Certificate = v3CertGen.generate(keyPair.getPrivate(), "BC");
 			// 返回证书集合 KeySet
             KeySet keySet = new KeySet();
             keySet.setName(keyName);
             keySet.setPrivateKey(keyPair.getPrivate());
-            keySet.setPublicKey(PKCertificate);
+            keySet.setPublicKey(x509Certificate);
             return keySet;
         }
 		catch (Exception x) {
@@ -302,7 +294,7 @@ public class SigningService {
 		}
 
 		// Log.d(TAG, "signingConfig is ", signingConfig);
-
+		// 读取 signingConfig
 		try {
 			storePath = signingConfig.getStoreFilePath();
 
@@ -313,7 +305,9 @@ public class SigningService {
 			}
 
 			JksKeyStore jksKeyStore = new JksKeyStore();
-			jksKeyStore.load(new FileInputStream(storePath), signingConfig.storePassword.toCharArray());
+			char[] toCharArray = signingConfig.storePassword.toCharArray();
+			jksKeyStore.load(new FileInputStream(storePath), toCharArray);
+			
 			if (jksKeyStore.getKey(signingConfig.keyAlias, signingConfig.keyPassword.toCharArray()) != null) {
 				runnable.j6(storePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
 				return;
