@@ -23,6 +23,9 @@ android {
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	
+	
+	//api "com.google.android.material:material:+"
+	
 	//api project(':material+')
 	//*
 	
@@ -31,9 +34,13 @@ dependencies {
 	api "dev.rikka.shizuku:provider:13+"
 	
 	api "androidx.browser:browser:1.6.0"
+	
 	api "androidx.drawerlayout:drawerlayout:1.2.0"
+	
 	api "androidx.legacy:legacy-support-v4:1.0.0"
+	
 	api "androidx.multidex:multidex:2.0.1"
+	
 	//*/
 	
 }

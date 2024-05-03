@@ -29,6 +29,8 @@ dependencies {
 	// r8 必须脱糖否则只能安卓13使用
 	// api "com.android.tools:r8:8.2.33"
 	
+	//api "androidx.appcompat:appcompat:1.6.1"
+	
 	api project(':appAideBase')
 	
 }
