@@ -144,7 +144,8 @@ public class AaptService$c {
     public static String DW(AaptService$c aaptService$c) {
         return aaptService$c.j6;
     }
-
+	
+	// 合并清单文件
     private AaptService$b EQ() {
         try {
             if (this.we.size() > 0 || this.J0.size() > 0) {
@@ -159,15 +160,15 @@ public class AaptService$c {
                 int subProjectGensSize = this.we.size();
 
                 String[] subProjectInjectedManifestPaths = new String[subProjectGensSize];
-                for (int i = 0; i < subProjectGensSize; i++) {
+                for (int index = 0; index < subProjectGensSize; index++) {
 					// 所有子项目的injectedManifest
-                    subProjectInjectedManifestPaths[i] = this.QX.get(this.we.get(i));
+                    subProjectInjectedManifestPaths[index] = this.QX.get(this.we.get(index));
                 }
 
-                int size2 = this.J0.size();
-                String[] variantManifestPaths = new String[size2];
-                for (int i2 = 0; i2 < this.J0.size(); i2++) {
-                    variantManifestPaths[i2] = this.J0.get(i2);
+                int variantManifestPathsSize = this.J0.size();
+                String[] variantManifestPaths = new String[variantManifestPathsSize];
+                for (int index = 0; index < this.J0.size(); index++) {
+                    variantManifestPaths[index] = this.J0.get(index);
                 }
 
 				/**
@@ -185,7 +186,7 @@ public class AaptService$c {
                 for (int index = 0; index < subProjectGensSize; index++) {
                     manifestPaths.add(new File(subProjectInjectedManifestPaths[index]));
                 }
-                for (int index = 0; index < size2; index++) {
+                for (int index = 0; index < variantManifestPathsSize; index++) {
                     manifestPaths.add(new File(variantManifestPaths[index]));
                 }
                 if (new File(mainProjectMergedManifestPath).exists() 
