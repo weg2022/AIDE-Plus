@@ -9,10 +9,10 @@ public class ZeroAicyShizukuProvider extends ShizukuProvider {
 	}
 	@Override
 	public void attachInfo(Context context, ProviderInfo info) {
-		super.attachInfo(context, info);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(context);
-
+		super.attachInfo(context, info);
+		
 	}
 
 

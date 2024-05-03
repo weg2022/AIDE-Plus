@@ -45,10 +45,11 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	}
 
 	/**
-	 * 当日志系统崩溃是进行修复，以便测试
-	 * 依赖反射注意检查
+	 * 当日志系统崩溃时,，进行修复，以便测试
+	 * 此实现依赖反射，使用时注意检查
 	 */
 	private void testLog() {
+		
 		boolean log = Log.getLog() == null;
 
 		if (log) {
@@ -70,33 +71,5 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 			}
 			ReflectPie.on(Log.class).call("printPreMsgList");
 		}
-	}
-
-	static{
-
-		//init();
-	}
-
-	private static void init() {
-		ClassLoader apkClassLoader = ZeroAicyAIDEApplication.class.getClassLoader();
-
-		ReflectPie apkClassLoaderReflectPie = ReflectPie.on(apkClassLoader);
-
-		ClassLoader parent = apkClassLoaderReflectPie.get("parent");
-
-		apkClassLoaderReflectPie.set("parent", new ProxyClassLoader2(parent));
-	}
-	public static class ProxyClassLoader2 extends ClassLoader {
-		public ProxyClassLoader2(ClassLoader classLoader) {
-			super(classLoader);
-		}
-
-		@Override
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			Log.d("ProxyClassLoader2", "加载: " + name);
-			return super.loadClass(name, resolve);
-		}
-
-
 	}
 }

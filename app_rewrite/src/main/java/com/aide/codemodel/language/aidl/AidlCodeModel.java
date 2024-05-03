@@ -3,13 +3,7 @@
 //
 package com.aide.codemodel.language.aidl;
 
-import abcd.cy;
-import abcd.dy;
-import abcd.ey;
-import abcd.fy;
 import abcd.g6;
-import abcd.gy;
-import abcd.iy;
 import abcd.t6;
 import com.aide.codemodel.api.FileEntry;
 import com.aide.codemodel.api.Model;
@@ -20,16 +14,14 @@ import com.aide.codemodel.api.abstraction.Compiler;
 import com.aide.codemodel.api.abstraction.Debugger;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Preprocessor;
+import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
 import com.aide.codemodel.language.java.JSharpCommentsLanguage;
-import com.aide.codemodel.language.java.JavaCompiler;
-import com.aide.codemodel.language.java.JavaDebugger;
 import com.aide.codemodel.language.java.JavaParser;
+import com.aide.codemodel.language.java.JavaSyntax;
 import java.io.Reader;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
-import com.aide.codemodel.language.java.JavaSyntax;
 
 public class AidlCodeModel implements CodeModel {
 
@@ -67,6 +59,7 @@ public class AidlCodeModel implements CodeModel {
 					@Override
 					public void DW(String string) {}
 				};
+				// SyntaxTreeSytles相关
                 this.VH = new g6(model);
             }
         }
@@ -90,13 +83,14 @@ public class AidlCodeModel implements CodeModel {
 
 	@Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean z) {
-        /*try {
+        /*
+		try {
             SyntaxTreeSytles syntaxTreeSytles = this.model.U2.j6();
             SyntaxTreeSytles syntaxTreeSytles2 = this.model.U2.j6();
             this.v5.Zo(fileEntry, reader, false, false, map.containsKey(this.language), map.containsKey(this.commentsLanguage), syntaxTreeSytles, syntaxTreeSytles2);
 
             if (map.containsKey(this.language)) {
-                this.parser.v5(syntaxTreeSytles, fileEntry, z, map.get(this.language));
+                //this.parser.v5(syntaxTreeSytles, fileEntry, z, map.get(this.language));
             }
             this.model.U2.DW(syntaxTreeSytles);
 
@@ -147,10 +141,10 @@ public class AidlCodeModel implements CodeModel {
 
     @Override
     public List<Language> getLanguages() {
-        ArrayList<Language> arrayList = new ArrayList<>();
+        //ArrayList<Language> arrayList = new ArrayList<>();
 		//arrayList.add(this.language);
 		//arrayList.add(this.commentsLanguage);
-		return arrayList;
+		return Collections.emptyList();
     }
 
     @Override

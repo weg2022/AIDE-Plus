@@ -54,7 +54,9 @@ public class CrashApphandler extends CrashAppLog{
 						context.startActivity(intent);
 						//退出活动，因为退出了所以启动活动前仍会走Application
 						//如果错误点在Application则会重复启动
+						android.os.Process.killProcess(android.os.Process.myPid());
 						System.exit(-1);
+						
 					}
 				});
 		}

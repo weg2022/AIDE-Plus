@@ -82,8 +82,8 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 	public static void initialized(Context context) {
 		Log.d(TAG, "Shizuku初始化");
 		if( ShizukuUtil.shizukuListener != null){
-			ShizukuUtil.shizukuListener.removeBinderListener();
-			ShizukuUtil.shizukuListener.addBinderListener();
+			// ShizukuUtil.shizukuListener.removeBinderListener();
+			// ShizukuUtil.shizukuListener.addBinderListener();
 			return;
 		}
 		
