@@ -697,7 +697,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 
 			//BaseDiagnosticsHandler baseDiagnosticsHandler = new BaseDiagnosticsHandler();
-			R8Command.Builder builder = R8Command.builder(/*baseDiagnosticsHandler*/);
+			//32线程
+			R8Command.Builder builder = R8Command.parse(new String[]{"--thread-count", "32"}, null);
 
 			logDebug("开始添加AIDE输出的类");
 			for ( String inputClassPath : mainClassFilePaths ){
@@ -731,7 +732,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			 
 		
 			
-			
 			R8Command r8Command = builder
 				// 所有类
 				.addProgramFiles(validDepPaths)
@@ -748,7 +748,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				.build();
 
 			showProgress("混淆class中......", 65);
-
 			//运行r8
 			R8.run(r8Command);
 		}
