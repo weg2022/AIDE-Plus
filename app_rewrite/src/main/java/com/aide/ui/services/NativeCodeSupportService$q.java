@@ -3,8 +3,8 @@
 //
 package com.aide.ui.services;
 
-import abcd.hy;
 import android.app.Activity;
+import android.text.TextUtils;
 import com.aide.ui.App;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.MavenMetadataXml;
@@ -16,16 +16,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import io.github.zeroaicy.util.Log;
-import android.text.TextUtils;
-import com.aide.ui.rewrite.BuildConfig;
 
-class NativeCodeSupportService$q implements Callable<Void> {
+public class NativeCodeSupportService$q implements Callable<Void> {
     private Runnable DW;
     private List<BuildGradle.MavenDependency> FH;
     private List<BuildGradle.RemoteRepository> Hw;
     private Activity j6;
-    @hy
     final NativeCodeSupportService v5;
 
     public NativeCodeSupportService$q(NativeCodeSupportService nativeCodeSupportService, Activity activity, List<BuildGradle.MavenDependency> list, List<BuildGradle.RemoteRepository> list2, Runnable runnable) {
@@ -53,7 +49,9 @@ class NativeCodeSupportService$q implements Callable<Void> {
 		ArrayList<BuildGradle.RemoteRepository> remoteRepositorys = new ArrayList<>();
 		{
 			Set<BuildGradle.RemoteRepository> remoteRepositorySet = new HashSet<>();
+			// 添加默认maven仓库
 			remoteRepositorySet.add(defaultRemoteRepository);
+			// 过滤重复maven仓库
 			for (BuildGradle.RemoteRepository remoteRepository : this.Hw) {
 				if (!remoteRepositorySet.contains(remoteRepository)) {
 					remoteRepositorySet.add(remoteRepository);
@@ -71,8 +69,18 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
 					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
 					try {
+						StringBuilder sb = new StringBuilder();
+						sb.append("metadata -> ");
+						
+						sb.append(dep.groupId);
+						sb.append(":");
+						sb.append(dep.artifactId);
+						sb.append(":");
+						sb.append(dep.version);
+						
+						String dependencyString = sb.toString();
 						// 下载清单文件
-						//NativeCodeSupportService.Hw(this.v5, dep.toString(), (count * 100) / this.FH.size(), 0);
+						NativeCodeSupportService.Hw(this.v5, dependencyString, (count * 100) / this.FH.size(), 0);
 						//已存在 长度不一致时更新
 						NativeCodeSupportService.gn(this.v5, mavenMetadataUrl, mavenMetadataPath, false);
 					}
@@ -146,8 +154,17 @@ class NativeCodeSupportService$q implements Callable<Void> {
 
 			}
 		}
+		final boolean downloadComplete2 = downloadComplete;
 		// 回调通知[下载完成]
-		App.aj(new NativeCodeSupportService$q$a(this, downloadComplete));
+		App.aj(new Runnable(){
+				@Override
+				public void run() {
+					NativeCodeSupportService.FH(NativeCodeSupportService$q.this.v5);
+					if (downloadComplete2) {
+						NativeCodeSupportService$q.j6(NativeCodeSupportService$q.this).run();
+					}
+				}
+			});
 		return null;
 	}
 
@@ -270,7 +287,17 @@ class NativeCodeSupportService$q implements Callable<Void> {
 					}
 				}
             }
-            App.aj(new NativeCodeSupportService$q$a(this, z2));
+			
+			final boolean downloadComplete2 = z2;
+            App.aj(new Runnable(){
+					@Override
+					public void run() {
+						NativeCodeSupportService.FH(NativeCodeSupportService$q.this.v5);
+						if (downloadComplete2) {
+							NativeCodeSupportService$q.j6(NativeCodeSupportService$q.this).run();
+						}
+					}
+				});
             return null;
         }
 		catch (Throwable th) {
