@@ -30,7 +30,6 @@ dependencies {
 	//*
 	
 	// shizuku.
-	
 	api "dev.rikka.shizuku:provider:13+"
 	
 	api "androidx.browser:browser:1.6.0"

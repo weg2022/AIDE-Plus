@@ -12,6 +12,9 @@ import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import com.aide.ui.util.BuildGradle;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import com.aide.ui.services.ProjectService;
+import com.aide.ui.services.ZeroAicyProjectService;
+import com.aide.ui.services.ZeroAicyTrainerService;
 
 /**
  * 1.aapt2
@@ -79,4 +82,12 @@ public class ZeroAicyExtensionInterface {
 	public static BuildGradle getBuildGradle(){
 		return ZeroAicyBuildGradle.getSingleton();
 	}
+	
+	public static ProjectService getProjectService(){
+		return ZeroAicyProjectService.getSingleton();
+	}
+	public static abcd.mf getTrainerService(){
+		return ZeroAicyTrainerService.getSingleton();
+	}
+	
 }

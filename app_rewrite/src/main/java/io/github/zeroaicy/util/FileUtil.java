@@ -23,30 +23,13 @@ public class FileUtil {
 
 	public static String CrashLogPath;
 	public static String LogCatPath;
-
-
-	public static void deleteFolder(File folder) {
-		if (folder.isFile()) {
-			folder.delete();
-		}
-		File[] files = folder.listFiles();  
-		if (files == null) {
-			return;
-		}
-		for (File file : files) {  
-			if (file.isDirectory()) {  
-				deleteFolder(file); // 递归删除子文件夹  
-			} else {  
-				file.delete(); // 删除文件  
-			}
-		}  
-		folder.delete(); // 删除文件夹  
-    }
-
-    public static void copyNotCover(String source, String target) {
-        copy(source, target, false);
-    }
-	
+	static {
+		init();
+	}
+	public static void init(){
+		FileUtil.CrashLogPath = getCrashLogPath(FileUtil.LogDir);
+		FileUtil.LogCatPath = getLogCatPath(FileUtil.CrashLogPath);
+	}
 	public static String getLogCatPath(String crashLogPath) {
 
 		StringBuilder logCatPathBuilder = new StringBuilder();
@@ -65,20 +48,21 @@ public class FileUtil {
 		return logCatPathBuilder.toString();
 	}
 
-	static {
-		FileUtil.CrashLogPath = getCrashLogPath(FileUtil.LogDir);
-		FileUtil.LogCatPath = getLogCatPath(FileUtil.CrashLogPath);
-	}
-
+	
 	private static String getCrashLogPath(String CrashDir) {
 		///内置储存器
 		File logRootDirectory = new File(Environment.getExternalStorageDirectory(), "Download");
 		Context context = ContextUtil.getContext();
-		
-		if (! XXPermissions.isGranted(context, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
-			// 更改为: /内置储存器/Android/data/${PackageName}/cache
+		try{
+			if (! XXPermissions.isGranted(context, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+				// 更改为: /内置储存器/Android/data/${PackageName}/cache
+				logRootDirectory = context.getExternalCacheDir();
+			}	
+		}
+		catch (Throwable e){
 			logRootDirectory = context.getExternalCacheDir();
 		}
+		
 		return (logRootDirectory.getAbsolutePath() + CrashDir + ContextUtil.getPackageName());
 	}
 
@@ -178,4 +162,26 @@ public class FileUtil {
 		}
 		return readAllBytes;
 	}
+	
+	public static void deleteFolder(File folder) {
+		if (folder.isFile()) {
+			folder.delete();
+		}
+		File[] files = folder.listFiles();  
+		if (files == null) {
+			return;
+		}
+		for (File file : files) {  
+			if (file.isDirectory()) {  
+				deleteFolder(file); // 递归删除子文件夹  
+			} else {  
+				file.delete(); // 删除文件  
+			}
+		}  
+		folder.delete(); // 删除文件夹  
+    }
+
+    public static void copyNotCover(String source, String target) {
+        copy(source, target, false);
+    }
 }

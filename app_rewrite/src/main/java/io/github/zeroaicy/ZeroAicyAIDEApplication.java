@@ -1,9 +1,13 @@
 package io.github.zeroaicy;
 
 
+import android.app.Application;
+import android.content.pm.ApplicationInfo;
+import android.os.StrictMode;
 import com.aide.ui.AIDEApplication;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
+import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.DebugUtil;
 import io.github.zeroaicy.util.FileUtil;
@@ -12,44 +16,87 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
+import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	private static final String TAG = "ZeroAicyAIDEApplication";
 
 	public static final long now = System.currentTimeMillis();
-	
+	public static final boolean reflectAll = ReflectPie.reflectAll();
+	static{
+		DebugUtil.debug();
+	}
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		//解除反射
-		Log.d(TAG, "解除反射: " + ReflectPie.reflectAll());
 		
+		//解除反射
+		Log.d(TAG, "解除反射: " + reflectAll);
+
 		String crashProcessName = getPackageName() + ":crash";
 		String curProcessName = ContextUtil.getProcessName();
-		if (crashProcessName.equals(curProcessName)) {
+
+		if (crashProcessName.equals(curProcessName) || curProcessName.contains("crash")) {
+			Log.d(TAG, "crash进程: ", curProcessName);
 			return;
 		}
+
+		DebugUtil.debug(this);
 		
-		DebugUtil.debug();
 		CrashApphandler.getInstance().onCreated();
+
+		//FindANR.startSendMsg();
 
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
 		JksKeyStore.initBouncyCastleProvider();
-		
+
+		// Return if this application is not in debug mode 
+		//*
+		ApplicationInfo appInfo = getApplicationInfo(); 
+		int appFlags = appInfo.flags; 
+
+		if (false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {     
+			Log.d(TAG, "启用严苛模式: ");
+			// 监测当前线程（UI线程）上的网络、磁盘读写等耗时操作
+			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+									   //.detectDiskReads()  // 监测读磁盘
+									   //.detectDiskWrites()  // 监测写磁盘
+									   .detectNetwork()      // 监测网络操作
+									   .detectCustomSlowCalls()  // 监测哪些方法执行慢
+									   .detectResourceMismatches()  // 监测资源不匹配
+									   .penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
+									   .penaltyDialog()
+									   .penaltyDeath()
+									   .penaltyDropBox()  //监测到将信息存到Dropbox文件夹 data/system/dropbox
+									   .build());
+
+			// 监测VM虚拟机进程级别的Activity泄漏或者其它资源泄漏
+			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+								   .detectActivityLeaks()  // 监测内存泄露情况
+								   .detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
+								   .detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
+								   .detectCleartextNetwork()  // 监测明文网络
+								   //.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
+								   .detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
+								   .penaltyLog()
+								   .build());
+		}
+		//*/
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
+
+	
 
 	/**
 	 * 当日志系统崩溃时,，进行修复，以便测试
 	 * 此实现依赖反射，使用时注意检查
 	 */
 	private void testLog() {
-		
+
 		boolean log = Log.getLog() == null;
 
 		if (log) {

@@ -2,5 +2,6 @@
 <resources>
 	
 	<string name="app_name">AIDE+共存版</string>
+	<bool name="block_canary_auto_install">false</bool>
 	
 </resources>

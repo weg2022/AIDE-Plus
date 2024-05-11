@@ -1,33 +1,29 @@
 package io.github.zeroaicy.aide.aapt2;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.text.TextUtils;
 import com.aide.ui.build.android.AaptService;
+import com.aide.ui.build.android.AaptService$b;
 import com.aide.ui.services.AssetInstallationService;
-import com.aide.ui.util.BuildGradle;
-import com.google.android.gms.internal.ads.q8;
+import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.ui.build.android.AaptService$b;
-import com.aide.ui.util.*;
-import java.util.*;
-import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 
 public class AaptServiceArgs {
 
@@ -397,17 +393,30 @@ public class AaptServiceArgs {
 
 	public static List<String> listLine(File file) {
 		List<String> list = new ArrayList<String>();
+
+		InputStream in = null;
+		BufferedReader br = null;
 		try {
-			FileInputStream fileInputStream = new FileInputStream(file);
-			InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-			BufferedReader br = new BufferedReader(inputStreamReader);
+			in = new FileInputStream(file);
+			br = new BufferedReader(new InputStreamReader(in));
 			String line;
 			while ((line = br.readLine()) != null) {
 				list.add(line);
 			}
+			br.close();
 		}
 		catch (IOException e) {
 			e.printStackTrace();
+		}finally{
+			try {
+				if (in != null) in.close();
+			}
+			catch (IOException e) {}
+
+			try {
+				if (br != null) br.close();
+			}
+			catch (IOException e) {}
 		}
 		return list;
 	}

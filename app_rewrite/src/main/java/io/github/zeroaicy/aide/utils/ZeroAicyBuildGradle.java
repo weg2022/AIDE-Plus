@@ -100,7 +100,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			}
 			
 			// 打印
-			Log.d(TAG, "signingConfigMap", signingConfigMap);
+			//Log.d(TAG, "signingConfigMap", signingConfigMap);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

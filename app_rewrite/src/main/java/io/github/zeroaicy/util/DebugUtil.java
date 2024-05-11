@@ -13,6 +13,7 @@ public class DebugUtil{
 
 	public static void debug(Context context){
 		Log.SetSystemOut(true);
+		FileUtil.init();
 		Log.enable(FileUtil.LogCatPath);
 		CrashApplication.CrashInit(context);
 

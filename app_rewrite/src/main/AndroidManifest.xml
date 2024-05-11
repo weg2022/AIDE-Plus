@@ -4,7 +4,6 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	package="${applicationId}"
-	android:sharedUserId="io.github.zeroaicy"
 	android:installLocation="auto">
 
 	<!-- 新增 -->

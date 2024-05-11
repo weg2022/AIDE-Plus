@@ -72,8 +72,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 
 	/**
-	 * 解析
+	 * openProject
 	 */
+	// openProject
 	@Override
 	public void U2(String projectPath, Map<String, List<String>> subProjectMap, List<String> projectPaths) {
 

@@ -6,6 +6,7 @@ import android.content.Intent;
 import io.github.zeroaicy.util.DebugUtil;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.crash.CrashApphandler;
+import io.github.zeroaicy.util.ContextUtil;
 
 public class CrashApplication extends Application{
 
@@ -34,7 +35,8 @@ public class CrashApplication extends Application{
 
     public static void CrashInit(){
         CrashApphandler instance = CrashApphandler.getInstance();
-        instance.setCAHCE_CRASH_LOG(FileUtil.CrashLogPath);
+		Context context = ContextUtil.getContext();
+        instance.setCAHCE_CRASH_LOG(context.getExternalCacheDir().getAbsolutePath());
 		instance.setLIMIT_LOG_COUNT(5);
 		instance.init();
     }

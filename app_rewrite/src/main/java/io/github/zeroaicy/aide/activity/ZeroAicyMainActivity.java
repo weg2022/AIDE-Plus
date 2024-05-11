@@ -25,6 +25,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.legacy.app.ActionBarDrawerToggle;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
 import com.aide.common.MessageBox;
@@ -39,11 +40,13 @@ import com.aide.ui.marketing.WhatsNewDialog;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
+import com.aide.ui.views.SplitView;
 import com.aide.ui.y;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.ui.views.ZeroAicySplitView;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.File;
@@ -54,64 +57,86 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.aide.ui.views.SplitView;
-import io.github.zeroaicy.aide.ui.views.ZeroAicySplitView;
-import androidx.legacy.app.ActionBarDrawerToggle;
+import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
 	private static final String TAG = "ZeroAicyMainActivity";
 	@Override
-	public void onCreate(Bundle bundle) {
+	public void onCreate(Bundle bundle){
 
 		super.onCreate(bundle);
+
 		getActionBar().setDisplayShowHomeEnabled(false);
+		if ( ! App.isTrainerMode() 
+			&& ZeroAicySetting.enableActionDrawerLayout() ){
+			setUpDrawerLayout();
+		}
+		// 隐藏Home键
 		// 检查并申请管理外部储存权限
 		showRequestManageExternalStorage();
-		if (! App.isTrainerMode() && ZeroAicySetting.enableActionDrawerLayout()) {
-			setUpDrawerLayout();
+
+	}
+
+	public void super_DW(){
+		super.DW();
+	}
+	@Override
+	public void DW(){
+		if ( !ExecutorsService.isUiThread() ){
+			App.aj(new Runnable(){
+					@Override
+					public void run(){
+						super_DW();
+					}
+				});
+		}
+		else{
+			super.DW();
 		}
 	}
 
 
-	// mainMasterButton
+	// mainMasterButton 点击回调
 	//*
 	@Override
-	public void Nh() {
-		
-		if (! App.isTrainerMode() 
+	public void Nh(){
+		if ( ! App.isTrainerMode() 
 			&& ZeroAicySetting.enableActionDrawerLayout()
-			&& mDrawerLayout != null) {
-			if (mDrawerLayout.isOpen()) {
+			&& mDrawerLayout != null ){
+			if ( mDrawerLayout.isOpen() ){
 				mDrawerLayout.closeDrawer(Gravity.LEFT);
-			} else {
+			}
+			else{
 				mDrawerLayout.openDrawer(Gravity.LEFT);
 			}
-		} else {
+		}
+		else{
 			super.Nh();			
 		}
-	}//*/
-
-
+	}
+	//*/
 	@Override
-	public void setContentView(int layoutResID) {
+	public void setContentView(int layoutResID){
 		// 仅替换 R.layout.main
-		if (layoutResID != R.layout.main) {
+		if ( layoutResID != R.layout.main ){
 			super.setContentView(layoutResID);
 			return;
 		}
 
-		if (!App.isTrainerMode() && ZeroAicySetting.enableActionDrawerLayout()) {
+		if ( !App.isTrainerMode() && ZeroAicySetting.enableActionDrawerLayout() ){
 			super.setContentView(R.layout.main_drawer);
-		} else {
+		}
+		else{
 			super.setContentView(R.layout.main);
 		}
 	}
 
-	private ActionBarDrawerToggle mDrawerToggle;
 	private DrawerLayout mDrawerLayout;
+	private ActionBarDrawerToggle mDrawerToggle;
 	io.github.zeroaicy.aide.ui.views.ZeroAicySplitView zeroAicySplitView;
-	public void setUpDrawerLayout() {
+	public void setUpDrawerLayout(){
+
 		mDrawerLayout = findViewById(R.id.mainDrawerLayout);
 
 		getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -134,8 +159,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 		mDrawerLayout.setOnTouchListener(new View.OnTouchListener(){
 
 				@Override
-				public boolean onTouch(View v, MotionEvent event) {
-					if (event.getAction() == MotionEvent.ACTION_DOWN)
+				public boolean onTouch(View v, MotionEvent event){
+					if ( event.getAction() == MotionEvent.ACTION_DOWN )
 						mDrawerLayout.close();
 					return true;
 				}
@@ -143,36 +168,31 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 		mDrawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener(){
 				@Override
-				public void onDrawerClosed(View view) {
+				public void onDrawerClosed(View view){
 					mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
 				}
 				@Override
-				public void onDrawerOpened(View view) {
+				public void onDrawerOpened(View view){
 					mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
 				}
 			});
-
-		/*if (ZeroAicySetting.getDefaultSp().getBoolean("MainDrawerLayoutStatus", mDrawerLayout.isOpen())) {
-		 mDrawerLayout.openDrawer(Gravity.LEFT);
-		 }*/
-
 		SplitView splitView = br();
-		
-		if (splitView instanceof ZeroAicySplitView) {
+
+		if ( splitView instanceof ZeroAicySplitView ){
 			zeroAicySplitView = (ZeroAicySplitView) splitView;
 			// closeSplit
 			zeroAicySplitView.closeSplit(false);
-			
+
 			// SplitView事件拦截器
 			zeroAicySplitView.setOnSplitInterceptListener(new ZeroAicySplitView.OnSplitInterceptListener(){
 					@Override
-					public boolean closeSplit(boolean animator, Runnable animatorListenerAdapterRunable) {
+					public boolean closeSplit(boolean animator, Runnable animatorListenerAdapterRunable){
 						return true;
 					}
 
 					@Override
-					public boolean openSplit(boolean isHorizontal, boolean animator) {
+					public boolean openSplit(boolean isHorizontal, boolean animator){
 						mDrawerLayout.openDrawer(Gravity.LEFT);
 						return true;
 					}
@@ -182,7 +202,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 	}
 	@Override
-	protected void onPause() {
+	protected void onPause(){
 		/*if (mDrawerLayout != null) {
 		 ZeroAicySetting.getDefaultSp()
 		 .edit()
@@ -192,19 +212,21 @@ public class ZeroAicyMainActivity extends MainActivity {
 		super.onPause();
 	}
 	@Override
-	public boolean onOptionsItemSelected(MenuItem menuItem) {
+	public boolean onOptionsItemSelected(MenuItem menuItem){
 		// The action bar home/up action should open or close the drawer.         
 		// ActionBarDrawerToggle will take care of this.      
-		if (menuItem.getItemId() == android.R.id.home 
+		if ( menuItem.getItemId() == android.R.id.home 
 			&& this.mDrawerToggle != null 
-			&& this.mDrawerToggle.onOptionsItemSelected(menuItem)) {
+			&& this.mDrawerToggle.onOptionsItemSelected(menuItem) ){
 			// openDrawer(Gravity.LEFT);
 			// closeDrawer(Gravity.LEFT);
 			Nh();
             return true;
-        } else if (handleOptionsItemSelected(menuItem)) {
+        }
+		else if ( handleOptionsItemSelected(menuItem) ){
             return true;
-        } else {
+        }
+		else{
             return super.onOptionsItemSelected(menuItem);
         }
 
@@ -216,8 +238,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 	/**
 	 * 显示授权请求弹窗
 	 */
-	public void showRequestManageExternalStorage() {
-		if (XXPermissions.isGranted(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+	public void showRequestManageExternalStorage(){
+		if ( XXPermissions.isGranted(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) ){
 			return;
 		}
 		String app_name = getString(R.string.app_name);
@@ -232,7 +254,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 			.setMessage(message)
 			.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
 				@Override
-				public void onClick(DialogInterface dialog, int which) {
+				public void onClick(DialogInterface dialog, int which){
 					requestManageExternalStorage();
 				}
 			})
@@ -242,27 +264,27 @@ public class ZeroAicyMainActivity extends MainActivity {
 	/**
 	 * 申请 所有文件访问权限
 	 */
-	public void requestManageExternalStorage() {
+	public void requestManageExternalStorage(){
 		XXPermissions.with(this).
 			permission(android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)
 			.request(new OnPermissionCallback(){
-				public void onDenied(List<String> permissions, boolean doNotAskAgain) {
+				public void onDenied(List<String> permissions, boolean doNotAskAgain){
 					showRequestManageExternalStorage();
 				}
 				@Override
-				public void onGranted(List<String> list, boolean p) {}
+				public void onGranted(List<String> list, boolean p){}
 			});
 	}
 
 	@Override
-	public void onDestroy() {
+	public void onDestroy(){
 		super.onDestroy();
 		//移除注册的监听器
 		//ShizukuUtil.removeBinderListener();
 	}
 
 	@Override
-	public void setHasEmbeddedTabs() {
+	public void setHasEmbeddedTabs(){
 		//App.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
 						 || (App.isTrainerMode() && AndroidHelper.u7(this) <= 610.0f));
@@ -272,47 +294,47 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 
 	//当前屏幕的高度
-	public static float Zo(Context context) {
-        try {
+	public static float Zo(Context context){
+        try{
             return ((WindowManager) context.getSystemService("window")).getDefaultDisplay().getHeight() / context.getResources().getDisplayMetrics().density;
         }
-		catch (Throwable t) {
+		catch (Throwable t){
 			throw new RuntimeException(t);
         }
     }
 
 
 	//可见屏幕的高度
-	public static float Ws(Context context) {
-        try {
+	public static float Ws(Context context){
+        try{
             Activity activity = (Activity) context;
             float f = activity.getResources().getDisplayMetrics().density;
             Rect rect = new Rect();
             activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
             return (rect.bottom - rect.top) / f;
         }
-		catch (Throwable e) {
+		catch (Throwable e){
 			throw new RuntimeException(e);
         }
     }
 
 	@Override
-	public void FH(boolean z) {
+	public void FH(boolean z){
 		App.DW().u7(!z);
 		q7();
-		if (z) {
+		if ( z ){
             boolean isLandscape = isLandscape();
-			if (isLandscape && ((com.aide.common.AndroidHelper.Zo(this) > 800.0f || br().isHorizontal() && com.aide.common.AndroidHelper.Zo(this) >= 540.0f))) {
+			if ( isLandscape && ((com.aide.common.AndroidHelper.Zo(this) > 800.0f || br().isHorizontal() && com.aide.common.AndroidHelper.Zo(this) >= 540.0f)) ){
 				return;
 			}
 			Ws(false);
 		}
 	}
 	//是否横屏
-	private boolean isLandscape() {
+	private boolean isLandscape(){
 		boolean isLandscape = false;
 		Configuration configuration = getResources().getConfiguration();
-		if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+		if ( configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ){
 			// 设备处于横屏模式下
 			isLandscape = true;
 		}
@@ -326,35 +348,35 @@ public class ZeroAicyMainActivity extends MainActivity {
 	 super.Ws(p);
 	 }*/
 	@Override
-	public void IS(int showPageIndex) {
+	public void IS(int showPageIndex){
 		//拦截并替换设置PreferencesActivity
 		ZeroAicyPreferencesActivity.DW(this, showPageIndex);
     }
 
 
 	@Override
-	public void qp(String str) {
+	public void qp(String str){
 		String suffixName = FileSystem.XL(str);
 		String mimeTypeFromExtension = MimeTypeMap.getSingleton().getMimeTypeFromExtension(suffixName);
 
-		if (!suffixName.equals("java") 
+		if ( !suffixName.equals("java") 
 			&& !suffixName.equals("class") 
 			&& !suffixName.equals("xml") 
 			&& !suffixName.equals("svg") 
 			&& mimeTypeFromExtension != null 
-			&& !mimeTypeFromExtension.startsWith("text")) {
+			&& !mimeTypeFromExtension.startsWith("text") ){
 
-			if (Build.VERSION.SDK_INT < 24) {
+			if ( Build.VERSION.SDK_INT < 24 ){
 				Intent intent = new Intent();
 				intent.setAction("android.intent.action.VIEW");
 				intent.setDataAndType(Uri.fromFile(new File(str)), mimeTypeFromExtension);
-				try {
+				try{
 					gn(this, intent);
 					startActivity(intent);
 					iy.BT(this, intent);
 					return;
 				}
-				catch (ActivityNotFoundException unused) {
+				catch (ActivityNotFoundException unused){
 					Context VH = App.getContext();
 					Toast.makeText(VH, "No handler found for type " + mimeTypeFromExtension, 0).show();
 					return;
@@ -363,7 +385,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 			return;
 		}
-		if (FileSystem.ei(str)) {
+		if ( FileSystem.ei(str) ){
 			return;
 		}
 		aq(new FileSpan(str, 1, 1, 1, 1));
@@ -371,13 +393,13 @@ public class ZeroAicyMainActivity extends MainActivity {
 
     }
 
-	private static void gn(Object obj, Intent intent) {
+	private static void gn(Object obj, Intent intent){
         ((MainActivity) obj).startActivity(intent);
         iy.BT(obj, intent);
     }
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu){
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -387,30 +409,30 @@ public class ZeroAicyMainActivity extends MainActivity {
 	//工作目录
 	private static final String work_dir_extra = "work_dir_extra";
 
-	private boolean handleOptionsItemSelected(MenuItem menuItem) {
+	private boolean handleOptionsItemSelected(MenuItem menuItem){
 		int itemId = menuItem.getItemId();
-		if (itemId == R.id.mainMenuSettings) {
+		if ( itemId == R.id.mainMenuSettings ){
 			startActivity(new Intent(this, ZeroAicyPreferencesActivity.class).putExtra("from_main", true));
 			return true;
 		}
-		if (itemId == R.id.mainMenuRunGradle) {
+		if ( itemId == R.id.mainMenuRunGradle ){
 
 			return handleRunGradle(menuItem);
 		}
 		return false;
 	}
 
-	private boolean handleRunGradle(MenuItem menuItem) {
+	private boolean handleRunGradle(MenuItem menuItem){
 		showGradleBuildDialog(menuItem);
 		return true;
 	}
 
-	private void showGradleBuildDialog(final MenuItem runMenuItem) {
+	private void showGradleBuildDialog(final MenuItem runMenuItem){
 		String currentAppHome = ZeroAicySetting.getCurrentAppHome();
 		final Map<CharSequence, String> itemNameMap = new LinkedHashMap<>();
 		//只有是gradle项目才添加
 		boolean hasGradlew = hasGradlew(currentAppHome);
-		if (hasGradlew) {
+		if ( hasGradlew ){
 			itemNameMap.putAll(ZeroAicySetting.getCommands());
 		}
 		boolean isCN = getResources().getConfiguration().locale.equals(Locale.CHINA);
@@ -419,15 +441,15 @@ public class ZeroAicyMainActivity extends MainActivity {
 		PopupMenu popupMenu = new PopupMenu(this, findViewById(R.id.mainMenuRunGradle));
 		Menu menu = popupMenu.getMenu();
 
-		for (final CharSequence itemName : itemNameMap.keySet()) {
+		for ( final CharSequence itemName : itemNameMap.keySet() ){
 			menu.add(itemName)
 				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
 					@Override
-					public boolean onMenuItemClick(MenuItem _item) {
+					public boolean onMenuItemClick(MenuItem _item){
 						String cmdline = itemNameMap.get(itemName);
 
 						Intent launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
-						if (launchIntentForPackage == null) {
+						if ( launchIntentForPackage == null ){
 							com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
 							return true;
 						}
@@ -436,8 +458,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 						String currentAppHome = ZeroAicySetting.getCurrentAppHome();
 						File gradleProjectRootDir = new File(currentAppHome).getParentFile();
 						launchIntentForPackage.putExtra(work_dir_extra, gradleProjectRootDir.getAbsolutePath());
-						if (cmdline.contains("gradle")) {
-							if (!hasGradlew(currentAppHome)) {
+						if ( cmdline.contains("gradle") ){
+							if ( !hasGradlew(currentAppHome) ){
 								com.aide.common.MessageBox.BT(App.getMainActivity(), "不是Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
 								return true;
 							}
@@ -452,7 +474,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		popupMenu.show();
 	}
 
-	private boolean hasGradlew(String currentAppHome) {
+	private boolean hasGradlew(String currentAppHome){
 		File gradleProjectRootDir = new File(currentAppHome).getParentFile();
 
 		File gradlewFile = new File(gradleProjectRootDir, "gradlew");
@@ -465,9 +487,9 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
+	public boolean onPrepareOptionsMenu(Menu menu){
 		RepairBUG1(menu);
-		if (!com.aide.ui.App.isTrainerMode()) {
+		if ( !com.aide.ui.App.isTrainerMode() ){
 			RepairBUG2(menu);
 		}
 		return super.onPrepareOptionsMenu(menu);
@@ -475,83 +497,83 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 
 	//查找Toolbar
-	public static android.widget.Toolbar findToolbarByMenu(Menu mMenu) {
-		try {
-            if (mMenu == null) {
+	public static android.widget.Toolbar findToolbarByMenu(Menu mMenu){
+		try{
+            if ( mMenu == null ){
 				//实例是 MenuItemImpl
                 return null;
             }
 			CopyOnWriteArrayList<WeakReference> mPresenters = ReflectPie.on(mMenu).get("mPresenters");
-            for (WeakReference ref : mPresenters) {
+            for ( WeakReference ref : mPresenters ){
                 final Object presenter = ref.get();
-                if (presenter == null) {
+                if ( presenter == null ){
                     mPresenters.remove(ref);
 					continue;
                 }
-				if (presenter.getClass().getName().contains("Toolbar$")) {
+				if ( presenter.getClass().getName().contains("Toolbar$") ){
 					Object unknownToolbar = ReflectPie.on(presenter).get("this$0");
-					if (unknownToolbar instanceof android.widget.Toolbar) {
+					if ( unknownToolbar instanceof android.widget.Toolbar ){
 						return (android.widget.Toolbar)unknownToolbar;
 					}
                 }
             }
         }
-		catch ( Throwable e) {}
+		catch ( Throwable e){}
 		return null;
 	}
 	//Menu clear修复
-	public static void RepairBUG1(Menu mMenu) {
-        try {
-            if (mMenu == null) {
+	public static void RepairBUG1(Menu mMenu){
+        try{
+            if ( mMenu == null ){
                 return;
             }
 			android.widget.Toolbar mToolbar = findToolbarByMenu(mMenu);
 			RepairCollapseActionView(mToolbar);//修复
         }
-		catch ( Throwable e) {}
+		catch ( Throwable e){}
 
     }
 	//mCollapseButtonView 修复
-	public static void RepairBUG2(Menu mMenu) {
-        try {
+	public static void RepairBUG2(Menu mMenu){
+        try{
 			final android.widget.Toolbar mToolbar = findToolbarByMenu(mMenu);
-			if (mToolbar == null) {
+			if ( mToolbar == null ){
 				return;
 			}
 			View mCollapseButtonView = ReflectPie.on(mToolbar).get("mCollapseButtonView");
-			if (mCollapseButtonView == null) {
+			if ( mCollapseButtonView == null ){
 
 			}
-			if (mCollapseButtonView != null) {
+			if ( mCollapseButtonView != null ){
 				mCollapseButtonView.setOnClickListener(new View.OnClickListener(){
 						@Override
-						public void onClick(View view) {
-							try {
+						public void onClick(View view){
+							try{
 								//修复
 								RepairCollapseActionView(mToolbar);
 								mToolbar.collapseActionView();
 							}
-							catch ( Throwable e) {}
+							catch ( Throwable e){}
 						}
 					});
 			}
         }
-		catch ( Throwable e) {}
+		catch ( Throwable e){}
 	}
 
 	//修复 collapseActionView方法
-	public static void RepairCollapseActionView(android.widget.Toolbar mToolbar) {
-        try {
-            if (mToolbar == null) {
+	public static void RepairCollapseActionView(android.widget.Toolbar mToolbar){
+        try{
+            if ( mToolbar == null ){
                 return;
             }
 			List<View> mHiddenViews = ReflectPie.on(mToolbar).get("mHiddenViews");
-			if (mHiddenViews == null) {
+			if ( mHiddenViews == null ){
 				return;
 			}
-			for (View view : mHiddenViews) {
+			for ( View view : mHiddenViews ){
 				ViewGroup parent = (ViewGroup) view.getParent();
-				if (parent == null) {
+				if ( parent == null ){
 					continue;
 				}
 				Log.d("RepairBUG", "移除Parent->" + view);
@@ -559,7 +581,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 			}
 		}
-		catch ( Throwable e) {}
+		catch ( Throwable e){}
 	}
 
 	protected void superonCreate(Bundle bundle) {
@@ -567,7 +589,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 		AppLog.Zo(this, "onCreate");
 
-		if (AndroidHelper.er()) {
+		if ( AndroidHelper.er() ){
 			tv.ouya.console.api.e.v5().Zo(this, "9b57b7e2-2fa3-44db-9131-04b76a1f491c");
 		}
 		App.sh(this);
@@ -579,18 +601,18 @@ public class ZeroAicyMainActivity extends MainActivity {
 		that.set("n5", AppPreferences.yS(this));//this.n5 = AppPreferences.yS(this);
 
 		AndroidHelper.cn(this, App.U2());
-		if (!FireBaseLogEvent.gn()) {
+		if ( !FireBaseLogEvent.gn() ){
 			abcd.b0 mainActivity$q = ReflectPie.onClass("com.aide.ui.MainActivity$q").create(this).get();
 			FireBaseLogEvent.Zo(this, mainActivity$q);
 		}
 
 		ThemedActionbarActivity.onCreate2((ThemedActionbarActivity)(Object)this, bundle);
 
-		if (!App.isTrainerMode() && !((Boolean)that.call("pN").get())) {
+		if ( !App.isTrainerMode() && !((Boolean)that.call("pN").get()) ){
 			getWindow().requestFeature(9);
 		}
 		String str = null;
-		if (getIntent() != null && getIntent().getData() != null) {
+		if ( getIntent() != null && getIntent().getData() != null ){
 			str = getIntent().getData().getPath();
 		}
 		App.cb(this, str);
@@ -601,7 +623,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		setContentView(0x7f0a0026);// R.layout.main
 
 		AndroidHelper.gW(this);
-		if (!App.isTrainerMode()) {
+		if ( !App.isTrainerMode() ){
 			AndroidHelper.KD(findViewById(0x7f0800f3));
 		}
 		that.set("pO", ReflectPie.onClass("com.aide.ui.QuickKeysBar").create(this).get()); //this.pO = new QuickKeysBar(this);
@@ -617,32 +639,34 @@ public class ZeroAicyMainActivity extends MainActivity {
 		com.aide.ui.views.SplitView.OnSplitChangeListener get2 = ReflectPie.onClass("com.aide.ui.MainActivity$s").create(this).get();
 		br().setOnSplitChangeListener(get2);
 		findViewById(0x7f08011e).setOnClickListener((android.view.View.OnClickListener)ReflectPie.onClass("com.aide.ui.MainActivity$t").create(this).get());
-		if (App.isTrainerMode()) {
+		if ( App.isTrainerMode() ){
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 			getActionBar().setDisplayShowHomeEnabled(true);
-		} else if ((Boolean)that.call("pN").get()) {
+		}
+		else if ( (Boolean)that.call("pN").get() ){
 			getActionBar().setDisplayShowTitleEnabled(false);
 			getActionBar().setNavigationMode(2);
-			if (!AndroidHelper.lg(this) && App.ro().dx()) {
+			if ( !AndroidHelper.lg(this) && App.ro().dx() ){
 				getActionBar().setDisplayHomeAsUpEnabled(true);
 			}
 			getActionBar().setDisplayShowHomeEnabled(true);
-		} else {
+		}
+		else{
 			getActionBar().setDisplayOptions(16);
 			getActionBar().setDisplayShowCustomEnabled(true);
 			getActionBar().setBackgroundDrawable(getResources().getDrawable(0x7f070001));
 			findViewById(0x7f0800ed).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.ActionBarNoTabs").create(this).get());
 			findViewById(0x7f080121).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.SearchBarNoTabs").create(this).get());
 		}
-		if (App.isTrainerMode()) {
+		if ( App.isTrainerMode() ){
 			com.aide.ui.build.BuildService.BuildListener get3 = ReflectPie.onClass("com.aide.ui.MainActivity$u").create(this).get();
 			App.Zo().FH(get3);
 		}
-		if (App.isTrainerMode() && AndroidHelper.U2(this)) {
+		if ( App.isTrainerMode() && AndroidHelper.U2(this) ){
 			getActionBar().hide();
 		}
 		App.getOpenFileService().yS(str);
-		if (!App.P8.equals("com.aide.web")) {
+		if ( !App.P8.equals("com.aide.web") ){
 			g3().Ws();
 			cn().Hw();
 		}
@@ -652,64 +676,73 @@ public class ZeroAicyMainActivity extends MainActivity {
 		setHasEmbeddedTabs();
 		q7();
 		that.call("U2");
-		if ((Boolean)that.get("kf")) {
+		if ( (Boolean)that.get("kf") ){
 			FireBaseLogEvent.tp("First run after inital install");
 		}
-		if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_TRAINER_NOTIFICATION", false)) {
+		if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_TRAINER_NOTIFICATION", false) ){
 			FireBaseLogEvent.tp("Shown from trainer notification");
 		}
-		if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false)) {
+		if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) ){
 			FireBaseLogEvent.tp("Shown from promo notification");
 		}
-		if (!App.I() && !App.isTrainerMode() && App.getProjectService().I()) {
+		if ( !App.I() && !App.isTrainerMode() && App.getProjectService().I() ){
 			App.j6(false);
 		}
-		if (com.aide.ui.n.EQ() && !App.a8().QX() && !App.a8().Ws() && !App.a8().g3() && ((App.isTrainerMode() || !App.I()) && new GregorianCalendar().before(com.aide.ui.n.FH()))) {
+		if ( com.aide.ui.n.EQ() && !App.a8().QX() && !App.a8().Ws() && !App.a8().g3() && ((App.isTrainerMode() || !App.I()) && new GregorianCalendar().before(com.aide.ui.n.FH())) ){
 			PromoNotificationAlarmReceiver.FH(App.getContext(), com.aide.ui.n.FH().getTimeInMillis(), that.call("nw", this).get(), "20% off special offer", "Special offer", "Save 20% on an annual subscription");
-		} else {
+		}
+		else{
 			PromoNotificationAlarmReceiver.DW(App.getContext());
 		}
-		if (AndroidHelper.er() && !tv.ouya.console.api.e.v5().gn()) {
+		if ( AndroidHelper.er() && !tv.ouya.console.api.e.v5().gn() ){
 			MessageBox.SI(this, "AIDE for OUYA", "This version of AIDE is only intended to run on the OUYA. Contact info@appfour.com for details.", false, (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$v").create(this).get(), (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$a").create(this).get());
-		} else if (App.isTrainerMode()) {
+		}
+		else if ( App.isTrainerMode() ){
 			App.ro().aq();
-			if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
+			if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false) ){
 				TrainerCourseActivity.rN(this);
-			} else {
+			}
+			else{
 				y.XL(this);
 			}
-		} else {
+		}
+		else {
 			that.call("WB");
-			if (getLastNonConfigurationInstance() == null) {
+			if ( getLastNonConfigurationInstance() == null ){
 				z = false;
 			}
-			if (!z) {
-				if (App.getOpenFileService().j3()) {
+			if ( !z ) {
+				if ( App.getOpenFileService().j3() ){
 					App.EQ().g3(App.getOpenFileService().u7());
 				}
-				if (App.getProjectService().I()) {
+				if ( App.getProjectService().I() ){
 					App.EQ().ca(App.getProjectService().P8());
 				}
 				that.call("gW");
 				that.call("Mr");
-				if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().getBoolean("EXTRA_NAVIGATE_BREAKPOINT")) {
+				if ( getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().getBoolean("EXTRA_NAVIGATE_BREAKPOINT") ){
 					that.call("jw");
 					return;
-				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
+				}
+				else if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false) ){
 					TrainerCourseActivity.rN(this);
 					return;
-				} else if (App.P8.equals("com.aide.ui") && getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) && !App.isTrainerMode()) {
+				}
+				else if ( App.P8.equals("com.aide.ui") && getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) && !App.isTrainerMode() ){
 					y.XL(this);
 					return;
-				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_GCM_NOTIFICATION", false) && getIntent().hasExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID")) {
+				}
+				else if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_GCM_NOTIFICATION", false) && getIntent().hasExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID") ){
 					FireBaseLogEvent.tp("Shown from GCM notification");
 					y.EQ(this, getIntent().getStringExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID"));
 					return;
-				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_UPGRADE_NOTIFICATION_CLICKED", false)) {
+				}
+				else if ( getIntent() != null && getIntent().getBooleanExtra("EXTRA_UPGRADE_NOTIFICATION_CLICKED", false) ){
 					FireBaseLogEvent.tp("Shown from upgrade notification");
 					WhatsNewDialog.Hw(this, (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$b").create(this).get());
 					return;
-				} else {
+				}
+				else{
 					y.J8(this);
 					return;
 				}
