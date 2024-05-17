@@ -1,6 +1,5 @@
 package com.aide.ui.services;
 
-import abcd.it;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import com.aide.engine.EngineSolution;
@@ -9,7 +8,8 @@ import com.aide.ui.firebase.FireBaseLogEvent;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.util.BuildGradle;
-import com.google.android.gms.internal.measurement.k2;
+import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 import io.github.zeroaicy.util.Log;
 import java.util.ArrayList;
@@ -17,10 +17,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
-import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
-import com.aide.ui.util.FileSystem;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import android.widget.Toast;
 
 public class ZeroAicyProjectService extends ProjectService {
 
@@ -31,7 +31,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	public static ProjectService getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyProjectService();
-			Log.d(TAG,  "ZeroAicyProjectService");
+			Log.d(TAG,  "替换ZeroAicyProjectService");
 		}
 		return singleton;
 	}
@@ -42,7 +42,9 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.FH = new ConcurrentHashMap<>();
 
 		this.Hw = Collections.synchronizedList(new ArrayList<String>());
-
+		// Debugger必须在主线程中创建
+		// 因为创建了 Handler
+		App.getDebugger();
 	}
 
 	// 耗时任务 MavenService -> J8 [resolveFullDependencyTree]
@@ -104,7 +106,11 @@ public class ZeroAicyProjectService extends ProjectService {
 			executorsService.submit(new Runnable(){
 					@Override
 					public void run() {
-						super_cb(string);
+						try{
+							super_cb(string);
+						}catch(Throwable e){
+							Log.e(" run", "super_cb", e);
+						}
 						App.aj(dismissRunnable);
 					}
 				});
@@ -141,6 +147,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		Qq();
 
 		if (ZeroAicyProjectService.this.DW != null) {
+
 			App.getDebugger().P8(ZeroAicyProjectService.this.DW.yS(), true);
 		}
 		if (ZeroAicyProjectService.this.j6 != null) {
@@ -389,7 +396,7 @@ public class ZeroAicyProjectService extends ProjectService {
 							});
 					}
 				});
-			
+
 		}
 	};
 	@Override
@@ -399,11 +406,76 @@ public class ZeroAicyProjectService extends ProjectService {
 			executorsService.submit(DW_Hw);
 			return true;
 		}
-		Log.d("sG()", Thread.currentThread().getStackTrace()[3]);
-		if (this.DW != null) {
-			return this.DW.Hw();
+
+		//Log.d("sG()", Thread.currentThread().getStackTrace()[3]);
+		/*
+		 if (this.DW != null) {
+		 return this.DW.Hw();
+		 }
+
+
+		 */
+
+		return super.sG();
+	}
+
+	/*****************************************************************/
+	@Override
+	public void Eq(final boolean isBuildRefresh) {
+		/*executorsService.submit(new Runnable(){
+		 @Override
+		 public void run() {
+		 super_Eq(isBuildRefresh);
+		 }
+		 });*/
+		if (!ExecutorsService.isUiThread()) {
+			App.aj(new Runnable(){
+					@Override
+					public void run() {
+						Toast.makeText(App.getMainActivity(), "开始构建刷新", 0).show();
+					}
+				});
+			if (isBuildRefresh) {
+				wc();		
+			}
+			Eq2(isBuildRefresh);
+			return;
 		}
-		return false;
+		
+		Toast.makeText(App.getMainActivity(), "开始构建", 0).show();
+		try {
+			// 等待 wc()
+			executorsService.submit(new Runnable(){
+					@Override
+					public void run() {
+						if (isBuildRefresh) {
+							wc();		
+						}
+						App.aj(new Runnable(){
+								@Override
+								public void run() {
+									Eq2(isBuildRefresh);
+								}
+							});
+					}
+				})
+				//.get()
+				;
+
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void Eq2(boolean isBuildRefresh) {
+		if (J0()) {
+			this.v5 = true;
+			this.DW.DW(isBuildRefresh);
+		} else if (isBuildRefresh) {
+			App.we().vy();
+		}
 	}
 
 	/*****************************************************************/
