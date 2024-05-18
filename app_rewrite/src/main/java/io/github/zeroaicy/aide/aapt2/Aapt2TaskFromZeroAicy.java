@@ -104,6 +104,8 @@ public class Aapt2TaskFromZeroAicy {
 		if (linkError != null) {
 			return linkError;
 		}
+		
+		currentTimeMillis = System.currentTimeMillis();
 		AaptService$b optimizeError = incrementalOptimize(aaptServiceArgs);
 		aaptServiceArgs.log.println("aapt2 call optimize " + (System.currentTimeMillis() - currentTimeMillis) + "ms");
 		if (optimizeError != null) {
@@ -146,9 +148,11 @@ public class Aapt2TaskFromZeroAicy {
 
 	private static AaptService$b incrementalOptimize(AaptServiceArgs aaptServiceArgs) {
 		if (aaptServiceArgs.shrinkResources) {
+			
 			File resourcesApFile = new File(aaptServiceArgs.resourcesApPath);
 			String resourcesAp_Dir = resourcesApFile.getParent();
 			File resourcesOptimizeApFile = new File(resourcesAp_Dir, "resources_optimize.ap_");
+			
 			if (resourcesOptimizeApFile.lastModified() <= resourcesApFile.lastModified()) {
 				String resourcesOptimizeApPath = resourcesOptimizeApFile.getAbsolutePath();
 				List<String> args = new ArrayList<>();
@@ -344,9 +348,10 @@ public class Aapt2TaskFromZeroAicy {
 			if (flatZipFile.lastModified() >= resourcesApLastModified) {
 				// 只要有改变，link则不能跳过
 				skipLink = false;
-				break;
+				//break;
 			}
 		}
+		
 		// 需要考虑过 安卓清单文件是否改动
 		String mainProjectMergedManifestPath = getAndroidManifestXml(aaptServiceArgs, mainProjectGenDir);
 		// 合并后的主项目清单文件
