@@ -46,7 +46,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		// 因为创建了 Handler
 		App.getDebugger();
 	}
-
+	
 	// 耗时任务 MavenService -> J8 [resolveFullDependencyTree]
 	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
 	@Override

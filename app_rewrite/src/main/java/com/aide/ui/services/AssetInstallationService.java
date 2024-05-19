@@ -3,7 +3,6 @@
 //
 package com.aide.ui.services;
 
-import abcd.ey;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -21,8 +20,55 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
+import android.content.res.AssetFileDescriptor;
 
 public class AssetInstallationService {
+	public static long getResourceSize(String resourceName) {
+		try {
+			return getResourceAssetFileDescriptor(resourceName).getLength();
+		}
+		catch (Throwable e) {
+			return -1;
+		}
+	}
+	private static AssetFileDescriptor getResourceAssetFileDescriptor(String resourceName) {
+		if (App.Sf() && Build.VERSION.SDK_INT >= 20) {
+			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
+		}
+		if (App.Sf()) {
+			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
+		}
+		if (Build.VERSION.SDK_INT >= 20) {
+			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "armeabi-pie/" + resourceName, "armeabi/" + resourceName + ".jet");
+		}
+		return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "armeabi/" + resourceName, "armeabi/" + resourceName + ".jet");
+    }
+
+    private static AssetFileDescriptor tryGetAssetFileDescriptorFromAssetManager(String... resourceNames) {
+		try {
+			AssetManager assets = App.getContext().getAssets();
+			for (String resourceName : resourceNames) {
+				AssetFileDescriptor assetFileDescriptor = getAssetFileDescriptorFromAssetManager(assets, resourceName);
+				if (assetFileDescriptor != null) {
+					return assetFileDescriptor;
+				}
+			}
+			throw new FileNotFoundException("Asset " + resourceNames[0] + " not found.");
+		}
+		catch (FileNotFoundException e) {
+			throw new Error(e);
+		}
+	}
+
+	private static AssetFileDescriptor getAssetFileDescriptorFromAssetManager(AssetManager assetManager, String resourceName) {
+		try {
+			return assetManager.openFd(resourceName);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
 
     private String DW;
 
@@ -38,86 +84,113 @@ public class AssetInstallationService {
 
     }
 
-    public static String DW(String str, boolean z) {
-		return FH(str, z, false);
+    public static String DW(String resourceName, boolean z) {
+		return FH(resourceName, z, false);
     }
 
-    public static String FH(String str, boolean z, boolean z2) {
-		j6(str, z, z2);
-		return VH(str, z);
+    public static String FH(String resourceName, boolean z, boolean unZip) {
+		j6(resourceName, z, unZip);
+		return getOutputPath(resourceName, z);
     }
 
-    private static InputStream J0(String str) {
+    private static InputStream getResourceInputStream(String resourceName) {
 		if (App.Sf() && Build.VERSION.SDK_INT >= 20) {
-			return J8(str, str + ".jet", "x86-pie" + File.separator + str, "x86" + File.separator + str + ".jet");
+			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (App.Sf()) {
-			return J8(str, str + ".jet", "x86" + File.separator + str, "x86" + File.separator + str + ".jet");
+			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (Build.VERSION.SDK_INT >= 20) {
-			return J8(str, str + ".jet", "armeabi-pie" + File.separator + str, "armeabi" + File.separator + str + ".jet");
+			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "armeabi-pie/" + resourceName, "armeabi/" + resourceName + ".jet");
 		}
-		return J8(str, str + ".jet", "armeabi" + File.separator + str, "armeabi" + File.separator + str + ".jet");
+		return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "armeabi/" + resourceName, "armeabi/" + resourceName + ".jet");
     }
 
-    private static InputStream J8(String... strArr) {
+
+    private static InputStream tryGetInputStreamFromAssetManager(String... resourceNames) {
         try {
 			AssetManager assets = App.getContext().getAssets();
-			for (String str : strArr) {
-				InputStream QX = QX(assets, str);
-				if (QX != null) {
-					return QX;
+			for (String resourceName : resourceNames) {
+				InputStream in = getInputStreamFromAssetManager(assets, resourceName);
+				if (in != null) {
+					return in;
 				}
 			}
-			throw new FileNotFoundException("Asset " + strArr[0] + " not found.");
+			throw new FileNotFoundException("Asset " + resourceNames[0] + " not found.");
 		}
 		catch (FileNotFoundException e) {
 			throw new Error(e);
 		}
     }
 
-    private static InputStream QX(AssetManager assetManager, String str) {
+    private static InputStream getInputStreamFromAssetManager(AssetManager assetManager, String resourceName) {
 		try {
-			return assetManager.open(str);
+			return assetManager.open(resourceName);
 		}
 		catch (Exception unused) {
 			return null;
 		}
     }
 
-    private static String VH(String str, boolean z) {
-		String str2 = FileSystem.yS() + "/.aide";
-		if (!new File(str2).exists()) {
-			new File(str2).mkdirs();
+    private static String getOutputPath(String resourceName, boolean z) {
+		String aideCacheDir = FileSystem.yS() + "/.aide";
+		File file = new File(aideCacheDir);
+		if (!file.exists()) {
+			file.mkdirs();
 		}
-		return str2 + File.separator + str;
+		return aideCacheDir + File.separator + resourceName;
     }
 
-    private static boolean Ws(String str, boolean z) {
-		String VH2 = VH(str, z);
+	/**
+	 * 已存在最新或成功写入时返回 false
+	 * true可以理解为未消耗事件
+	 * 
+	 */
+    private static boolean Ws(String resourceName, boolean z) {
+		String outputPath = getOutputPath(resourceName, z);
+
 		SharedPreferences sharedPreferences = App.getContext().getSharedPreferences("AssetInstallationService", 0);
-		long j = sharedPreferences.getLong("ApkVersion", 0L);
-		long Zo2 = Zo();
-		long j2 = sharedPreferences.getInt("AndroidVersion", 0);
-		if (!FileSystem.DW(j, Zo2) || j2 != Build.VERSION.SDK_INT) {
+		long apkVersion = sharedPreferences.getLong("ApkVersion", 0L);
+		long apkInstallationTime = getApkInstallationTime();
+		long androidVersion = sharedPreferences.getInt("AndroidVersion", 0);
+
+		// 更新AssetInstallationService数据
+		if (!FileSystem.DW(apkVersion, apkInstallationTime) 
+			|| androidVersion != Build.VERSION.SDK_INT) {
 			SharedPreferences.Editor edit = sharedPreferences.edit();
 			edit.clear();
-			edit.putLong("ApkVersion", Zo2);
+			edit.putLong("ApkVersion", apkInstallationTime);
 			edit.putInt("AndroidVersion", Build.VERSION.SDK_INT);
 			edit.commit();
 		}
-		if (sharedPreferences.getBoolean(str, false) && new File(VH2).exists()) {
+		File outputFile = new File(outputPath);
+		
+		// 以解压
+		if (sharedPreferences.getBoolean(resourceName, false) 
+			&& outputFile.exists()) {
 			return false;
 		}
+		// 添加已解压标志
 		SharedPreferences.Editor edit2 = sharedPreferences.edit();
-		edit2.putBoolean(str, true);
+		edit2.putBoolean(resourceName, true);
 		edit2.commit();
+
 		try {
-			if (new File(VH2).exists()) {
-				if (StreamUtilities.j6(J0(str), new FileInputStream(VH2))) {
+			if (outputFile.exists()) {
+				// 文件长度相同则不更新
+				// 用不了
+				// This file can not be opened as a file descriptor; it is probably compressed
+				/*
+				if (outputFile.length() == getResourceSize(resourceName)) {
+					return false;
+				}
+				*/
+				// 更新并写入文件
+				if (StreamUtilities.j6(getResourceInputStream(resourceName), new FileInputStream(outputFile))) {
 					return false;
 				}
 			}
+
 			return true;
 		}
 		catch (IOException unused) {
@@ -125,7 +198,7 @@ public class AssetInstallationService {
 		}
     }
 
-    private static long Zo() {
+    private static long getApkInstallationTime() {
         try {
 			return new File(App.getContext().getPackageManager().getPackageInfo(App.getContext().getPackageName(), 0).applicationInfo.sourceDir).lastModified();
 		}
@@ -134,18 +207,23 @@ public class AssetInstallationService {
 		}
     }
 
-    private static boolean j6(String str, boolean z, boolean z2) {
-        if (Ws(str, z)) {
+
+    private static boolean j6(String resourceName, boolean z, boolean unZip) {
+        if (Ws(resourceName, z)) {
+			// 此时文件不存在
 			try {
-				String VH2 = VH(str, z);
-				InputStream J0 = J0(str);
-				if (z2) {
-					FileSystem.u7(J0, VH2, false);
+				String outputPath = getOutputPath(resourceName, z);
+				InputStream resourceInputStream = getResourceInputStream(resourceName);
+				if (unZip) {
+					// 解压
+					FileSystem.u7(resourceInputStream, outputPath, false);
 				} else {
-					new File(VH2).getParentFile().mkdirs();
-					StreamUtilities.Zo(J0, new FileOutputStream(VH2));
+					File outputFile = new File(outputPath);
+					outputFile.getParentFile().mkdirs();
+					// transferTo
+					StreamUtilities.Zo(resourceInputStream, new FileOutputStream(outputFile));
 				}
-				AppLog.DW("Extracted asset " + str);
+				AppLog.DW("Extracted asset " + resourceName);
 				return true;
 			}
 			catch (IOException e) {
@@ -156,7 +234,7 @@ public class AssetInstallationService {
     }
 
     public String EQ() {
-        String VH2 = VH("weardebug.keystore", true);
+        String VH2 = getOutputPath("weardebug.keystore", true);
 		if (!new File(VH2).exists()) {
 			GregorianCalendar gregorianCalendar = new GregorianCalendar();
 			gregorianCalendar.add(1, 100);
@@ -165,22 +243,18 @@ public class AssetInstallationService {
 		return VH2;
     }
 
-    @ey(method = -7359206029253165544L)
     public String Hw() {
         return this.DW;
     }
 
-    @ey(method = 380133922599977211L)
     public String getAnnotationsJarPath() {
         return this.FH;
     }
 
-    @ey(method = 5870138251101009991L)
     public String getJavaScriptAPIJsPath() {
         return this.j6;
     }
 
-    @ey(method = -909859927891154784L)
     public String gn() {
         return this.Hw;
     }
@@ -193,15 +267,26 @@ public class AssetInstallationService {
     }
 	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
     public void we() {
+		AssetInstallationService.this.DW = getOutputPath("android.jar", true);
+
+		AssetInstallationService.this.j6 = getOutputPath("JavaScriptAPI.js", true);
+		AssetInstallationService.this.FH = getOutputPath("annotations.jar", true);
+		// 不同步，首次运行会导致 卡[Running aidl...]
+		AssetInstallationService.this.Hw = DW("framework.aidl", true);
+
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
 					try {
+						// 异步解压
 						AssetInstallationService.this.j6 = DW("JavaScriptAPI.js", true);
 						AssetInstallationService.this.DW = DW("android.jar", true);
 						AssetInstallationService.this.FH = DW("annotations.jar", true);
-						AssetInstallationService.this.Hw = DW("framework.aidl", true);
-						
+						//AssetInstallationService.this.Hw = DW("framework.aidl", true);
+
+						DW("proguard-android.txt", true);
+						DW("proguard-android-optimize.txt", true);
+
 					}
 					catch (Throwable e) {
 						e.printStackTrace();

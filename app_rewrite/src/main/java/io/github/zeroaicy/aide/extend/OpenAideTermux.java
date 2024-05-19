@@ -8,14 +8,14 @@ import com.aide.ui.rewrite.R;
 import com.aide.ui.services.FileBrowserService;
 import java.io.File;
 
-public class OpenAideTermux implements abcd.fg {
+public class OpenAideTermux implements abcd.bg, abcd.fg {
 
-	//@Override
+	@Override
 	public String getName() {
-		return "在当前目录打开终端";
+		return "Open AIDE Termux";
 	}
 
-	//@Override
+	@Override
 	public KeyStroke v5() {
 		//不支持快捷方式，但是
 		return new KeyStroke('\256', true, true, true);
@@ -111,6 +111,7 @@ public class OpenAideTermux implements abcd.fg {
 			if (!"com.aide.web".equals(App.P8)) {
 				return true;
 			}
-		}return false;
+		}
+		return false;
 	}
 }

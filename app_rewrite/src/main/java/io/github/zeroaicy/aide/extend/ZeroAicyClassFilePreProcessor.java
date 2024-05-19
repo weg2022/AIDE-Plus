@@ -14,21 +14,24 @@ import io.github.zeroaicy.util.Log;
 import java.util.Collections;
 import java.util.Vector;
 import java.io.File;
+import java.util.Hashtable;
 
 
 /**
  * ZeroAicy实现的ClassFilePreProcessor
  */
 public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
-
-	public ZeroAicyClassFilePreProcessor() {}
-
+	
+	Hashtable<String, ZipFile> M;
+	public ZeroAicyClassFilePreProcessor() {
+		
+	}
+	
 	private static ZeroAicyClassFilePreProcessor singleton;
 
 	public static boolean isDefaultMethod(String methodSignature) {
 		return ClassReader.hasDefaultMethod(methodSignature);
 	}
-
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyClassFilePreProcessor();
@@ -44,25 +47,16 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 				return readClassFile;
 			}
 		}
-		/*else if (className.endsWith(".java")) {
-		 // 复用 ZipFile
-		 ZipFile zip = yS(zipFilePath);
-		 ZipEntry entry = zip.getEntry(className);
-		 if (entry == null) {
-		 entry = zip.getEntry("src/" + className);
-		 }
-		 if (entry == null) {
-		 entry = zip.getEntry("src\\" + className);
-		 }
-		 c cVar = new c(zip.getInputStream(entry), entry.getSize());
-		 if (str3 == null) {
-		 return new InputStreamReader(cVar);
-		 }
-		 return new InputStreamReader((InputStream) cVar, str3);
-		 }*/
 		return super.QX(zipFilePath, className, str3);
 	}
-
+	
+	//复用 ZipFile
+	@Override
+	public ZipFile yS(String string) {
+		return super.yS(string);
+	}
+	
+	
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName) {
 

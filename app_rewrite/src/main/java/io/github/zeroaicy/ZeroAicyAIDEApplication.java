@@ -17,6 +17,7 @@ import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import com.aide.ui.App;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -30,7 +31,6 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
 		//解除反射
 		Log.d(TAG, "解除反射: " + reflectAll);
 
@@ -43,7 +43,6 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		}
 
 		DebugUtil.debug(this);
-		
 		CrashApphandler.getInstance().onCreated();
 
 		//FindANR.startSendMsg();
@@ -52,10 +51,23 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		ZeroAicySetting.init(this);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
+		
 		JksKeyStore.initBouncyCastleProvider();
-
+		// 防止App的context为null
+		App.sh(this);
+		
 		// Return if this application is not in debug mode 
-		//*
+		/*
+		method();
+		//*/
+		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
+	}
+	
+	
+	/**
+	 * 严苛模式
+	 */
+	private void method() {
 		ApplicationInfo appInfo = getApplicationInfo(); 
 		int appFlags = appInfo.flags; 
 
@@ -85,8 +97,6 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 								   .penaltyLog()
 								   .build());
 		}
-		//*/
-		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
 
 	

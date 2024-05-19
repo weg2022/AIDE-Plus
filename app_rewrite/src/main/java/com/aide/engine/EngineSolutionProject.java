@@ -25,36 +25,6 @@ import com.aide.ui.util.ClassPath;
 
 public class EngineSolutionProject implements Parcelable {
 
-	private static EngineSolutionProject Hw(String projectPath, List<ClassPath.Entry> list) {
-		
-		//
-		String debugOutputPath = JavaProjectSupport.vJ(projectPath, true);
-		String releaseOutputPath = JavaProjectSupport.vJ(projectPath, false);
-		
-		ArrayList<EngineSolution.File> sourcePaths = new ArrayList<>();
-		ArrayList<String> depProjectNamespaces = new ArrayList<>();
-		
-		
-		for (ClassPath.Entry entry : list) {
-			if (entry.isSrcKind()) {
-				sourcePaths.add(new EngineSolution.File(entry.VH(projectPath), "Java", (String) null, false, false));
-			}
-			if (entry.isLibKind()) {
-				depProjectNamespaces.add(entry.j6());
-			}
-			if (entry.isOutputIKind()) {
-				String VH = entry.VH(projectPath);
-				debugOutputPath = VH + "/debug";
-				releaseOutputPath = VH + "/release";
-			}
-		}
-		//
-		depProjectNamespaces.add(projectPath);
-		depProjectNamespaces.add("rt.jar");
-		
-		return new EngineSolutionProject(projectPath, projectPath, projectPath, sourcePaths, depProjectNamespaces, true, "", debugOutputPath, releaseOutputPath, "1.5", false, false, false, false, "", new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
-
-	}
 
 	public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 

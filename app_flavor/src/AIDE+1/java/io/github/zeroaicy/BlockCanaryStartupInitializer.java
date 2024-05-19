@@ -6,9 +6,9 @@ import android.content.Context;
 import androidx.startup.Initializer;
 import blockcanary.BlockCanary;
 import blockcanary.BlockCanaryConfig;
-import java.util.List;
 import io.github.zeroaicy.util.Log;
 import java.util.Collections;
+import java.util.List;
 
 public class BlockCanaryStartupInitializer implements Initializer<BlockCanaryStartupInitializer> {
     public BlockCanaryStartupInitializer create(Context context) {

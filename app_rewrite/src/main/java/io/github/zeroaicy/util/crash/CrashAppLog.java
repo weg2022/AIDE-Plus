@@ -234,6 +234,14 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 			if ( throwable == null ){
 				return false;
 			}
+			new Thread(){
+				@Override
+				public void run(){
+					Looper.prepare();
+					Toast.makeText(mContext, "异常日志保存在 " + CAHCE_CRASH_LOG + "目录", 1).show();
+					Looper.loop();
+				}
+			}.start();
 			//收集应用信息
 			collectAppInfo(this.mContext);
 			//收集设备信息

@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
 import io.github.zeroaicy.readclass.classInfo.DefaultMethodAllowedList;
 
 public class ClassReader {
-	private static final String TAG2 = "ZeroAicyClassReader";
+	private static final String TAG23 = "ZeroAicyClassReader";
 
 	private static final String TAG = "ZeroAicyClassReader";
 
@@ -38,10 +38,12 @@ public class ClassReader {
 
 	private static boolean useReaderClassFromZeroAicy = true;
 	private static boolean disableDefaultMethod = false;
+	private static boolean disableMethodCode = true;
+	
 
-
-	private static String useReaderClassKey = "useReaderClass";
-	private static String disableDefaultMethodKey = "disableDefaultMethod";
+	private static final String useReaderClassKey = "useReaderClass";
+	private static final String disableDefaultMethodKey = "disableDefaultMethod";
+	private static final String disableMethodCodeKey = "disableMethodCode";
 
 	//防止gc
 	private static SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChanged;
@@ -60,19 +62,31 @@ public class ClassReader {
 			Log.d(TAG, "错误模式，解析库禁用");
 
 		}
-		
+
 		try {
 			Context context = ContextUtil.getContext();
 			Log.d(TAG, "context is " +  context.getPackageName());
-			
+
 			SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 			onSharedPreferenceChanged = new SharedPreferences.OnSharedPreferenceChangeListener(){
 				@Override
-				public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String string) {
-					//默认使用新ReaderClass
-					ClassReader.useReaderClassFromZeroAicy = sharedPreferences.getBoolean(useReaderClassKey, true);
-					//默认不禁用默认方法
-					ClassReader.disableDefaultMethod = sharedPreferences.getBoolean(disableDefaultMethodKey, false);
+				public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
+					switch (key) {
+						case useReaderClassKey:
+							//默认使用新ReaderClass
+							ClassReader.useReaderClassFromZeroAicy = sp.getBoolean(useReaderClassKey, true);
+							break;
+						case disableDefaultMethodKey:
+							//默认不禁用默认方法
+							ClassReader.disableDefaultMethod = sp.getBoolean(disableDefaultMethodKey, false);
+							break;
+						case disableMethodCodeKey:
+							//默认禁用方法代码
+							// disableMethodCode
+							ClassReader.disableMethodCode = sp.getBoolean(disableMethodCodeKey, true);
+							
+							break;
+					}
 
 					Log.d(TAG, "useReaderClassFromZeroAicy改变为: " +  ClassReader.useReaderClassFromZeroAicy);
 					Log.d(TAG, "disableDefaultMethod改变为: " +  ClassReader.disableDefaultMethod);
@@ -83,11 +97,24 @@ public class ClassReader {
 			useReaderClassFromZeroAicy = defaultSharedPreferences.getBoolean(useReaderClassKey, true);
 			//默认不禁用默认方法
 			disableDefaultMethod = defaultSharedPreferences.getBoolean(disableDefaultMethodKey, false);
-
+			//默认禁用方法代码
+			// disableMethodCode
+			ClassReader.disableMethodCode = defaultSharedPreferences.getBoolean(disableMethodCodeKey, true);
+			
+			//失败了
+			if( false && !ClassReader.disableMethodCode && !ContextUtil.isMainProcess()){
+				// 只需要主进程可以开启
+				ClassReader.disableMethodCode = true;
+			}
 			if (isDynamic && dynamicDexClassLoader != null) {
-				ReflectPie.onClass(DefaultMethodAllowedListClass, dynamicDexClassLoader).call("setDisableDefaultMethod", disableDefaultMethod);
+				ReflectPie onClass = ReflectPie.onClass(DefaultMethodAllowedListClass, dynamicDexClassLoader);
+				onClass.call("setDisableDefaultMethod", disableDefaultMethod);
+				onClass.call("setDisableMethodCode", disableMethodCode);
+				
 			} else if (isDirect) {
-				ReflectPie.onClass(DefaultMethodAllowedListClass).call("setDisableDefaultMethod", disableDefaultMethod);
+				ReflectPie onClass = ReflectPie.onClass(DefaultMethodAllowedListClass);
+				onClass.call("setDisableDefaultMethod", disableDefaultMethod);
+				onClass.call("setDisableMethodCode", disableMethodCode);
 			}
 
 		}
@@ -151,7 +178,8 @@ public class ClassReader {
 		catch (java.lang.StringIndexOutOfBoundsException e) {
 			Log.d(zipFilePath, className);
 			e.printStackTrace();
-		}catch (Throwable e) {}
+		}
+		catch (Throwable e) {}
 		notReadClassFileLib();
 		return null;
 	}

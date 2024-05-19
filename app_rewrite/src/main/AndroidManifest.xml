@@ -144,7 +144,9 @@
 
 		<!-- 被修改的 -->
 		<activity
-            android:theme="@style/ActivityActionbarThemeLight"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher"
+			android:theme="@style/ActivityActionbarThemeLight"
             android:name="io.github.zeroaicy.aide.activity.ZeroAicyMainActivity"
 			android:launchMode="singleTask"
             android:screenOrientation="user"

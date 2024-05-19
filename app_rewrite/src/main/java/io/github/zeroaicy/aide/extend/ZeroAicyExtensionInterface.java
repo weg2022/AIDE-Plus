@@ -7,14 +7,14 @@ package io.github.zeroaicy.aide.extend;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.ui.MainActivity;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
-import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
-import com.aide.ui.util.BuildGradle;
-import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ZeroAicyProjectService;
 import com.aide.ui.services.ZeroAicyTrainerService;
+import com.aide.ui.util.BuildGradle;
+import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 
 /**
  * 1.aapt2

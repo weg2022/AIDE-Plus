@@ -27,6 +27,8 @@ import java.util.Map;
 public class AaptService$c {
     private final Map<String, List<String>> DW;
     private final Map<String, String> EQ;
+	
+	// aaptPath
     private final String FH;
 
 	//androidJar File
@@ -111,13 +113,13 @@ public class AaptService$c {
         }
     }
 
-    public AaptService$c(AaptService aaptService, String str, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
+    public AaptService$c(AaptService aaptService, String aaptPath, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
 
 		this.Mr = aaptService;
         this.j6 = str2;
         this.DW = map;
         this.v5 = str3;
-        this.FH = str;
+        this.FH = aaptPath;
         this.we = list;
         this.J0 = list2;
         this.Hw = androidJarFilePath;

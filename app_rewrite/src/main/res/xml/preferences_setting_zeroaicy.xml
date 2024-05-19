@@ -105,6 +105,13 @@
                 android:summary="禁用则注释Java8 API，构建刷新生效(无报错不用)"
                 android:dependency="useReaderClass"
 				android:defaultValue="false" />
+			<SwitchPreference
+                android:title="禁用显示方法体代码"
+                android:key="disableMethodCode"
+                android:summary="禁用后不在显示方法体中的内容，构建刷新生效(无报错不用)"
+                android:dependency="useReaderClass"
+				android:defaultValue="true" />
+			
         </PreferenceCategory>
 		
     </PreferenceScreen>

@@ -1,16 +1,14 @@
 package io.github.zeroaicy.aide.ui.services;
+
+import android.os.Looper;
+import io.github.zeroaicy.util.Log;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.Callable;
-import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.List;
-import java.util.Collection;
-import io.github.zeroaicy.util.Log;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService.Group;
-import android.os.Looper;
 
 public class ExecutorsService {
 	static Thread uiThread = Looper.getMainLooper().getThread();
@@ -31,7 +29,7 @@ public class ExecutorsService {
 
 	// invokeAll阻塞调用处线程
 	// 暂时用这种
-	private ExecutorService service = Executors.newFixedThreadPool(16);
+	private ExecutorService service = Executors.newFixedThreadPool(3);
 
 	public Future<?> submit(Runnable runnable) {
 
