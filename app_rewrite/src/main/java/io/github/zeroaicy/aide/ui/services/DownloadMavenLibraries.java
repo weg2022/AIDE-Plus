@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.Iterator;
+import com.aide.common.AppLog;
 
 public class DownloadMavenLibraries implements Callable<Void> {
 
@@ -83,6 +84,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						NativeCodeSupportService.gn(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 					}
 					catch (Throwable unused) {
+						AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: " + mavenMetadataUrl, unused);
 						// 仓库有问题
 						continue;
 					}

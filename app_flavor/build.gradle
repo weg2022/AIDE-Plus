@@ -57,11 +57,11 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 	
 	api project(':app_rewrite')
-	/*
+	//*
 	//引入卡顿监控实现依赖库
-    implementation 'io.github.knight-zxw:blockcanary:+'
+    api 'io.github.knight-zxw:blockcanary:+'
     //引入卡顿消息通知及相关展示UI
-    implementation 'io.github.knight-zxw:blockcanary-ui:+'
+    api 'io.github.knight-zxw:blockcanary-ui:+'
 	api "androidx.lifecycle:lifecycle-livedata:2.3.1"
 	//*/
 	/*

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import android.widget.Toast;
+import java.util.Vector;
 
 public class ZeroAicyProjectService extends ProjectService {
 
@@ -36,17 +37,28 @@ public class ZeroAicyProjectService extends ProjectService {
 		return singleton;
 	}
 
+	public boolean replaced;
 	public ZeroAicyProjectService() {
-		//OpenFileService mOpenFileService;
-		//AIDEEditorPager.openFile("");
-		this.FH = new ConcurrentHashMap<>();
+		super();
 
-		this.Hw = Collections.synchronizedList(new ArrayList<String>());
-		// Debugger必须在主线程中创建
-		// 因为创建了 Handler
-		App.getDebugger();
+		synchronized (this) {
+			this.FH = new ConcurrentHashMap<>();
+			this.Hw = new Vector<String>();
+
+			// Debugger必须在主线程中创建
+			// 因为创建了 Handler
+			App.getDebugger();
+		}
 	}
-	
+
+	/**
+	 * 在父类构造器调用后立即被调用
+	 */
+	@Override
+	public synchronized List<String> yS() {
+		return this.Hw;			
+	}
+
 	// 耗时任务 MavenService -> J8 [resolveFullDependencyTree]
 	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
 	@Override
@@ -68,11 +80,21 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		executorsService.submit(new Runnable(){
 				@Override
-				public void run() {
-
-					ProjectSupport dW = ZeroAicyProjectService.this.DW;
-					final EngineSolution engineSolution = dW.Ws();
-					sendEngineSolution(engineSolution);
+				public void run() { 
+					// 不要以为使用了同步集合就万事大吉，
+					// 同步集合只能保证本身的操作是同步的，
+					// 但是它所属的代码块不是同步的话，
+					// 多线程情况下也会出问题
+					
+					// 如果集合正在遍历，这时又有写入操作就会触发并发错误
+					// 如上所述，并发集合仅是集合自己的操作是有锁
+					// 但是集合的遍历器不是
+					// 防止并发错误
+					synchronized(yS()){
+						ProjectSupport dW = ZeroAicyProjectService.this.DW;
+						final EngineSolution engineSolution = dW.Ws();
+						sendEngineSolution(engineSolution);
+					}
 				}
 			});
 	}
@@ -106,9 +128,10 @@ public class ZeroAicyProjectService extends ProjectService {
 			executorsService.submit(new Runnable(){
 					@Override
 					public void run() {
-						try{
+						try {
 							super_cb(string);
-						}catch(Throwable e){
+						}
+						catch (Throwable e) {
 							Log.e(" run", "super_cb", e);
 						}
 						App.aj(dismissRunnable);
@@ -162,7 +185,6 @@ public class ZeroAicyProjectService extends ProjectService {
 	/*****************************************************************/
 	@Override
 	protected void Qq() {
-
 		if (!ExecutorsService.isUiThread()) {
 			super_Qq();
 			return;
@@ -177,7 +199,6 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	protected void super_Qq() {
 		this.Hw.clear();
-		//this.FH = new HashMap<>();
 		this.FH.clear();
 
 		if (this.j6 != null) {
@@ -441,7 +462,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			Eq2(isBuildRefresh);
 			return;
 		}
-		
+
 		Toast.makeText(App.getMainActivity(), "开始构建", 0).show();
 		try {
 			// 等待 wc()

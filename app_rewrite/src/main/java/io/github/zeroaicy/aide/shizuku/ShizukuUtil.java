@@ -119,6 +119,9 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
             return false;
         }
         try {
+			if( !Shizuku.pingBinder()){
+				return false;
+			}
 			//检查自己是否有权限。
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 return true;

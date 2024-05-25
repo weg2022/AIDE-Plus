@@ -1,10 +1,11 @@
 package io.github.zeroaicy;
 
 
-import android.app.Application;
 import android.content.pm.ApplicationInfo;
 import android.os.StrictMode;
+import android.os.strictmode.Violation;
 import com.aide.ui.AIDEApplication;
+import com.aide.ui.App;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
 import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
@@ -16,8 +17,11 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
-import com.aide.ui.App;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import io.github.zeroaicy.aide.utils.Logger;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -26,11 +30,16 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();
 	static{
+		// 防止各种闪退，默认写入在数据目录2.
 		DebugUtil.debug();
 	}
 	@Override
 	public void onCreate() {
 		super.onCreate();
+
+		// 更改日志路径
+		DebugUtil.debug(this);
+
 		//解除反射
 		Log.d(TAG, "解除反射: " + reflectAll);
 
@@ -39,31 +48,68 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		if (crashProcessName.equals(curProcessName) || curProcessName.contains("crash")) {
 			Log.d(TAG, "crash进程: ", curProcessName);
+
 			return;
 		}
 
-		DebugUtil.debug(this);
+		// 异常显示Activity
 		CrashApphandler.getInstance().onCreated();
-
-		//FindANR.startSendMsg();
 
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
-		
+
+		// 更新加密库
 		JksKeyStore.initBouncyCastleProvider();
+
 		// 防止App的context为null
 		App.sh(this);
-		
+
 		// Return if this application is not in debug mode 
-		/*
-		method();
-		//*/
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
+		
+		if (false) {
+			method2();
+		}
 	}
-	
-	
+
+	// 共存版发送logcat log
+	private void method2() {
+		if (ContextUtil.isMainProcess()) {
+			if ("io.github.zeroaicy.aide".equals(getPackageName())) {
+				// 
+				Logger.onContext(this, "io.github.zeroaicy.aide1");	
+			} else {
+				Logger.onContext(this, getPackageName());	
+			}
+			// 附加AndroidLog
+			Logger.getLogger().start();
+		}
+
+		StrictMode.setThreadPolicy(
+			new StrictMode.ThreadPolicy.Builder()
+			//.detectDiskReads()  // 监测读磁盘
+			//.detectDiskWrites()  // 监测写磁盘
+			.detectNetwork()      // 监测网络操作
+			.detectCustomSlowCalls()  // 监测哪些方法执行慢
+			.detectResourceMismatches()  // 监测资源不匹配
+			.penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
+			.build());
+
+		// 监测VM虚拟机进程级别的Activity泄漏或者其它资源泄漏
+		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+							   .detectActivityLeaks()  // 监测内存泄露情况
+							   .detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
+							   .detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
+							   .detectCleartextNetwork()  // 监测明文网络
+							   //.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
+							   .detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
+							   .penaltyLog()
+							   .build());
+	}
+
+
 	/**
 	 * 严苛模式
 	 */
@@ -99,7 +145,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		}
 	}
 
-	
+
 
 	/**
 	 * 当日志系统崩溃时,，进行修复，以便测试

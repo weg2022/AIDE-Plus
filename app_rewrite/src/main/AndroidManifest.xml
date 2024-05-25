@@ -382,17 +382,17 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <meta-data
+        <!--<meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-2926119607791157~3039278622" />
-        <meta-data
+            android:value="ca-app-pub-2926119607791157~3039278622" />-->
+        <!--<meta-data
             android:name="com.google.android.play.billingclient.version"
-            android:value="2.0.3" />
+            android:value="2.0.3" />-->
         <activity
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:name="com.android.billingclient.api.ProxyBillingActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
-        <service
+        <!--<service
             android:name="com.google.firebase.components.ComponentDiscoveryService"
             android:exported="false">
             <meta-data
@@ -401,8 +401,8 @@
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.iid.Registrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
-        </service>
-        <receiver
+        </service>-->
+        <!--<receiver
             android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
             android:enabled="true"
             android:exported="false" />
@@ -415,8 +415,8 @@
                 <action
                     android:name="com.android.vending.INSTALL_REFERRER" />
             </intent-filter>
-        </receiver>
-        <service
+        </receiver>-->
+        <!--<service
             android:name="com.google.android.gms.measurement.AppMeasurementService"
             android:enabled="true"
             android:exported="false" />
@@ -424,8 +424,8 @@
             android:name="com.google.android.gms.measurement.AppMeasurementJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:enabled="true"
-            android:exported="false" />
-        <activity
+            android:exported="false" />-->
+        <!--<activity
             android:theme="@android:style/Theme.Translucent"
             android:name="com.google.android.gms.ads.AdActivity"
             android:exported="false"
@@ -434,8 +434,8 @@
             android:name="com.google.android.gms.ads.MobileAdsInitProvider"
             android:exported="false"
             android:authorities="${applicationId}.mobileadsinitprovider"
-            android:initOrder="100" />
-        <receiver
+            android:initOrder="100" />-->
+        <!--<receiver
             android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
             android:permission="com.google.android.c2dm.permission.SEND"
             android:exported="true">
@@ -458,12 +458,12 @@
             android:name="com.google.firebase.provider.FirebaseInitProvider"
             android:exported="false"
             android:authorities="${applicationId}.firebaseinitprovider"
-            android:initOrder="100" />
+            android:initOrder="100" />-->
 		
-        <activity
+        <!--<activity
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:name="com.google.android.gms.common.api.GoogleApiActivity"
-            android:exported="false" />
+            android:exported="false" />-->
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

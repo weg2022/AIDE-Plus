@@ -12,7 +12,7 @@ import io.github.zeroaicy.util.ContextUtil;
 public class AppLog {
     public AppLog() {}
 	// 共存版作为测试版本 日志全开ε٩(๑> ₃ <)۶з
-	private static final boolean isPrintLog = ContextUtil.getProcessName().contains(".aide1.");
+	public static final boolean isPrintLog = ContextUtil.getProcessName().contains(".aide1");
 	
     public static void DW(String str) {
 		if( isPrintLog ) Log.d("AIDE", str);

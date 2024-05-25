@@ -177,14 +177,14 @@ public class EngineSolutionProject implements Parcelable {
 		parcel.writeList(this.fY);
 	}
 
-    @ey(method = -54924251532196657L)
+    
     public EngineSolutionProject(Parcel dest) {
 
 		Parcel readParcel = dest;
 
 		compress = dest.readInt() == 1;
 		if (compress) {
-			AppLog.DW("解压模式");
+			//AppLog.DW("解压模式");
 			readParcel = decompression(dest);
 		}
 

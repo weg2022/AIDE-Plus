@@ -411,6 +411,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 
 		public void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
+			// 都启用多线程dexing ❛˓◞˂̵✧
+			argsList.add("--thread-count");
+			argsList.add("32");
+			
 			argsList.add("--min-api");
 			//待跟随minSDK
 			argsList.add(String.valueOf(minSdk));

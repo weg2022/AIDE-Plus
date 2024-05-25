@@ -181,6 +181,11 @@ public final class Log {
 		StringBuilder mStringBuilder = new StringBuilder();
 		if (objects != null) {
 			for (Object obj : objects) {
+				if (obj instanceof Throwable) {
+					mStringBuilder.append(getStackTraceString((Throwable)obj));
+					mStringBuilder.append("  ");
+					continue;
+				}
 				mStringBuilder.append(obj);
 				mStringBuilder.append("  ");
 			}
@@ -413,7 +418,7 @@ public final class Log {
 			// 刷新路径
 			mLogHold.update(Log.getLogPath());
 		}
-		
+
 		//是否设置系统流
 		if (Log.setSystemOut) {
 			PrintStream mLog = mLogHold.getLog();
@@ -530,14 +535,14 @@ public final class Log {
 			File logFile = new File(this.logPath);
 			// 更新流
 			this.mLog = new PrintStream(new AsyncOutStream(createOutStream(logFile)));
-			
+
 			// 如果上一个流流是系统流则平滑的替换
 			// 因为lastLog是异步流，不太放心
 			if (this.mLog != null && isSystemStream) {
 				System.setErr(this.mLog);
 				System.setOut(this.mLog);
 			}
-			
+
 			boolean closeLastLog = !isSystemStream || this.mLog != null;
 			// 关闭旧的流 
 			if (closeLastLog && lastLog != null) {

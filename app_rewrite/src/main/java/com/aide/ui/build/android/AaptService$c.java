@@ -211,7 +211,7 @@ public class AaptService$c {
         }
     }
 
-    public static Map FH(AaptService$c aaptService$c) {
+    public static Map<String, String> FH(AaptService$c aaptService$c) {
         return aaptService$c.Ws;
     }
 

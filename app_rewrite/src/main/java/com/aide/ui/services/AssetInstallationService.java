@@ -193,7 +193,7 @@ public class AssetInstallationService {
 
 			return true;
 		}
-		catch (IOException unused) {
+		catch (Exception unused) {
 			return true;
 		}
     }
