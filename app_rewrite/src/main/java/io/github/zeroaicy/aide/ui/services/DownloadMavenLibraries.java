@@ -2,10 +2,10 @@ package io.github.zeroaicy.aide.ui.services;
 
 import android.app.Activity;
 import android.text.TextUtils;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.services.MavenService;
-import com.aide.ui.services.NativeCodeSupportService;
-import com.aide.ui.services.NativeCodeSupportService$q;
+import com.aide.ui.services.DownloadService;
+import com.aide.ui.services.DownloadService$DownloadMavenLibraries;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.MavenMetadataXml;
 import com.aide.ui.util.PomXml;
@@ -25,11 +25,11 @@ public class DownloadMavenLibraries implements Callable<Void> {
     private List<BuildGradle.MavenDependency> deps;
     private final List<BuildGradle.RemoteRepository> remoteRepositorys = new ArrayList<>();
     private final Activity activity;
-    protected final NativeCodeSupportService downloadService;
+    protected final DownloadService downloadService;
 
 	private static final BuildGradle.RemoteRepository defaultRemoteRepository = new BuildGradle.RemoteRepository(1, "https://maven.aliyun.com/repository/public");
 
-    public DownloadMavenLibraries(NativeCodeSupportService downloadService, Activity activity, List<BuildGradle.MavenDependency> deps, List<BuildGradle.RemoteRepository> remoteRepositorys, Runnable completeCallback) {
+    public DownloadMavenLibraries(DownloadService downloadService, Activity activity, List<BuildGradle.MavenDependency> deps, List<BuildGradle.RemoteRepository> remoteRepositorys, Runnable completeCallback) {
 
 		this.downloadService = downloadService;
 		this.activity = activity;
@@ -79,9 +79,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						String dependencyString = sb.toString();
 						// 下载清单文件
-						NativeCodeSupportService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
+						DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
 						//已存在 长度不一致时更新
-						NativeCodeSupportService.gn(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
+						DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 					}
 					catch (Throwable unused) {
 						AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: " + mavenMetadataUrl, unused);
@@ -156,10 +156,10 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		}
 		final boolean downloadComplete2 = downloadComplete;
 		// 回调通知[下载完成]
-		App.aj(new Runnable(){
+		ServiceContainer.aj(new Runnable(){
 				@Override
 				public void run() {
-					NativeCodeSupportService.FH(DownloadMavenLibraries.this.downloadService);
+					DownloadService.FH(DownloadMavenLibraries.this.downloadService);
 					if (downloadComplete2) {
 						DownloadMavenLibraries.this.downloadCompleteCallback.run();
 					}
@@ -190,9 +190,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 		try {
 			//通知下载进度
-			NativeCodeSupportService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
+			DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
 			//如果文件存在且长度一致则不下载
-			NativeCodeSupportService.gn(this.downloadService, artifactUrl, artifactPath, true);
+			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
 //				Log.d(" Maven Download", "dep", dependencyString);
@@ -242,7 +242,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						String buildMavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dependency);
 						buildMavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dependency);
 						//下载
-						NativeCodeSupportService.gn(this.downloadService, buildMavenMetadataUrl, buildMavenMetadataPath, false);
+						DownloadService.downloadFile(this.downloadService, buildMavenMetadataUrl, buildMavenMetadataPath, false);
 					}
 					catch (Exception unused) {
 					}
@@ -273,11 +273,11 @@ public class DownloadMavenLibraries implements Callable<Void> {
 							String dependencyString = sb.toString();
 
 							//通知下载进度
-							NativeCodeSupportService.Hw(this.downloadService, dependencyString, (i * 100) / this.deps.size(), 0);
+							DownloadService.Hw(this.downloadService, dependencyString, (i * 100) / this.deps.size(), 0);
 							//下载 复用已有下载[长度一致]
-							NativeCodeSupportService.gn(this.downloadService, pomUrl, pomPath, true);
-							NativeCodeSupportService.gn(this.downloadService, aarUrl, aarPath, true);
-							NativeCodeSupportService.gn(this.downloadService, jarUrl, jarPath, true);
+							DownloadService.downloadFile(this.downloadService, pomUrl, pomPath, true);
+							DownloadService.downloadFile(this.downloadService, aarUrl, aarPath, true);
+							DownloadService.downloadFile(this.downloadService, jarUrl, jarPath, true);
 
 
 							i++;
@@ -293,10 +293,10 @@ public class DownloadMavenLibraries implements Callable<Void> {
             }
 
 			final boolean downloadComplete2 = z2;
-            App.aj(new Runnable(){
+            ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {
-						NativeCodeSupportService.FH(downloadService);
+						DownloadService.FH(downloadService);
 						if (downloadComplete2) {
 							downloadCompleteCallback.run();
 						}

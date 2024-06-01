@@ -7,6 +7,8 @@ import io.github.zeroaicy.aide.utils.FilesRenameMenu;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import com.aide.ui.command.KeyStrokeCommand;
+import com.aide.ui.command.MenuItemCommand;
 
 public class AppCommands {
 
@@ -30,18 +32,19 @@ public class AppCommands {
     private static sf[] DW;
 
 
-    private static List<bg> EQ = new ArrayList<>();
-    private static List<bg> tp = new ArrayList<>();
-    private static List<bg> J8 = new ArrayList<>();
+    private static List<KeyStrokeCommand> EQ = new ArrayList<>();
+    private static List<KeyStrokeCommand> tp = new ArrayList<>();
+    private static List<KeyStrokeCommand> J8 = new ArrayList<>();
 
-    private static List<bg> we = new ArrayList<>();
+    private static List<KeyStrokeCommand> we = new ArrayList<>();
 
 	//
-	private static List<bg> J0 = new ArrayList<>();
+	private static List<KeyStrokeCommand> J0 = new ArrayList<>();
 
     static {
         try {
 			//空的
+			
             j6(Hw, we);
             j6(v5, J0);
 
@@ -120,13 +123,13 @@ public class AppCommands {
 		return rf;
     }
 
-	private static List<dg> dg;
-	private static List<dg> dgList() {
+	private static List<MenuItemCommand> dg;
+	private static List<MenuItemCommand> dgList() {
 		if (dg == null) {
 			dg = new ArrayList<>();
 			for (sf sfVar : Hw()) {
-				if ((sfVar instanceof dg)) {
-					dg.add(((dg)sfVar));
+				if ((sfVar instanceof MenuItemCommand)) {
+					dg.add(((MenuItemCommand)sfVar));
 				}
 			}
 		}
@@ -151,9 +154,9 @@ public class AppCommands {
 		return null;
     }
 
-    public static dg u7(int id) {
-		for (dg dgVar : dgList()) {
-			if (id == dgVar.FH()) {
+    public static MenuItemCommand u7(int id) {
+		for (MenuItemCommand dgVar : dgList()) {
+			if (id == dgVar.getMenuItemId()) {
 				return dgVar;
 			}
 		}
@@ -174,7 +177,7 @@ public class AppCommands {
 	/**
 	 * 字段 Zo, VH
 	 */
-    public static List<bg> v5() {
+    public static List<KeyStrokeCommand> v5() {
 		return EQ;
     }
 
@@ -186,30 +189,30 @@ public class AppCommands {
     }
 
 
-    public static List<bg> VH() {
+    public static List<KeyStrokeCommand> VH() {
 		return tp;
     }
-    public static List<bg> gn() {
+    public static List<KeyStrokeCommand> gn() {
 		return J8;
     }
 
 	/**
 	 * 只有字段j6
 	 */
-    public static List<bg> Zo() {
+    public static List<KeyStrokeCommand> Zo() {
 		return we;
     }
 	/**
 	 * 只有字段j6
 	 */
-    public static List<bg> tp() {
+    public static List<KeyStrokeCommand> tp() {
 		return J0;
     }
 
-    private static void j6(sf[] sfVarArr, List<bg> list) {
+    private static void j6(sf[] sfVarArr, List<KeyStrokeCommand> list) {
         for (sf sfVar : sfVarArr) {
-			if (sfVar instanceof bg) {
-				list.add((bg) sfVar);
+			if (sfVar instanceof KeyStrokeCommand) {
+				list.add((KeyStrokeCommand) sfVar);
 			}
 
 			if (!commandSet.contains(sfVar.getClass())) {

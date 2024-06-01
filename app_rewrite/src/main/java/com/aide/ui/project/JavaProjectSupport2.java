@@ -1,15 +1,11 @@
 package com.aide.ui.project;
 
 import abcd.c0;
-import abcd.cb;
 import abcd.fe;
-import abcd.g3;
-import abcd.it;
 import abcd.iy;
-import abcd.x9;
 import com.aide.common.ValueRunnable;
 import com.aide.engine.EngineSolution;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.BuildServiceCollect;
 import com.aide.ui.project.internal.MakeJavaEngineSolution;
 import com.aide.ui.services.ProjectSupport;
@@ -24,6 +20,42 @@ import java.util.List;
 import java.util.Map;
 
 class JavaProjectSupport2 implements ProjectSupport {
+
+	@Override
+	public void buildProject(boolean p) {
+		// TODO: Implement this method
+	}
+
+	@Override
+	public int getOpenProjectNameStringId(String string) {
+		// TODO: Implement this method
+		return 0;
+	}
+
+	@Override
+	public String getProjectAttributeHtmlString() {
+		// TODO: Implement this method
+		return null;
+	}
+
+	@Override
+	public boolean isPremium() {
+		// TODO: Implement this method
+		return false;
+	}
+
+	@Override
+	public boolean isSupport(String string) {
+		// TODO: Implement this method
+		return false;
+	}
+
+	@Override
+	public EngineSolution makeEngineSolution() {
+		// TODO: Implement this method
+		return null;
+	}
+	
 
 	public JavaProjectSupport2() {
 		try {
@@ -63,7 +95,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 		try {
 
 			int i = 0;
-			for (String str : dx(App.getProjectService().getCurrentAppHome())) {
+			for (String str : dx(ServiceContainer.getProjectService().getCurrentAppHome())) {
 				i += FileSystem.J8(str, x9(), new String[]{".java"});
 				if (i >= x9()) {
 					return true;
@@ -207,7 +239,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public void DW(boolean z) {
 		try {
 
-			BuildServiceCollect.DW.XL(z, App.getProjectService().er());
+			BuildServiceCollect.javaProjectBuildService.XL(z, ServiceContainer.getProjectService().er());
 		} catch (Throwable th) {
 
 			throw new Error(th);
@@ -218,11 +250,11 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public boolean EQ() {
 		try {
 
-			if (App.ca() || App.a8().Ws()) {
+			if (ServiceContainer.ca() || ServiceContainer.getLicenseService().Ws()) {
 				return false;
 			}
 			// 允许在非 Premium 中保存一个 Java 文件
-			if (c0.Ws(App.getMainActivity(), "AllowSavingOneJavaFileInNonPremium", new double[]{1.0d, 0.0d})) {
+			if (c0.Ws(ServiceContainer.getMainActivity(), "AllowSavingOneJavaFileInNonPremium", new double[]{1.0d, 0.0d})) {
 				return Qq();
 			}
 			return true;
@@ -236,7 +268,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 		try {
 
 			if (str.toLowerCase().endsWith(".jar")) {
-				if (!Arrays.asList(cb(App.getProjectService().getCurrentAppHome())).contains(str)) {
+				if (!Arrays.asList(cb(ServiceContainer.getProjectService().getCurrentAppHome())).contains(str)) {
 					return true;
 				}
 			}
@@ -260,7 +292,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public void J0(String str) {
 		try {
 
-			String currentAppHome = App.getProjectService().getCurrentAppHome();
+			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 			List<com.aide.ui.util.ClassPath.Entry> list = new ClassPath().getConfiguration(g3(currentAppHome)).Zo;
 			Iterator it = list.iterator();
 			while (true) {
@@ -303,7 +335,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public void Mr() {
 		try {
 
-			App.a8().cn(App.getMainActivity(), 0x7f0d0611, "large_project");
+			ServiceContainer.getLicenseService().cn(ServiceContainer.getMainActivity(), 0x7f0d0611, "large_project");
 		} catch (Throwable th) {
 
 			throw new Error(th);
@@ -322,8 +354,8 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public String QX() {
 		try {
 
-			String str = ("<b>Java Project:</b><br/><br/>" + App.getProjectService().getCurrentAppHome() + "<br/><br/>") + "<i>Library JARs:</i><br/><br/>";
-			String[] cb = cb(App.getProjectService().getCurrentAppHome());
+			String str = ("<b>Java Project:</b><br/><br/>" + ServiceContainer.getProjectService().getCurrentAppHome() + "<br/><br/>") + "<i>Library JARs:</i><br/><br/>";
+			String[] cb = cb(ServiceContainer.getProjectService().getCurrentAppHome());
 			if (cb.length == 0) {
 				return str + "&lt;none&gt;<br/><br/>";
 			}
@@ -364,7 +396,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 		boolean z;
 		try {
 
-			if (!App.ca() && !App.P8.equals("com.aide.ui")) {
+			if (!ServiceContainer.ca() && !ServiceContainer.P8.equals("com.aide.ui")) {
 				z = false;
 				return new TemplateService.TemplateGroup[]{new TemplateService.TemplateGroup("Java Application", new TemplateService.Template(this, 3, "Java Application", "Java", "MyJavaConsoleApp", false, false, "com.aide.ui", "JAVA", "course_java", z), 0x7f07007b, "JavaConsole.zip", new String[]{"Main.java"}, (String) null)};
 			}
@@ -379,7 +411,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public EngineSolution Ws() {
 		try {
 
-			return MakeJavaEngineSolution.DW(App.getProjectService().getCurrentAppHome(), App.getProjectService().getAndroidJarPath(), (String) null);
+			return MakeJavaEngineSolution.DW(ServiceContainer.getProjectService().getCurrentAppHome(), ServiceContainer.getProjectService().getAndroidJarPath(), (String) null);
 		} catch (Throwable th) {
 
 			throw new Error(th);
@@ -408,7 +440,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public boolean a8(String str) {
 		try {
 
-			String currentAppHome = App.getProjectService().getCurrentAppHome();
+			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 			return Arrays.asList(cb(currentAppHome)).contains(str);
 		} catch (Throwable th) {
 
@@ -419,13 +451,13 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public boolean aM(String str) {
 		try {
 
-			Iterator it = App.getProjectService().BT().keySet().iterator();
+			Iterator it = ServiceContainer.getProjectService().getLibraryMapping().keySet().iterator();
 			while (it.hasNext()) {
 				if (FileSystem.nw((String) it.next(), str)) {
 					return true;
 				}
 			}
-			for (String str2 : dx(App.getProjectService().getCurrentAppHome())) {
+			for (String str2 : dx(ServiceContainer.getProjectService().getCurrentAppHome())) {
 				if (FileSystem.nw(str2, str)) {
 					return true;
 				}
@@ -502,10 +534,10 @@ class JavaProjectSupport2 implements ProjectSupport {
 
 	public boolean j3(String str) {
 		try {
-			if (App.ca() || App.P8.equals("com.aide.ui")) {
+			if (ServiceContainer.ca() || ServiceContainer.P8.equals("com.aide.ui")) {
 				return true;
 			}
-			if (!App.P8.equals("com.aide.trainer.java")) {
+			if (!ServiceContainer.P8.equals("com.aide.trainer.java")) {
 				return false;
 			}
 			return true;
@@ -535,7 +567,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 
 	public void nw(String str) {
 		try {
-			String currentAppHome = App.getProjectService().getCurrentAppHome();
+			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 			ClassPath classPath = new ClassPath();
 			List<ClassPath.Entry> entrys = classPath.getConfiguration(g3(currentAppHome)).Zo;
 			entrys.add(new ClassPath.Entry("lib", FileSystem.lp(currentAppHome, str), false));
@@ -567,7 +599,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public String sh(String str) {
 		try {
 
-			String[] sG = sG(App.getProjectService().BT());
+			String[] sG = sG(ServiceContainer.getProjectService().getLibraryMapping());
 			if (!str.startsWith("/")) {
 				str = "/" + str;
 			}
@@ -611,7 +643,7 @@ class JavaProjectSupport2 implements ProjectSupport {
 	public String v5(String str) {
 		try {
 
-			String ca = ca(App.getProjectService().BT(), FileSystem.getParent(str));
+			String ca = ca(ServiceContainer.getProjectService().getLibraryMapping(), FileSystem.getParent(str));
 			if (ca == null) {
 				return str;
 			}

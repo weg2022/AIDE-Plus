@@ -10,6 +10,9 @@ import com.aide.codemodel.api.abstraction.Tools;
 import com.aide.codemodel.api.abstraction.Syntax;
 import java.util.Set;
 import com.aide.codemodel.api.abstraction.FormatOption;
+import com.aide.codemodel.language.java.JavaTypeSystem;
+import com.aide.codemodel.language.java.JavaCodeAnalyzer;
+import com.aide.codemodel.language.java.JavaSignatureAnalyzer;
 
 public class AidlLanguage extends JavaBinaryLanguage {
 
@@ -43,7 +46,7 @@ public class AidlLanguage extends JavaBinaryLanguage {
 	
 
 	@Override
-	public CodeAnalyzer getCodeAnalyzer() {
+	public JavaCodeAnalyzer getCodeAnalyzer() {
 		return null;
 	}
 
@@ -53,12 +56,12 @@ public class AidlLanguage extends JavaBinaryLanguage {
 	}
 
 	@Override
-	public SignatureAnalyzer getSignatureAnalyzer() {
+	public JavaSignatureAnalyzer getSignatureAnalyzer() {
 		return null;
 	}
 
 	@Override
-	public TypeSystem getTypeSystem() {
+	public JavaTypeSystem getTypeSystem() {
 		return null;
 	}
 	

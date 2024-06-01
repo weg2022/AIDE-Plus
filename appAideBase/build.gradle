@@ -40,6 +40,8 @@ dependencies {
 	
 	api "androidx.multidex:multidex:2.0.1"
 	
+	api "androidx.annotation:annotation:1.7.1"
+	
 	//*/
 	
 }

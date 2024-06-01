@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
 import io.github.zeroaicy.util.Log;
@@ -25,26 +25,26 @@ public class InstalApkFromShizuku implements Runnable {
 		final String instalApkError = ShizukuUtil.instalApk(appPath);
 		// 安装完毕通知主进程显示安装结果
 		// 或启动app
-		App.aj(new Runnable(){
+		ServiceContainer.aj(new Runnable(){
 				//在主线程中
 				@Override
 				public void run() {
-					Context context = App.getContext();
+					Context context = ServiceContainer.getContext();
 					if (TextUtils.isEmpty(instalApkError)) {
 						//成功安装，启动应用
-						String gW = App.getProjectService().getCurrentAppHome();
-						String packageName = AndroidProjectSupport.kQ(gW, App.getProjectService().getBuildVariant());
+						String gW = ServiceContainer.getProjectService().getCurrentAppHome();
+						String packageName = AndroidProjectSupport.getProjectPackageName(gW, ServiceContainer.getProjectService().getBuildVariant());
 						PackageManager packageManager = context.getPackageManager();
 						Intent launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName);
 
 						if (launchIntentForPackage != null) {
 							context.startActivity(launchIntentForPackage);
 						} else {
-							com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "应用程序已成功安装，但找不到主活动");					
+							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "应用程序已成功安装，但找不到主活动");					
 						}
 					} else {
 						//安装失败
-						com.aide.common.MessageBox.BT(App.getMainActivity(), "安装失败", instalApkError);
+						com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "安装失败", instalApkError);
 					}
 				}
 			});

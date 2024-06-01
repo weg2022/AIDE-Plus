@@ -3,12 +3,15 @@ package io.github.zeroaicy.aide.extend;
 import android.content.Context;
 import android.content.Intent;
 import com.aide.common.KeyStroke;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.services.FileBrowserService;
 import java.io.File;
+import com.aide.ui.command.KeyStrokeCommand;
+import com.aide.ui.command.MenuCommand;
+import abcd.tf;
 
-public class OpenAideTermux implements abcd.bg, abcd.fg {
+public class OpenAideTermux implements KeyStrokeCommand, MenuCommand {
 
 	@Override
 	public String getName() {
@@ -16,7 +19,7 @@ public class OpenAideTermux implements abcd.bg, abcd.fg {
 	}
 
 	@Override
-	public KeyStroke v5() {
+	public KeyStroke getKeyStroke() {
 		//不支持快捷方式，但是
 		return new KeyStroke('\256', true, true, true);
 	}
@@ -32,14 +35,14 @@ public class OpenAideTermux implements abcd.bg, abcd.fg {
 	}
 
 	@Override
-	public int FH() {
+	public int getMenuItemId() {
 		return R.id.filebrowserMenuOpenAideTermux;
 	}
 
 	@Override
 	public boolean isEnabled() {
 		String currentFilePath;
-		FileBrowserService fileBrowserService = App.getFileBrowserService();
+		FileBrowserService fileBrowserService = ServiceContainer.getFileBrowserService();
 		if (fileBrowserService.FH() != null) {
 			//长按文件得到了文件
 			currentFilePath = fileBrowserService.FH();
@@ -68,7 +71,7 @@ public class OpenAideTermux implements abcd.bg, abcd.fg {
 
 	@Override
 	public boolean run() {
-		FileBrowserService fileBrowserService = App.getFileBrowserService();
+		FileBrowserService fileBrowserService = ServiceContainer.getFileBrowserService();
 		//长按
 		String currentFilePath = fileBrowserService.FH();
 		if (currentFilePath == null) {
@@ -93,10 +96,10 @@ public class OpenAideTermux implements abcd.bg, abcd.fg {
 			}
 		}
 	
-		Context context = App.getContext();
+		Context context = ServiceContainer.getContext();
 		Intent launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage("com.aide.termux");
 		if (launchIntentForPackage == null) {
-			com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "AIDE-Termux未安装");
+			com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "AIDE-Termux未安装");
 			return true;
 		}
 		
@@ -106,9 +109,9 @@ public class OpenAideTermux implements abcd.bg, abcd.fg {
 	}
 
 	@Override
-	public boolean DW(boolean p) {
+	public boolean isVisible(boolean p) {
 		if (isEnabled()) {
-			if (!"com.aide.web".equals(App.P8)) {
+			if (!"com.aide.web".equals(ServiceContainer.P8)) {
 				return true;
 			}
 		}

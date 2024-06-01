@@ -13,7 +13,7 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import com.aide.common.KeyStrokeDetector;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.MainActivity;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.views.editor.OEditor;
@@ -81,7 +81,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
         }
 
 		outText.text = "1234";
-		if (this.oEditor !=  null && this.oEditor.kf()) {
+		if (this.oEditor !=  null && this.oEditor.getSelectionVisibility()) {
 			outText.flags = ExtractedText.FLAG_SELECTING;
 			outText.selectionStart = 0; 
 			outText.selectionEnd = 1; 
@@ -94,11 +94,11 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 	public boolean performContextMenuAction(int id) {
         switch (id) {
 			case android.R.id.selectAll:
-                MainActivity rN = App.getMainActivity();
+                MainActivity rN = ServiceContainer.getMainActivity();
                 if (rN == null) return true;
                 rN.w9();
-                FileSpan currentFileSpan = App.getMainActivity().sh().getCurrentFileSpan();
-                com.aide.ui.App.we().QX(currentFileSpan.j6, currentFileSpan.DW, currentFileSpan.FH, currentFileSpan.Hw, currentFileSpan.v5);
+                FileSpan currentFileSpan = ServiceContainer.getMainActivity().sh().getCurrentFileSpan();
+                ServiceContainer.getEngineService().QX(currentFileSpan.j6, currentFileSpan.DW, currentFileSpan.FH, currentFileSpan.Hw, currentFileSpan.v5);
                 return true;
 
 			case android.R.id.cut:
@@ -109,7 +109,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 
 			case android.R.id.copy:
                 if (this.oEditor != null) {
-					this.oEditor.vJ();
+					this.oEditor.copySelectedText();
 					// 取消选择模式
                     this.oEditor.setSelectionVisibility(false);
 				}
@@ -130,18 +130,18 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 	 */
     private void DW(CharSequence commitText, boolean isSoftKeyboard, View view) {
 		// getKeyCharacterMap
-		KeyCharacterMap keyCharacterMap = KeyStrokeDetector.gn(this.keyStrokeDetector);
+		KeyCharacterMap keyCharacterMap = KeyStrokeDetector.getKeyCharacterMap(this.keyStrokeDetector);
 		if (keyCharacterMap == null) {
 			// setKeyCharacterMap
-			keyCharacterMap = KeyStrokeDetector.u7(this.keyStrokeDetector, KeyCharacterMap.load(0));
+			keyCharacterMap = KeyStrokeDetector.setKeyCharacterMap(this.keyStrokeDetector, KeyCharacterMap.load(0));
 		}
 		for (int i = 0; i < commitText.length(); i++) {
 			char charAt = commitText.charAt(i);
 			// 物理键盘
 			if (!isSoftKeyboard) {
 				// 物理键 Shift
-				boolean isLeftShiftPhysical = KeyStrokeDetector.v5(this.keyStrokeDetector);
-				boolean isRightShiftPhysical = KeyStrokeDetector.Zo(this.keyStrokeDetector);
+				boolean isLeftShiftPhysical = KeyStrokeDetector.getLeftShiftPhysical(this.keyStrokeDetector);
+				boolean isRightShiftPhysical = KeyStrokeDetector.getRightShiftPhysical(this.keyStrokeDetector);
 				if (isLeftShiftPhysical
 					|| isRightShiftPhysical) {
 					//大写
@@ -165,8 +165,8 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			char c = text.charAt(index);
 			if (!z) {
 				//是否是快捷键，否则小写
-				if (KeyStrokeDetector.v5(this.keyStrokeDetector) 
-					|| KeyStrokeDetector.Zo(this.keyStrokeDetector)) {
+				if (KeyStrokeDetector.getLeftShiftPhysical(this.keyStrokeDetector) 
+					|| KeyStrokeDetector.getRightShiftPhysical(this.keyStrokeDetector)) {
 					c = Character.toUpperCase(c);
 				} else {
 					c = Character.toLowerCase(c);
@@ -205,7 +205,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 
 		if ("\n".equals(commitText)) {
 			//换行 Hw[isSoftKeyboard]
-			boolean isSoftKeyboard = KeyStrokeDetector.Hw(this.keyStrokeDetector);
+			boolean isSoftKeyboard = KeyStrokeDetector.isSoftKeyboard(this.keyStrokeDetector);
 			DW(commitText, isSoftKeyboard, this.editorTextView);
 		} else if (this.oEditor != null 
 				   && commitText.indexOf('\n') >= 0) {
@@ -214,7 +214,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			// OEditor::tj()
 			//  kf() == getSelectionVisibility
 			// 删除已经选中的字符串
-			if (this.oEditor.kf()) {
+			if (this.oEditor.getSelectionVisibility()) {
 				this.oEditor.getEditorModel().b1();
 				this.oEditor.k4();
 				this.oEditor.setSelectionVisibility(false);
@@ -230,7 +230,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			int caretLine = oEditor.getCaretLine();
 			int endLineNumber = newLineNumber + caretLine;
 			//粘贴
-			oEditor.getEditorModel().ys(oEditor.getCaretColumn(), oEditor.getCaretLine(), oEditor.jw(), oEditor.getTabSize(), new StringReader(commitText), this);
+			oEditor.getEditorModel().ys(oEditor.getCaretColumn(), oEditor.getCaretLine(), oEditor.getInsertTabsAsSpaces(), oEditor.getTabSize(), new StringReader(commitText), this);
 
 			//更新行信息
 			oEditor.eN(caretLine, endLineNumber);
@@ -239,7 +239,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		} else {
 			// 输入内容非多行模式
 			// 或不是 OEditor
-			j6(commitText, KeyStrokeDetector.Hw(this.keyStrokeDetector), this.KeyStrokeHandler);
+			j6(commitText, KeyStrokeDetector.isSoftKeyboard(this.keyStrokeDetector), this.KeyStrokeHandler);
 		}
 		return true;
     }
@@ -263,7 +263,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 	 */
     @Override
     public CharSequence getTextBeforeCursor(int length, int flags) {
-		if (AndroidHelper.U2(KeyStrokeDetector.tp(this.keyStrokeDetector))) {
+		if (AndroidHelper.U2(KeyStrokeDetector.getContext(this.keyStrokeDetector))) {
 			return super.getTextBeforeCursor(length, flags);
 		}
 		return "";
@@ -293,7 +293,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		}
 		KeyStrokeDetector.FH(this.keyStrokeDetector, text.length());
 
-		j6(text, KeyStrokeDetector.Hw(this.keyStrokeDetector), this.KeyStrokeHandler);
+		j6(text, KeyStrokeDetector.isSoftKeyboard(this.keyStrokeDetector), this.KeyStrokeHandler);
 
 		return true;
 	}

@@ -1,21 +1,16 @@
 package com.aide.ui.preferences;
 
-import abcd.cy;
-import abcd.ey;
-import abcd.fy;
-import abcd.gy;
-import abcd.iy;
-import android.preference.Preference;
-import com.aide.ui.App;
-import com.aide.ui.browsers.ErrorBrowser;
-import android.app.AlertDialog;
-import com.aide.ui.rewrite.R;
-import android.content.DialogInterface;
-import com.aide.ui.services.MavenService;
+
 
 /**
  * 增量maven仓库刷新，二级确认弹窗
  */
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.preference.Preference;
+import com.aide.ui.ServiceContainer;
+import com.aide.ui.rewrite.R;
+
 class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListener {
     public CompilerPreferencesFragment$c(CompilerPreferencesFragment compilerPreferencesFragment) {}
 	// refresh_maven_repository
@@ -29,7 +24,7 @@ class CompilerPreferencesFragment$c implements Preference.OnPreferenceClickListe
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						// nw() -> refreshMavenCache
-						App.getMavenService().nw();
+						ServiceContainer.getMavenService().refresh();
 					}
 				});
             builder.setNegativeButton(android.R.string.cancel, (DialogInterface.OnClickListener) null);

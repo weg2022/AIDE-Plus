@@ -8,7 +8,7 @@ import abcd.t6;
 import com.aide.codemodel.api.FileEntry;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
-import com.aide.codemodel.api.SyntaxTreeSytles;
+import com.aide.codemodel.api.SyntaxTreeStyles;
 import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.Compiler;
 import com.aide.codemodel.api.abstraction.Debugger;
@@ -54,8 +54,8 @@ public class AidlCodeModel implements CodeModel {
             if (model != null) {
                 //this.gn = new JavaCompiler(model, this.language);
                 //this.u7 = new JavaDebugger(model, this.language, this);
-                this.v5 = new t6(model.identifierSpace, model.Mr, false, this.language, this.commentsLanguage);
-                this.parser = new JavaParser(model.identifierSpace, model.Mr, model.entitySpace, (JavaSyntax)this.language.getSyntax(), true){
+                this.v5 = new t6(model.identifierSpace, model.errorTable, false, this.language, this.commentsLanguage);
+                this.parser = new JavaParser(model.identifierSpace, model.errorTable, model.entitySpace, (JavaSyntax)this.language.getSyntax(), true){
 					@Override
 					public void DW(String string) {}
 				};
@@ -72,7 +72,7 @@ public class AidlCodeModel implements CodeModel {
 
     }
 	@Override
-    public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeSytles> map) {
+    public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeStyles> map) {
         try {
             //this.v5.Zo(fileEntry, reader, false, false, false, false, map.get(this.language), map.get(this.commentsLanguage));
         }
@@ -148,7 +148,7 @@ public class AidlCodeModel implements CodeModel {
     }
 
     @Override
-    public String getName() {
+    public String getName() { 
         return "AIDL";
     }
 

@@ -1,14 +1,14 @@
 package io.github.zeroaicy.aide.services;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import io.github.zeroaicy.util.Log;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 
 public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 	@Override
 	public void onCreate() {
 		try {
 			// 初始化 App
-			App.sh(getApplicationContext());
+			ServiceContainer.sh(getApplicationContext());
 			
 			ExternalPackagingService.ExternalPackagingServiceWorker externalPackagingServiceWorker = getExternalPackagingServiceWorker();
 			if (externalPackagingServiceWorker != null) {

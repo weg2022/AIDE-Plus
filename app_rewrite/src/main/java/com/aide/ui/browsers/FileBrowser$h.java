@@ -33,10 +33,8 @@ class FileBrowser$h {
     }
 
     public boolean DW() {
-		if (!this.DW) {
-			if (this.j6.equals("..")) {
+		if (!this.DW && this.j6.equals("..")) {
 				return true;
-			}
 		}
 		return false;
     }

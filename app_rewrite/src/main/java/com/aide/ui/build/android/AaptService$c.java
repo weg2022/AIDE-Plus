@@ -11,8 +11,11 @@ import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.aapt2.Aapt2Task;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.util.IOUtils;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -23,11 +26,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AaptService$c {
+
     private final Map<String, List<String>> DW;
     private final Map<String, String> EQ;
-	
+
 	// aaptPath
     private final String FH;
 
@@ -84,20 +89,27 @@ public class AaptService$c {
             if (mergedAndroidManifestxml.DW != null) {
                 return mergedAndroidManifestxml;
             }
+
             for (String str : this.QX.keySet()) {
-                if (!new File(str).exists()) {
-                    new File(str).mkdirs();
+                File file = new File(str);
+				if (!file.exists()) {
+                    file.mkdirs();
                 }
             }
+
             j6();
+
             File parentFile = new File(this.gn).getParentFile();
             if (!parentFile.exists()) {
                 parentFile.mkdirs();
             }
+
             AaptService$b J0 = J0();
+
             if (J0.DW != null) {
                 return J0;
             }
+
             Zo();
             if (!this.XL) {
                 if (this.aM) {
@@ -146,70 +158,130 @@ public class AaptService$c {
     public static String DW(AaptService$c aaptService$c) {
         return aaptService$c.j6;
     }
-	
+
 	// 合并清单文件
     private AaptService$b EQ() {
         try {
-            if (this.we.size() > 0 || this.J0.size() > 0) {
-				// injectedAManifestMap
-                String mainProjectInjectedManifestPath = this.QX.get(this.Zo);
-				// aManifestMap
-                String mainProjectManifestPath = this.Ws.get(mainProjectInjectedManifestPath);
-				// mergedAManifestMap
-                String mainProjectMergedManifestPath = this.J8.get(this.Zo);
 
-				// subProjectGens
-                int subProjectGensSize = this.we.size();
+            if (this.we.size() <= 0 
+				&& this.J0.size() <= 0) {
+				return new AaptService$b(false);
+			}
 
-                String[] subProjectInjectedManifestPaths = new String[subProjectGensSize];
-                for (int index = 0; index < subProjectGensSize; index++) {
-					// 所有子项目的injectedManifest
-                    subProjectInjectedManifestPaths[index] = this.QX.get(this.we.get(index));
-                }
+			// injectedAManifestMap
+			String mainProjectInjectedManifestPath = this.QX.get(this.Zo);
+			// aManifestMap
+			String mainProjectManifestPath = this.Ws.get(mainProjectInjectedManifestPath);
+			// mergedAManifestMap
+			String mainProjectMergedManifestPath = this.J8.get(this.Zo);
 
-                int variantManifestPathsSize = this.J0.size();
-                String[] variantManifestPaths = new String[variantManifestPathsSize];
-                for (int index = 0; index < this.J0.size(); index++) {
-                    variantManifestPaths[index] = this.J0.get(index);
-                }
+			// subProjectGens
+			int subProjectGensSize = this.we.size();
 
-				/**
-				 * 将所有xmlmMap中的主项目manifest xml更新为 merged xml
-				 */
-				// key: gen路径 value: injected xml
-                this.QX.put(this.Zo, mainProjectMergedManifestPath);
-				// key: injected xml value: original manifest xml
-                this.Ws.put(mainProjectMergedManifestPath, mainProjectManifestPath);
+			String[] subProjectInjectedManifestPaths = new String[subProjectGensSize];
+			for (int index = 0; index < subProjectGensSize; index++) {
+				// 所有子项目的injectedManifest
+				subProjectInjectedManifestPaths[index] = this.QX.get(this.we.get(index));
+			}
 
-                ArrayList<File> manifestPaths = new ArrayList<>();
-				// 添加 主项目的injected xml[属于合并的输入xml]
-                manifestPaths.add(new File(mainProjectInjectedManifestPath));
+			int variantManifestPathsSize = this.J0.size();
+			String[] variantManifestPaths = new String[variantManifestPathsSize];
+			for (int index = 0; index < this.J0.size(); index++) {
+				variantManifestPaths[index] = this.J0.get(index);
+			}
 
-                for (int index = 0; index < subProjectGensSize; index++) {
-                    manifestPaths.add(new File(subProjectInjectedManifestPaths[index]));
-                }
-                for (int index = 0; index < variantManifestPathsSize; index++) {
-                    manifestPaths.add(new File(variantManifestPaths[index]));
-                }
-                if (new File(mainProjectMergedManifestPath).exists() 
-					&& u7(manifestPaths, Collections.singletonList(new File(mainProjectMergedManifestPath)))) {
-					// 省略合并
-                    AppLog.DW("Omitting merge " + mainProjectMergedManifestPath);
-                } else {
-					AppLog.DW("Merging " + mainProjectMergedManifestPath);
-					// 合并
-					String mergedInfo = l.j6(AaptService.Zo(this.Mr), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
-					if (mergedInfo != null) {
-						return new AaptService$b(mergedInfo);
-					}
+			/**
+			 * 将所有xmlmMap中的主项目manifest xml更新为 merged xml
+			 */
+			// key: gen路径 value: injected xml
+			this.QX.put(this.Zo, mainProjectMergedManifestPath);
+			// key: injected xml value: original manifest xml
+			this.Ws.put(mainProjectMergedManifestPath, mainProjectManifestPath);
+
+			ArrayList<File> manifestPaths = new ArrayList<>();
+			// 添加 主项目的injected xml[属于合并的输入xml]
+			manifestPaths.add(new File(mainProjectInjectedManifestPath));
+
+			for (int index = 0; index < subProjectGensSize; index++) {
+				manifestPaths.add(new File(subProjectInjectedManifestPaths[index]));
+			}
+
+			for (int index = 0; index < variantManifestPathsSize; index++) {
+				manifestPaths.add(new File(variantManifestPaths[index]));
+			}
+
+			// merge目录
+			File mainProjectMergedManifestFile = new File(mainProjectMergedManifestPath);
+			File inputInfoFile = new File(mainProjectMergedManifestFile.getParent(), "merged-manifest-inputs-info");
+
+			if (mainProjectMergedManifestFile.exists() 
+				&& !isChangerInputs(manifestPaths, inputInfoFile) 
+				&& u7(manifestPaths, Collections.singletonList(mainProjectMergedManifestFile))) {
+				// 省略合并
+				AppLog.DW("Omitting merge " + mainProjectMergedManifestPath);
+			} else {
+				AppLog.DW("Merging " + mainProjectMergedManifestPath);
+				// 合并
+				String mergedInfo = com.aide.ui.build.android.l.j6(AaptService.Zo(this.Mr), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
+				if (mergedInfo != null) {
+					return new AaptService$b(mergedInfo);
 				}
-            }
+			}
+
             return new AaptService$b(false);
         }
 		catch (Throwable th) {
             throw new Error(th);
         }
     }
+
+	/**
+	 * 检查输入源是否改变
+	 */
+	private boolean isChangerInputs(List<File> inputFiles, File inputInfoFile) {
+
+		Set<String> inputPaths = new HashSet<String>();
+		for (File inputFile : inputFiles) {
+			inputPaths.add(inputFile.getAbsolutePath());
+		}
+
+		boolean isChangerInputs = false;
+
+		// 与inputInfoFile检查输入源
+		if (!inputInfoFile.exists()) {
+			// 已改变
+			isChangerInputs = true;
+		} else {
+			// 从inputInfoFile读取上一次inputFiles
+			Set<String> lastInputJarFilesSet = readInputInfoFile(inputInfoFile);
+			//比较
+			isChangerInputs = inputPaths.size() != lastInputJarFilesSet.size()
+				|| !inputPaths.containsAll(lastInputJarFilesSet);			
+		}
+
+		// 只有已改变才重写写入
+		if (isChangerInputs) {
+			//写入inputJarFilesSet
+			IOUtils.writeLines(inputPaths, inputInfoFile);
+		}
+		return false;
+
+	}
+
+	/**
+	 * 读取输入源文件
+	 */
+	private Set<String> readInputInfoFile(File inputInfoFile) {
+		Set<String> lastInputJarFilesSet = new HashSet<>();
+
+
+		try {
+			IOUtils.readLines(new FileInputStream(inputInfoFile), lastInputJarFilesSet);
+		}
+		catch (Exception e) {}
+
+		return lastInputJarFilesSet;
+	}
 
     public static Map<String, String> FH(AaptService$c aaptService$c) {
         return aaptService$c.Ws;
@@ -238,18 +310,20 @@ public class AaptService$c {
     private AaptService$b J0() {
         try {
             for (Map.Entry<String, List<String>> entry : this.tp.entrySet()) {
-                if (!Thread.interrupted()) {
-                    String key = entry.getKey();
-                    List<String> value = entry.getValue();
-                    if (!key.equals(this.Zo)) {
-                        AaptService$b J8 = J8(key, value);
-                        if (J8.DW != null) {
-                            return J8;
-                        }
-                    }
-                } else {
-                    throw new InterruptedException();
-                }
+
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+
+				String key = entry.getKey();
+				List<String> value = entry.getValue();
+				if (!key.equals(this.Zo)) {
+					AaptService$b J8 = J8(key, value);
+					if (J8.DW != null) {
+						return J8;
+					}
+				}
+
             }
             if (this.XL) {
                 AaptService$b J82 = J8(this.Zo, this.tp.get(this.Zo));
@@ -260,7 +334,7 @@ public class AaptService$c {
             return new AaptService$b(false);
         }
 		catch (Throwable th) {
-            throw new Error(th);
+			throw new Error(th);
         }
     }
 
@@ -273,12 +347,14 @@ public class AaptService$c {
             for (String str3 : list) {
                 Hw(new File(str3), null, arrayList);
             }
+
             if (arrayList.isEmpty()) {
                 return new AaptService$b(false);
             }
             if (new File(str2).exists()) {
                 arrayList.add(new File(str2));
             }
+
             ArrayList<File> arrayList2 = new ArrayList<>();
             Hw(new File(str), "R.java", arrayList2);
             if (!this.aM && !arrayList2.isEmpty() && u7(arrayList, arrayList2)) {
@@ -417,30 +493,30 @@ public class AaptService$c {
         try {
 
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
-                if (!Thread.interrupted()) {
-                    String key = entry.getKey();
-                    String value = entry.getValue();
-                    if (new File(key).exists()) {
-                        ArrayList<File> arrayList = new ArrayList<>();
-                        Hw(new File(key), null, arrayList);
-                        ArrayList<File> arrayList2 = new ArrayList<>();
-                        Hw(new File(value), null, arrayList2);
-                        if (u7(arrayList, arrayList2)) {
-                            AppLog.DW("Omitting aapt crunch call (is uptodate)");
-                        } else {
-                            List<String> asList = Arrays.asList(new String[]{this.FH, "crunch", "-S", key, "-C", value, "--no-version-vectors"});
-                            tp(asList);
-                            long currentTimeMillis = System.currentTimeMillis();
-                            wf j6 = xf.j6(asList, (String) null, null, true, (OutputStream) null, (byte[]) null);
-                            AppLog.DW("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
-                            if (j6.DW() != 0) {
-                                return new AaptService$b(VH(j6.j6(), j6.DW()));
-                            }
-                        }
-                    }
-                } else {
-                    throw new InterruptedException();
-                }
+                if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+				String key = entry.getKey();
+				String value = entry.getValue();
+
+				if (new File(key).exists()) {
+					ArrayList<File> arrayList = new ArrayList<>();
+					Hw(new File(key), null, arrayList);
+					ArrayList<File> arrayList2 = new ArrayList<>();
+					Hw(new File(value), null, arrayList2);
+					if (u7(arrayList, arrayList2)) {
+						AppLog.DW("Omitting aapt crunch call (is uptodate)");
+					} else {
+						List<String> asList = Arrays.asList(new String[]{this.FH, "crunch", "-S", key, "-C", value, "--no-version-vectors"});
+						tp(asList);
+						long currentTimeMillis = System.currentTimeMillis();
+						wf j6 = xf.j6(asList, (String) null, null, true, (OutputStream) null, (byte[]) null);
+						AppLog.DW("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
+						if (j6.DW() != 0) {
+							return new AaptService$b(VH(j6.j6(), j6.DW()));
+						}
+					}
+				}
             }
             return new AaptService$b(false);
         }
@@ -449,6 +525,9 @@ public class AaptService$c {
         }
     }
 
+	/**
+	 * 生成 BuildConfig.java
+	 */
     private void Zo() {
         try {
             for (Map.Entry<String, String> entry : this.EQ.entrySet()) {
@@ -457,9 +536,9 @@ public class AaptService$c {
                 if (!file.exists() && !file.mkdirs()) {
                     throw new IOException("Could not create directory " + file);
                 }
-                File file2 = new File(file, "BuildConfig.java");
-                if (!this.XL || !file2.exists()) {
-                    c.j6(file2, value, this.j3);
+                File buildConfigJavaFile = new File(file, "BuildConfig.java");
+                if (!this.XL || !buildConfigJavaFile.exists()) {
+                    c.j6(buildConfigJavaFile, value, this.j3);
                 }
             }
         }
@@ -497,20 +576,21 @@ public class AaptService$c {
 
     private void j6() {
         try {
-            if (!Thread.interrupted()) {
-                if (Build.VERSION.SDK_INT < 29 && !AaptService.VH()) {
-                    File aaptFile = new File(this.FH);
-					boolean isSetExecutable = aaptFile.setReadable(true, false) 
-						&& aaptFile.setExecutable(true, false);
-                    if (!isSetExecutable) {
-                        throw new IOException("Could not make " + this.FH + " executable - exit code ");
-                    }
-                    AaptService.gn(true);
-                    return;
-                }
-                return;
-            }
-            throw new InterruptedException();
+            if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (Build.VERSION.SDK_INT < 29 && !AaptService.VH()) {
+				File aaptFile = new File(this.FH);
+				boolean isSetExecutable = aaptFile.setReadable(true, false) 
+					&& aaptFile.setExecutable(true, false);
+				if (!isSetExecutable) {
+					throw new IOException("Could not make " + this.FH + " executable - exit code ");
+				}
+				AaptService.gn(true);
+				return;
+			}
+			return;
+
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -567,14 +647,14 @@ public class AaptService$c {
     private void v5() {
         try {
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
-                if (!Thread.interrupted()) {
-                    String value = entry.getValue();
-                    if (new File(value).exists()) {
-                        FileSystem.VH(value);
-                    }
-                } else {
-                    throw new InterruptedException();
-                }
+                if (Thread.interrupted()) {
+					throw new InterruptedException();
+
+				}
+				String value = entry.getValue();
+				if (new File(value).exists()) {
+					FileSystem.VH(value);
+				}
             }
         }
 		catch (Throwable th) {

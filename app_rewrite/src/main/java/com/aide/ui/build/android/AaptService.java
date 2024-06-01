@@ -10,7 +10,7 @@ import android.content.Context;
 import android.os.Build;
 import com.aide.common.AppLog;
 import com.aide.engine.SyntaxError;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.services.AssetInstallationService;
 import com.aide.ui.util.FileSystem;
@@ -177,14 +177,14 @@ public class AaptService {
     }
 
     private AaptService$c tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
-		Map<String, List<String>> vy = App.getProjectService().vy(str);
+		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
 		Map jO = AndroidProjectSupport.jO(vy, str3);
 		Map cT = AndroidProjectSupport.cT(vy, str3);
 		Map aq = AndroidProjectSupport.aq(str, vy, str3);
 		Map FN = AndroidProjectSupport.FN(vy, str3);
 		Map oY = AndroidProjectSupport.oY(vy, str3);
 		Map Z1 = AndroidProjectSupport.Z1(vy, str3);
-		return new AaptService$c(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), App.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
+		return new AaptService$c(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
     }
 
     private SyntaxError u7(String str, int i, String str2) {
@@ -203,15 +203,15 @@ public class AaptService {
 
     private String we() {
 		if (Build.VERSION.SDK_INT >= 29) {
-			AppLog.DW("Using aapt: " + App.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so");
-			return App.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so";
+			AppLog.DW("Using aapt: " + ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so");
+			return ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so";
 		}
 		return AssetInstallationService.DW("aapt", false);
     }
 
     public void EQ(String str) {
-		Map Z1 = AndroidProjectSupport.Z1(App.getProjectService().BT(), str);
-		for (String str2 : App.getProjectService().BT().keySet()) {
+		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), str);
+		for (String str2 : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
 			String ye = AndroidProjectSupport.ye(str2, str);
 			FileSystem.aj(ye);
 			if (Z1.containsKey(ye)) {
@@ -235,7 +235,7 @@ public class AaptService {
 				@Override
 				public List<AaptService$c> getTasks() {
 					ArrayList<AaptService$c> arrayList = new ArrayList<>();
-					for (String next : App.getProjectService().yS()) {
+					for (String next : ServiceContainer.getProjectService().yS()) {
 						arrayList.add(tp(next, true, false, false, null, str, we));
 					}
 					return arrayList;
@@ -267,7 +267,7 @@ public class AaptService {
 				public List<AaptService$c> getTasks() {
 					ArrayList<AaptService$c> arrayList = new ArrayList<>();
 					if (z3) {
-						for (String str4 : App.getProjectService().yS()) {
+						for (String str4 : ServiceContainer.getProjectService().yS()) {
 							if (str.equals(str4)) {
 								continue;
 							}

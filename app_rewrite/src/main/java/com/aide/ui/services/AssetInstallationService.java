@@ -9,7 +9,7 @@ import android.content.res.AssetManager;
 import android.os.Build;
 import com.aide.common.AppLog;
 import com.aide.common.StreamUtilities;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 import java.io.File;
@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import android.content.res.AssetFileDescriptor;
+import com.aide.ui.ServiceContainer;
 
 public class AssetInstallationService {
 	public static long getResourceSize(String resourceName) {
@@ -32,10 +33,10 @@ public class AssetInstallationService {
 		}
 	}
 	private static AssetFileDescriptor getResourceAssetFileDescriptor(String resourceName) {
-		if (App.Sf() && Build.VERSION.SDK_INT >= 20) {
+		if (ServiceContainer.Sf() && Build.VERSION.SDK_INT >= 20) {
 			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
 		}
-		if (App.Sf()) {
+		if (ServiceContainer.Sf()) {
 			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (Build.VERSION.SDK_INT >= 20) {
@@ -46,7 +47,7 @@ public class AssetInstallationService {
 
     private static AssetFileDescriptor tryGetAssetFileDescriptorFromAssetManager(String... resourceNames) {
 		try {
-			AssetManager assets = App.getContext().getAssets();
+			AssetManager assets = ServiceContainer.getContext().getAssets();
 			for (String resourceName : resourceNames) {
 				AssetFileDescriptor assetFileDescriptor = getAssetFileDescriptorFromAssetManager(assets, resourceName);
 				if (assetFileDescriptor != null) {
@@ -94,10 +95,10 @@ public class AssetInstallationService {
     }
 
     private static InputStream getResourceInputStream(String resourceName) {
-		if (App.Sf() && Build.VERSION.SDK_INT >= 20) {
+		if (ServiceContainer.Sf() && Build.VERSION.SDK_INT >= 20) {
 			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
 		}
-		if (App.Sf()) {
+		if (ServiceContainer.Sf()) {
 			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (Build.VERSION.SDK_INT >= 20) {
@@ -109,7 +110,7 @@ public class AssetInstallationService {
 
     private static InputStream tryGetInputStreamFromAssetManager(String... resourceNames) {
         try {
-			AssetManager assets = App.getContext().getAssets();
+			AssetManager assets = ServiceContainer.getContext().getAssets();
 			for (String resourceName : resourceNames) {
 				InputStream in = getInputStreamFromAssetManager(assets, resourceName);
 				if (in != null) {
@@ -149,7 +150,7 @@ public class AssetInstallationService {
     private static boolean Ws(String resourceName, boolean z) {
 		String outputPath = getOutputPath(resourceName, z);
 
-		SharedPreferences sharedPreferences = App.getContext().getSharedPreferences("AssetInstallationService", 0);
+		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("AssetInstallationService", 0);
 		long apkVersion = sharedPreferences.getLong("ApkVersion", 0L);
 		long apkInstallationTime = getApkInstallationTime();
 		long androidVersion = sharedPreferences.getInt("AndroidVersion", 0);
@@ -200,7 +201,7 @@ public class AssetInstallationService {
 
     private static long getApkInstallationTime() {
         try {
-			return new File(App.getContext().getPackageManager().getPackageInfo(App.getContext().getPackageName(), 0).applicationInfo.sourceDir).lastModified();
+			return new File(ServiceContainer.getContext().getPackageManager().getPackageInfo(ServiceContainer.getContext().getPackageName(), 0).applicationInfo.sourceDir).lastModified();
 		}
 		catch (PackageManager.NameNotFoundException unused) {
 			return -1L;
@@ -238,7 +239,7 @@ public class AssetInstallationService {
 		if (!new File(VH2).exists()) {
 			GregorianCalendar gregorianCalendar = new GregorianCalendar();
 			gregorianCalendar.add(1, 100);
-			App.j3().Hw(VH2, "xxxxxx", "weardebug", "xxxxxx", new GregorianCalendar().getTime(), gregorianCalendar.getTime(), BigInteger.ONE, "Wear Debug", "", "", "", "", "");
+			ServiceContainer.j3().Hw(VH2, "xxxxxx", "weardebug", "xxxxxx", new GregorianCalendar().getTime(), gregorianCalendar.getTime(), BigInteger.ONE, "Wear Debug", "", "", "", "", "");
 		}
 		return VH2;
     }
@@ -271,8 +272,9 @@ public class AssetInstallationService {
 
 		AssetInstallationService.this.j6 = getOutputPath("JavaScriptAPI.js", true);
 		AssetInstallationService.this.FH = getOutputPath("annotations.jar", true);
-		// 不同步，首次运行会导致 卡[Running aidl...]
-		AssetInstallationService.this.Hw = DW("framework.aidl", true);
+		
+		// [可能不是这原因], 不同步，首次运行会导致 卡[Running aidl...]
+		//AssetInstallationService.this.Hw = DW("framework.aidl", true);
 
 		executorsService.submit(new Runnable(){
 				@Override
@@ -282,7 +284,7 @@ public class AssetInstallationService {
 						AssetInstallationService.this.j6 = DW("JavaScriptAPI.js", true);
 						AssetInstallationService.this.DW = DW("android.jar", true);
 						AssetInstallationService.this.FH = DW("annotations.jar", true);
-						//AssetInstallationService.this.Hw = DW("framework.aidl", true);
+						AssetInstallationService.this.Hw = DW("framework.aidl", true);
 
 						DW("proguard-android.txt", true);
 						DW("proguard-android-optimize.txt", true);

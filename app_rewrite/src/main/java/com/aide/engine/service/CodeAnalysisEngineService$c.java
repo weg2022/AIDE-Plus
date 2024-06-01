@@ -43,9 +43,9 @@ class CodeAnalysisEngineService$c implements c {
         try {
             AppLog.v5(th);
 			Log.e("CodeAnalysisEngineService", "CodeAnalysis", th);
-            if (CodeAnalysisEngineService.DW(this.j6) != null) {
+            if (CodeAnalysisEngineService.getEngineListener(this.j6) != null) {
                 try {
-                    CodeAnalysisEngineService.DW(this.j6).rJ();
+                    CodeAnalysisEngineService.getEngineListener(this.j6).rJ();
                 } catch (Exception unused) {
                     AppLog.v5(th);
                 }
@@ -61,9 +61,9 @@ class CodeAnalysisEngineService$c implements c {
                 iy.gn(-2147258966725242565L, this);
             }
             AppLog.FH("Engine process killed after OOM");
-            if (CodeAnalysisEngineService.DW(this.j6) != null) {
+            if (CodeAnalysisEngineService.getEngineListener(this.j6) != null) {
                 try {
-                    CodeAnalysisEngineService.DW(this.j6).oa();
+                    CodeAnalysisEngineService.getEngineListener(this.j6).oa();
                 } catch (Exception e) {
                     AppLog.v5(e);
                 }

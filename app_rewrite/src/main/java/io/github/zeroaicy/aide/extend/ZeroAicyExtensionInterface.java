@@ -15,6 +15,19 @@ import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import java.util.List;
+import com.aide.codemodel.api.Model;
+import java.util.ArrayList;
+import com.aide.codemodel.api.abstraction.CodeModel;
+import com.aide.codemodel.language.smali.SmaliCodeModel;
+import androidx.annotation.Keep;
+import com.aide.ui.project.internal.GradleTools;
+import com.aide.ui.util.FileSystem;
+import com.aide.ui.ServiceContainer;
+import com.aide.ui.util.BuildGradle.Dependency;
+import android.text.TextUtils;
+import io.github.zeroaicy.util.Log;
+import java.util.Collections;
 
 /**
  * 1.aapt2
@@ -22,12 +35,20 @@ import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
  * 3.d8[打包流程]
  * 
  */
- 
+
 /**
  * AIDE+底包的修改点都将调用此类
  * 优点是可以随时更换实现
  */
 public class ZeroAicyExtensionInterface {
+	// 预扩展
+	public static void createCodeModels(Model model, List<String> codeModelNames, List<CodeModel> codeModels) {
+		// AIDE是根据 codeModelNames来选择是否添加 CodeModel
+		// codeModelNames开源之一 ServiceContainer.Hw()
+		// 但我不遵守😕😕😕，即表示所有项目都会支持添加的CodeModel
+		//codeModels.add(new SmaliCodeModel(model))
+	}
+
 	//扩展接口
 
 	/**
@@ -44,50 +65,99 @@ public class ZeroAicyExtensionInterface {
 	}
 
 	//替换ClassFilePreProcessor实现
+	@Keep
 	public static ClassFilePreProcessor getClassFilePreProcessor() {
 		return ZeroAicyClassFilePreProcessor.getSingleton();
 	}
 	//拦截类默认接口方法
+	@Keep
 	public static boolean isDefaultMethod(String methodSignature) {
 		return ZeroAicyClassFilePreProcessor.isDefaultMethod(methodSignature);
 	}
-	
+
 	//替换默认安装，true则拦截，false则不拦截
+	@Keep
 	public static boolean instalApp(final String apkFilePath) {
 		return DistributeEvents.instalApp(apkFilePath);
 	}
+
 	//在Java项目中解除android.jar限制
+	@Keep
 	public static boolean isEnableAndroidApi() {
 		return ZeroAicySetting.isEnableAndroidApi();
 	}
-	public static boolean isEnableADRT(){
+
+	@Keep
+	public static boolean isEnableADRT() {
 		return ZeroAicySetting.enableADRT();
 	}
 	/*
-	* 控制台是否启用分屏
-	*/
-	public static boolean isEnableSplitScreenConsole(){
+	 * 控制台是否启用分屏
+	 */
+	@Keep
+	public static boolean isEnableSplitScreenConsole() {
 		return false;
 	}
 	/**
 	 * 修改maven默认下载路径
 	 */
-	 public static String getUserM2Repositories(){
-		 return ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
-	 }
-	 
+	@Keep
+	public static String getUserM2Repositories() {
+		return ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
+	}
+
 	/**
 	 * 替换BuildGradle解析实现
 	 */
-	public static BuildGradle getBuildGradle(){
+	@Keep
+	public static BuildGradle getBuildGradle() {
 		return ZeroAicyBuildGradle.getSingleton();
 	}
-	
-	public static ProjectService getProjectService(){
+
+	@Keep
+	public static ProjectService getProjectService() {
 		return ZeroAicyProjectService.getSingleton();
 	}
-	public static abcd.mf getTrainerService(){
+
+	/**
+	 * 优化冷启动
+	 */
+	@Keep
+	public static abcd.mf getTrainerService() {
 		return ZeroAicyTrainerService.getSingleton();
 	}
-	
+
+	/**
+	 * 实现渠道包添加额外依赖
+	 * configuration.dependencies -> getFlavorDependencies
+	 */
+	public static List<BuildGradle.Dependency> getFlavorDependencies(BuildGradle buildGradle) {
+		if( buildGradle == null ){
+			return Collections.emptyList();
+		}
+		
+		List<BuildGradle.Dependency> defaultDependencies = buildGradle.dependencies;
+		if (!(buildGradle instanceof ZeroAicyBuildGradle)) {
+			return defaultDependencies;
+		}
+
+		// 渠道包
+		String buildVariant = ServiceContainer.getProjectService().getBuildVariant();
+		
+		//Log.d("getFlavorDependencies", "buildVariant", buildVariant);
+		if (TextUtils.isEmpty(buildVariant)) {
+			return defaultDependencies;
+		}
+		
+		List<BuildGradle.Dependency> flavorDependencies = ((ZeroAicyBuildGradle)buildGradle).getFlavorDependencies(buildVariant);
+		if( flavorDependencies.isEmpty()){
+			return defaultDependencies;			
+		}
+		// 合并 flavorDependencies与defaultDependencies
+		List<BuildGradle.Dependency> dependencies = new ArrayList<BuildGradle.Dependency>();
+		dependencies.addAll(flavorDependencies);
+		dependencies.addAll(defaultDependencies);
+
+		return dependencies;
+	}
 }

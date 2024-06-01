@@ -5,7 +5,7 @@ package abcd;
 
 import com.aide.common.MessageBox;
 import com.aide.common.ValueRunnable;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.util.FileSystem;
 import java.io.File;
@@ -22,14 +22,14 @@ public class be {
 
     public static void DW(final String dirPath, final ValueRunnable<String> valueRunnable) {
 		if (Zo(dirPath)) {
-			MessageBox.XL(App.getMainActivity(), 0x7f0d0021, 0x7f0d05ca, "", new ValueRunnable<String>(){
+			MessageBox.XL(ServiceContainer.getMainActivity(), 0x7f0d0021, 0x7f0d05ca, "", new ValueRunnable<String>(){
 					@Override
 					public void j6(String name) {
 						if (name.endsWith(".java")) {
 							name = name.substring(0, name.length() - 5);
 						}
 						String javaPath = dirPath + File.separator + name + ".java";
-						String Ev = AndroidProjectSupport.Ev(App.getProjectService().BT(), App.getProjectService().getBuildVariant(), dirPath);
+						String Ev = AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath);
 						String content = "";
 						if (Ev.length() > 0) {
 							content = "package " + Ev + ";\n\n";
@@ -39,7 +39,7 @@ public class be {
 					}
 				});
 		} else if (v5(dirPath)) {
-			MessageBox.XL(App.getMainActivity(), 0x7f0d0022, 0x7f0d05ca, "", new ValueRunnable<String>(){
+			MessageBox.XL(ServiceContainer.getMainActivity(), 0x7f0d0022, 0x7f0d05ca, "", new ValueRunnable<String>(){
 					@Override
 					public void j6(String name) {
 						if (name.endsWith(".xml")) {
@@ -76,7 +76,7 @@ public class be {
 		}
 		
 		
-		String currentAppHome = App.getProjectService().getCurrentAppHome();
+		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 		if (dirPath.startsWith(FileSystem.getParent(currentAppHome)) && dirPath.contains("/java/")) {
 			return 0x7f0d0021;
 		}
@@ -94,7 +94,7 @@ public class be {
 	 * is
 	 */
     private static boolean Zo(String dirPath) {
-		return AndroidProjectSupport.Ev(App.getProjectService().BT(), App.getProjectService().getBuildVariant(), dirPath) != null;
+		return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
     }
 
     public static boolean j6(String dirPath) {
@@ -110,7 +110,7 @@ public class be {
 	 */
 	private static boolean ZeroAicy(String dirPath) {
 
-		String currentAppHome = App.getProjectService().getCurrentAppHome();
+		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 		if (!dirPath.startsWith(FileSystem.getParent(currentAppHome))) {
 			return false;
 		}
@@ -125,7 +125,7 @@ public class be {
 
     private static boolean v5(String str) {
 		if (FileSystem.Ws(str, "res") != null) {
-			if (FileSystem.nw(App.getProjectService().getCurrentAppHome(), str)) {
+			if (FileSystem.nw(ServiceContainer.getProjectService().getCurrentAppHome(), str)) {
 				return true;
 			}
 		}

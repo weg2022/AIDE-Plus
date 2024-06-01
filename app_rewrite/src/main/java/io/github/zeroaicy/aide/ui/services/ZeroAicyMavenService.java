@@ -2,7 +2,7 @@ package io.github.zeroaicy.aide.ui.services;
 
 import androidx.annotation.Keep;
 import com.aide.common.AppLog;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
@@ -152,7 +152,7 @@ public class ZeroAicyMavenService {
 	// 刷新maven缓存
     public void refreshMavenCache() {
         try {
-            App.sy(App.gn(), "Refreshing...", new Runnable(){
+            ServiceContainer.sy(ServiceContainer.gn(), "Refreshing...", new Runnable(){
 					@Override
 					public void run() {
 						//重置依赖缓存映射
@@ -163,7 +163,7 @@ public class ZeroAicyMavenService {
 				}, new Runnable(){
 					@Override
 					public void run() {
-						App.getProjectService().CU();
+						ServiceContainer.getProjectService().reloadingProject();
 					}
 				});
         }

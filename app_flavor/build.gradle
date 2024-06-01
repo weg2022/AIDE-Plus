@@ -9,16 +9,35 @@ android {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
-        versionName "2.1.1.8-[3.2.210316]"
+        versionName "2.2.0.0-[3.2.210316]"
     }
 	
     productFlavors {
 		
 		"AIDE+" {
 			applicationId "io.github.zeroaicy.aide"
+			
+			dependencies {
+				/*
+				//引入卡顿监控实现依赖库
+				api 'io.github.knight-zxw:blockcanary:+'
+				//引入卡顿消息通知及相关展示UI
+				api 'io.github.knight-zxw:blockcanary-ui:+'
+				api "androidx.lifecycle:lifecycle-livedata:2.3.1"
+				//*/
+			}
 		}
 		"AIDE+1" {
 			applicationId "io.github.zeroaicy.aide1"
+			dependencies {
+				//*
+				//引入卡顿监控实现依赖库
+				api 'io.github.knight-zxw:blockcanary:+'
+				//引入卡顿消息通知及相关展示UI
+				api 'io.github.knight-zxw:blockcanary-ui:+'
+				api "androidx.lifecycle:lifecycle-livedata:2.3.1"
+				//*/
+			}
 		}
 		"AIDE+2" {
 			applicationId "io.github.zeroaicy.aide2"
@@ -57,29 +76,5 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 	
 	api project(':app_rewrite')
-	//*
-	//引入卡顿监控实现依赖库
-    api 'io.github.knight-zxw:blockcanary:+'
-    //引入卡顿消息通知及相关展示UI
-    api 'io.github.knight-zxw:blockcanary-ui:+'
-	api "androidx.lifecycle:lifecycle-livedata:2.3.1"
-	//*/
-	/*
-	//统一lifecycle版本
-	api "androidx.lifecycle:lifecycle-common:2.6.0"
-	api "androidx.lifecycle:lifecycle-livedata:2.6.0"
-	api "androidx.lifecycle:lifecycle-livedata-core:2.6.0"
-	api "androidx.lifecycle:lifecycle-livedata-core-ktx:2.6.0"
-	api "androidx.lifecycle:lifecycle-process:2.6.0"
-	api "androidx.lifecycle:lifecycle-runtime:2.6.0"
-	api "androidx.lifecycle:lifecycle-runtime-ktx:2.6.0"
-	api "androidx.lifecycle:lifecycle-viewmodel:2.6.0"
-	api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0"
-	api "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.0"
-	//统一kotlin-stdlib版本
-	api 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0'
-	api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0'
-	//*/
-	
 	
 }

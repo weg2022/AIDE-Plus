@@ -3,11 +3,11 @@ package io.github.zeroaicy;
 
 import android.content.pm.ApplicationInfo;
 import android.os.StrictMode;
-import android.os.strictmode.Violation;
 import com.aide.ui.AIDEApplication;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
+import io.github.zeroaicy.aide.utils.Logger;
 import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.DebugUtil;
@@ -17,11 +17,6 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import io.github.zeroaicy.aide.utils.Logger;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -29,14 +24,18 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();
+	
 	static{
+		
 		// 防止各种闪退，默认写入在数据目录2.
 		DebugUtil.debug();
 	}
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
+		
+		
 		// 更改日志路径
 		DebugUtil.debug(this);
 
@@ -64,14 +63,15 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		JksKeyStore.initBouncyCastleProvider();
 
 		// 防止App的context为null
-		App.sh(this);
+		ServiceContainer.sh(this);
 
 		// Return if this application is not in debug mode 
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 		
-		if (false) {
+		if ("io.github.zeroaicy.aide19999".equals(getPackageName())) {
 			method2();
 		}
+		
 	}
 
 	// 共存版发送logcat log
@@ -81,10 +81,13 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 				// 
 				Logger.onContext(this, "io.github.zeroaicy.aide1");	
 			} else {
-				Logger.onContext(this, getPackageName());	
+				Logger.onContext(this, "io.github.zeroaicy.aide");	
 			}
 			// 附加AndroidLog
-			Logger.getLogger().start();
+			Logger logger = Logger.getLogger();
+			// 会向ZeroAicyLog打印
+			logger.addDefaultLogListener();
+			logger.start();
 		}
 
 		StrictMode.setThreadPolicy(

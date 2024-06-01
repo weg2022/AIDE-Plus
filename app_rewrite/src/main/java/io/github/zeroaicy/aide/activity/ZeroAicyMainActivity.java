@@ -29,7 +29,7 @@ import androidx.legacy.app.ActionBarDrawerToggle;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
 import com.aide.common.MessageBox;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
 import com.aide.ui.PromoNotificationAlarmReceiver;
@@ -58,10 +58,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
-	private static final String TAG = "ZeroAicyMainActivity";
+	private static final String TAG = "ZeroAicyMainActivity";;
+	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -76,7 +78,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 	private boolean enableActionDrawerLayout() {
-		return !App.isTrainerMode() 
+		return !ServiceContainer.isTrainerMode() 
 			&& ZeroAicySetting.enableActionDrawerLayout();
 	}
 
@@ -86,7 +88,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	@Override
 	public void DW() {
 		if (!ExecutorsService.isUiThread()) {
-			App.aj(new Runnable(){
+			ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {
 						super_DW();
@@ -261,9 +263,9 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 	@Override
 	public void setHasEmbeddedTabs() {
-		//App.Mz() && AndroidHelper.u7(this) <= 610.0f
+		//ServiceContainer.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
-						 || (App.isTrainerMode() && AndroidHelper.u7(this) <= 610.0f));
+						 || (ServiceContainer.isTrainerMode() && AndroidHelper.u7(this) <= 610.0f));
 		//绑定监听器
 		AndroidHelper.nw(this);
 	}
@@ -296,7 +298,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 	@Override
 	public void FH(boolean z) {
-		App.DW().u7(!z);
+		ServiceContainer.DW().u7(!z);
 		q7();
 		if (z) {
             boolean isLandscape = isLandscape();
@@ -347,7 +349,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 					return;
 				}
 				catch (ActivityNotFoundException unused) {
-					Context VH = App.getContext();
+					Context VH = ServiceContainer.getContext();
 					Toast.makeText(VH, "No handler found for type " + mimeTypeFromExtension, 0).show();
 					return;
 				}
@@ -359,7 +361,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 			return;
 		}
 		aq(new FileSpan(str, 1, 1, 1, 1));
-		App.getProjectService().VH(str);
+		ServiceContainer.getProjectService().VH(str);
 
     }
 
@@ -420,7 +422,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 						Intent launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
 						if (launchIntentForPackage == null) {
-							com.aide.common.MessageBox.BT(App.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
+							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
 							return true;
 						}
 
@@ -430,7 +432,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 						launchIntentForPackage.putExtra(work_dir_extra, gradleProjectRootDir.getAbsolutePath());
 						if (cmdline.contains("gradle")) {
 							if (!hasGradlew(currentAppHome)) {
-								com.aide.common.MessageBox.BT(App.getMainActivity(), "不是Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
+								com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "不是Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
 								return true;
 							}
 							launchIntentForPackage.putExtra(gradle_cmd_line_extra, cmdline);
@@ -459,7 +461,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		RepairBUG1(menu);
-		if (!com.aide.ui.App.isTrainerMode()) {
+		if (!com.aide.ui.ServiceContainer.isTrainerMode()) {
 			RepairBUG2(menu);
 		}
 		return super.onPrepareOptionsMenu(menu);
@@ -567,7 +569,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (AndroidHelper.er()) {
 			tv.ouya.console.api.e.v5().Zo(this, "9b57b7e2-2fa3-44db-9131-04b76a1f491c");
 		}
-		App.sh(this);
+		ServiceContainer.sh(this);
 		AndroidHelper.v5(this);
 
 		boolean z = true;
@@ -575,7 +577,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		that.set("e3", new Handler()); // this.e3 = new Handler();
 		that.set("n5", AppPreferences.yS(this));//this.n5 = AppPreferences.yS(this);
 
-		AndroidHelper.cn(this, App.U2());
+		AndroidHelper.cn(this, ServiceContainer.U2());
 		if (!FireBaseLogEvent.gn()) {
 			abcd.b0 mainActivity$q = ReflectPie.onClass("com.aide.ui.MainActivity$q").create(this).get();
 			FireBaseLogEvent.Zo(this, mainActivity$q);
@@ -583,14 +585,14 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 		ThemedActionbarActivity.onCreate2((ThemedActionbarActivity)(Object)this, bundle);
 
-		if (!App.isTrainerMode() && !((Boolean)that.call("pN").get())) {
+		if (!ServiceContainer.isTrainerMode() && !((Boolean)that.call("pN").get())) {
 			getWindow().requestFeature(9);
 		}
 		String str = null;
 		if (getIntent() != null && getIntent().getData() != null) {
 			str = getIntent().getData().getPath();
 		}
-		App.cb(this, str);
+		ServiceContainer.cb(this, str);
 		that.set("sg", ReflectPie.onClass("com.aide.ui.QuickActionMenu").create(this, 0x7f0b0005).get()); //this.sg = new QuickActionMenu(this, 0x7f0b0005);
 		that.set("fY", ReflectPie.onClass("com.aide.common.KeyStrokeDetector").create(this).get()); //this.fY = new KeyStrokeDetector(this);
 		AppPreferences.cb(this, this);
@@ -598,29 +600,29 @@ public class ZeroAicyMainActivity extends MainActivity {
 		setContentView(0x7f0a0026);// R.layout.main
 
 		AndroidHelper.gW(this);
-		if (!App.isTrainerMode()) {
+		if (!ServiceContainer.isTrainerMode()) {
 			AndroidHelper.KD(findViewById(0x7f0800f3));
 		}
 		that.set("pO", ReflectPie.onClass("com.aide.ui.QuickKeysBar").create(this).get()); //this.pO = new QuickKeysBar(this);
 		that.call("iW");
 		com.aide.ui.m mVar = new com.aide.ui.m(this, 0x7f0800f4);
 		that.set("cT", mVar); //this.cT = mVar;
-		mVar.FH(App.isTrainerMode());
+		mVar.FH(ServiceContainer.isTrainerMode());
 
 		android.view.View.OnClickListener get = ReflectPie.onClass("com.aide.ui.MainActivity$r").create(this).get();
 		mVar.DW(get);
 
-		br().setSwipeEnabled(!App.isTrainerMode() && AppPreferences.we());
+		br().setSwipeEnabled(!ServiceContainer.isTrainerMode() && AppPreferences.we());
 		com.aide.ui.views.SplitView.OnSplitChangeListener get2 = ReflectPie.onClass("com.aide.ui.MainActivity$s").create(this).get();
 		br().setOnSplitChangeListener(get2);
 		findViewById(0x7f08011e).setOnClickListener((android.view.View.OnClickListener)ReflectPie.onClass("com.aide.ui.MainActivity$t").create(this).get());
-		if (App.isTrainerMode()) {
+		if (ServiceContainer.isTrainerMode()) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 			getActionBar().setDisplayShowHomeEnabled(true);
 		} else if ((Boolean)that.call("pN").get()) {
 			getActionBar().setDisplayShowTitleEnabled(false);
 			getActionBar().setNavigationMode(2);
-			if (!AndroidHelper.lg(this) && App.ro().dx()) {
+			if (!AndroidHelper.lg(this) && ServiceContainer.ro().dx()) {
 				getActionBar().setDisplayHomeAsUpEnabled(true);
 			}
 			getActionBar().setDisplayShowHomeEnabled(true);
@@ -631,20 +633,20 @@ public class ZeroAicyMainActivity extends MainActivity {
 			findViewById(0x7f0800ed).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.ActionBarNoTabs").create(this).get());
 			findViewById(0x7f080121).setBackgroundDrawable((Drawable)ReflectPie.onClass("com.aide.ui.SearchBarNoTabs").create(this).get());
 		}
-		if (App.isTrainerMode()) {
+		if (ServiceContainer.isTrainerMode()) {
 			com.aide.ui.build.BuildService.BuildListener get3 = ReflectPie.onClass("com.aide.ui.MainActivity$u").create(this).get();
-			App.Zo().FH(get3);
+			ServiceContainer.Zo().FH(get3);
 		}
-		if (App.isTrainerMode() && AndroidHelper.U2(this)) {
+		if (ServiceContainer.isTrainerMode() && AndroidHelper.U2(this)) {
 			getActionBar().hide();
 		}
-		App.getOpenFileService().yS(str);
-		if (!App.P8.equals("com.aide.web")) {
+		ServiceContainer.getOpenFileService().yS(str);
+		if (!ServiceContainer.P8.equals("com.aide.web")) {
 			g3().Ws();
 			cn().Hw();
 		}
-		App.aM().VH(sh().getCurrentFileSpan());
-		App.J0().u7(this);
+		ServiceContainer.getNavigateService().VH(sh().getCurrentFileSpan());
+		ServiceContainer.J0().u7(this);
 		sh().setSoftKeyboardListener(this);
 		setHasEmbeddedTabs();
 		q7();
@@ -658,18 +660,18 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false)) {
 			FireBaseLogEvent.tp("Shown from promo notification");
 		}
-		if (!App.I() && !App.isTrainerMode() && App.getProjectService().I()) {
-			App.j6(false);
+		if (!ServiceContainer.I() && !ServiceContainer.isTrainerMode() && ServiceContainer.getProjectService().isOpenProject()) {
+			ServiceContainer.j6(false);
 		}
-		if (com.aide.ui.n.EQ() && !App.a8().QX() && !App.a8().Ws() && !App.a8().g3() && ((App.isTrainerMode() || !App.I()) && new GregorianCalendar().before(com.aide.ui.n.FH()))) {
-			PromoNotificationAlarmReceiver.FH(App.getContext(), com.aide.ui.n.FH().getTimeInMillis(), that.call("nw", this).get(), "20% off special offer", "Special offer", "Save 20% on an annual subscription");
+		if (com.aide.ui.n.EQ() && !ServiceContainer.getLicenseService().QX() && !ServiceContainer.getLicenseService().Ws() && !ServiceContainer.getLicenseService().g3() && ((ServiceContainer.isTrainerMode() || !ServiceContainer.I()) && new GregorianCalendar().before(com.aide.ui.n.FH()))) {
+			PromoNotificationAlarmReceiver.FH(ServiceContainer.getContext(), com.aide.ui.n.FH().getTimeInMillis(), that.call("nw", this).get(), "20% off special offer", "Special offer", "Save 20% on an annual subscription");
 		} else {
-			PromoNotificationAlarmReceiver.DW(App.getContext());
+			PromoNotificationAlarmReceiver.DW(ServiceContainer.getContext());
 		}
 		if (AndroidHelper.er() && !tv.ouya.console.api.e.v5().gn()) {
 			MessageBox.SI(this, "AIDE for OUYA", "This version of AIDE is only intended to run on the OUYA. Contact info@appfour.com for details.", false, (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$v").create(this).get(), (Runnable)ReflectPie.onClass("com.aide.ui.MainActivity$a").create(this).get());
-		} else if (App.isTrainerMode()) {
-			App.ro().aq();
+		} else if (ServiceContainer.isTrainerMode()) {
+			ServiceContainer.ro().aq();
 			if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
 				TrainerCourseActivity.rN(this);
 			} else {
@@ -681,11 +683,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 				z = false;
 			}
 			if (!z) {
-				if (App.getOpenFileService().j3()) {
-					App.EQ().g3(App.getOpenFileService().u7());
+				if (ServiceContainer.getOpenFileService().j3()) {
+					ServiceContainer.EQ().g3(ServiceContainer.getOpenFileService().u7());
 				}
-				if (App.getProjectService().I()) {
-					App.EQ().ca(App.getProjectService().P8());
+				if (ServiceContainer.getProjectService().isOpenProject()) {
+					ServiceContainer.EQ().ca(ServiceContainer.getProjectService().P8());
 				}
 				that.call("gW");
 				that.call("Mr");
@@ -695,7 +697,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_UPDATE_TRAINER_NOTIFICATION", false)) {
 					TrainerCourseActivity.rN(this);
 					return;
-				} else if (App.P8.equals("com.aide.ui") && getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) && !App.isTrainerMode()) {
+				} else if (ServiceContainer.P8.equals("com.aide.ui") && getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_PROMO_NOTIFICATION", false) && !ServiceContainer.isTrainerMode()) {
 					y.XL(this);
 					return;
 				} else if (getIntent() != null && getIntent().getBooleanExtra("EXTRA_SHOWN_FROM_GCM_NOTIFICATION", false) && getIntent().hasExtra("EXTRA_GCM_NOTIFICATION_IAP_PRODUCT_ID")) {

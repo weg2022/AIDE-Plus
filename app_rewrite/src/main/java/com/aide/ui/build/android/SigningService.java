@@ -1,11 +1,9 @@
 package com.aide.ui.build.android;
 
 import abcd.ed;
-import android.app.Activity;
 import androidx.annotation.Keep;
 import com.aide.common.MessageBox;
 import com.aide.common.ValueRunnable;
-import com.aide.ui.App;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
 import com.aide.ui.util.BuildGradle;
@@ -26,6 +24,8 @@ import java.util.Collections;
 import java.util.Date;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import com.aide.ui.ServiceContainer;
+import android.app.Activity;
 
 public class SigningService {
 
@@ -142,7 +142,7 @@ public class SigningService {
 			throw new Exception("no alias");
 		}
 		catch (Throwable unused) {
-			MessageBox.BT(App.getMainActivity(), "Build Error", "Invalid keystore credentials!");
+			MessageBox.BT(ServiceContainer.getMainActivity(), "Build Error", "Invalid keystore credentials!");
 		}
     }
 
@@ -159,17 +159,17 @@ public class SigningService {
 			if (list.size() == 1) {
 				gn(keystorePath, str2, list.get(0), signingRunnable);
 			} else {
-				MessageBox.VH(App.getMainActivity(), "Select keystore alias", list, new b(this, keystorePath, str2, signingRunnable));
+				MessageBox.VH(ServiceContainer.getMainActivity(), "Select keystore alias", list, new b(this, keystorePath, str2, signingRunnable));
 			}
 		}
 		catch (Throwable unused) {
-			MessageBox.BT(App.getMainActivity(), "Build Error", "Invalid keystore credentials!");
+			MessageBox.BT(ServiceContainer.getMainActivity(), "Build Error", "Invalid keystore credentials!");
 		}
     }
 
     private void gn(String str, String str2, String str3, SigningRunnable signingRunnable) {
         try {
-            MainActivity mainActivity = App.getMainActivity();
+            MainActivity mainActivity = ServiceContainer.getMainActivity();
             MessageBox.J8(mainActivity, (String) null, "Enter password for keystore alias '" + str3 + "':", new c(this, str, str2, str3, signingRunnable));
         }
 		catch (Throwable th) {
@@ -314,7 +314,7 @@ public class SigningService {
 			}
 			String message = "can not read keystore\n";
 			message += "Failed to open signingConfig from build.gradle. Use alternative signing?\n";
-			MessageBox.rN(App.getMainActivity(), "Build Error", message, new a(this, storePath, runnable), (Runnable) null);
+			MessageBox.rN(ServiceContainer.getMainActivity(), "Build Error", message, new a(this, storePath, runnable), (Runnable) null);
 
 		}
 		catch (Throwable unused) {
@@ -324,7 +324,7 @@ public class SigningService {
 					message = "签名文件配置错误\n" + message;
 				}
 			}
-			MessageBox.rN(App.getMainActivity(), "Build Error", message, new a(this, storePath, runnable), (Runnable) null);
+			MessageBox.rN(ServiceContainer.getMainActivity(), "Build Error", message, new a(this, storePath, runnable), (Runnable) null);
 			return;
 		}
 
@@ -373,7 +373,7 @@ public class SigningService {
 			}
 			if (!FileSystem.isFileAndNotZip(keyStoreFilePath)) {
 
-				MainActivity mainActivity = App.getMainActivity();
+				MainActivity mainActivity = ServiceContainer.getMainActivity();
 				MessageBox.BT(mainActivity, "Build Error", "Keystore file " + keyStoreFilePath + " does not exist!");
 				return;
 			}
@@ -389,7 +389,7 @@ public class SigningService {
 				throw new Exception("no androiddebugkey");
 			}
 			catch (Exception unused) {
-				if (App.a8().VH(App.gn(), "custom_keystore")) {
+				if (ServiceContainer.getLicenseService().VH(ServiceContainer.gn(), "custom_keystore")) {
 					VH(keyStoreFilePath, "", signingRunnable);
 					return;
 				}

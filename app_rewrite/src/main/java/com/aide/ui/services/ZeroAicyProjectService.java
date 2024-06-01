@@ -2,8 +2,9 @@ package com.aide.ui.services;
 
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
+import android.widget.Toast;
 import com.aide.engine.EngineSolution;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.firebase.FireBaseLogEvent;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.project.internal.GradleTools;
@@ -18,10 +19,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import android.widget.Toast;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import com.aide.ui.util.BuildGradle.MavenDependency;
 
 public class ZeroAicyProjectService extends ProjectService {
 
@@ -37,17 +37,17 @@ public class ZeroAicyProjectService extends ProjectService {
 		return singleton;
 	}
 
-	public boolean replaced;
 	public ZeroAicyProjectService() {
 		super();
 
 		synchronized (this) {
-			this.FH = new ConcurrentHashMap<>();
+			this.libraryMapping = new ConcurrentHashMap<>();
+
 			this.Hw = new Vector<String>();
 
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
-			App.getDebugger();
+			ServiceContainer.getDebugger();
 		}
 	}
 
@@ -64,14 +64,14 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	protected void jJ() {
 		// 空项目
-		if (this.j6 == null 
-			|| this.DW == null) {
+		if (this.currentAppHome == null 
+			|| this.pojectSupport == null) {
 			List emptyList = Collections.emptyList();
-			final EngineSolution engineSolution = new EngineSolution(emptyList, null, com.aide.engine.service.l.j6(App.Hw()), App.Hw());
+			final EngineSolution engineSolution = new EngineSolution(emptyList, null, com.aide.engine.service.CodeModelFactory.j6(ServiceContainer.Hw()), ServiceContainer.Hw());
             if (ExecutorsService.isUiThread()) {
-                App.we().er(engineSolution);
-                App.we().ef();
-                App.we().ei();
+                ServiceContainer.getEngineService().er(engineSolution);
+                ServiceContainer.getEngineService().ef();
+                ServiceContainer.getEngineService().ei();
                 return;
             }
             sendEngineSolution(engineSolution);
@@ -85,26 +85,26 @@ public class ZeroAicyProjectService extends ProjectService {
 					// 同步集合只能保证本身的操作是同步的，
 					// 但是它所属的代码块不是同步的话，
 					// 多线程情况下也会出问题
-					
+
 					// 如果集合正在遍历，这时又有写入操作就会触发并发错误
 					// 如上所述，并发集合仅是集合自己的操作是有锁
 					// 但是集合的遍历器不是
 					// 防止并发错误
-					synchronized(yS()){
-						ProjectSupport dW = ZeroAicyProjectService.this.DW;
-						final EngineSolution engineSolution = dW.Ws();
+					synchronized (yS()) {
+						ProjectSupport dW = ZeroAicyProjectService.this.pojectSupport;
+						final EngineSolution engineSolution = dW.makeEngineSolution();
 						sendEngineSolution(engineSolution);
 					}
 				}
 			});
 	}
 	private void sendEngineSolution(final EngineSolution engineSolution) {
-		App.aj(new Runnable(){
+		ServiceContainer.aj(new Runnable(){
 				@Override
 				public void run() {
-					App.we().er(engineSolution);
-					App.we().ef();
-					App.we().ei();
+					ServiceContainer.getEngineService().er(engineSolution);
+					ServiceContainer.getEngineService().ef();
+					ServiceContainer.getEngineService().ei();
 				}
 			});
 	}
@@ -112,10 +112,10 @@ public class ZeroAicyProjectService extends ProjectService {
 	/*****************************************************************/
 
 	@Override
-	public void cb(final String string) {
+	public void openProject(final String string) {
 		try {
 
-			final ProgressDialog show = ProgressDialog.show(App.getMainActivity(), null, "Opening project...", true, false);
+			final ProgressDialog show = ProgressDialog.show(ServiceContainer.getMainActivity(), null, "Opening project...", true, false);
 			show.getWindow().addFlags(128);
 			show.getWindow().clearFlags(2);
 
@@ -129,12 +129,12 @@ public class ZeroAicyProjectService extends ProjectService {
 					@Override
 					public void run() {
 						try {
-							super_cb(string);
+							super_openProject(string);
 						}
 						catch (Throwable e) {
 							Log.e(" run", "super_cb", e);
 						}
-						App.aj(dismissRunnable);
+						ServiceContainer.aj(dismissRunnable);
 					}
 				});
 
@@ -144,36 +144,32 @@ public class ZeroAicyProjectService extends ProjectService {
 			e.printStackTrace();
 		}
 	}
-	/*/
-	 @Override
-	 public void cb(final String string) {
-	 super_cb(string);
-	 }//*/
-	public void super_cb(String str) {
-		SharedPreferences sharedPreferences = App.getContext().getSharedPreferences("ProjectService", 0);
-		if (!App.isTrainerMode() 
-			&& App.getMainActivity().checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE")) {
+
+	public void super_openProject(String str) {
+		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0);
+		if (!ServiceContainer.isTrainerMode() 
+			&& ServiceContainer.getMainActivity().checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE")) {
 			if (str != null) {
 				FireBaseLogEvent.tp("App init: From intent");
 				saveCurrentAppHome(SI(str));
 			} else {
 				String string = sharedPreferences.getString("CurrentAppHome", null);
-				this.j6 = string;
+				this.currentAppHome = string;
 				if (string != null && getProjectSupport(string) == null) {
-					this.j6 = null;
+					this.currentAppHome = null;
 				}
 			}
 		}
 
-		this.DW = getProjectSupport(this.j6);
+		this.pojectSupport = getProjectSupport(this.currentAppHome);
 
-		Qq();
+		init();
 
-		if (ZeroAicyProjectService.this.DW != null) {
+		if (ZeroAicyProjectService.this.pojectSupport != null) {
 
-			App.getDebugger().P8(ZeroAicyProjectService.this.DW.yS(), true);
+			ServiceContainer.getDebugger().P8(ZeroAicyProjectService.this.pojectSupport.yS(), true);
 		}
-		if (ZeroAicyProjectService.this.j6 != null) {
+		if (ZeroAicyProjectService.this.currentAppHome != null) {
 			FireBaseLogEvent.tp("App init: Opened existing project");
 			et(null, false);
 			sy("init");
@@ -184,25 +180,25 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	/*****************************************************************/
 	@Override
-	protected void Qq() {
+	protected void init() {
 		if (!ExecutorsService.isUiThread()) {
-			super_Qq();
+			super_init();
 			return;
 		}
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_Qq();
+					super_init();
 				}
 			});
 	}
 
-	protected void super_Qq() {
+	protected void super_init() {
 		this.Hw.clear();
-		this.FH.clear();
+		this.libraryMapping.clear();
 
-		if (this.j6 != null) {
-			this.DW.U2(this.j6, this.FH, this.Hw);
+		if (this.currentAppHome != null) {
+			this.pojectSupport.U2(this.currentAppHome, this.libraryMapping, this.Hw);
 		}
 	}
 
@@ -210,8 +206,8 @@ public class ZeroAicyProjectService extends ProjectService {
 	/*****************************************************************/
 
 	protected void super_et(List<String> list, boolean p) {
-		if (this.DW != null) {
-			this.DW.cn(list, p);
+		if (this.pojectSupport != null) {
+			this.pojectSupport.cn(list, p);
 		}
 	}
 	@Override
@@ -232,17 +228,17 @@ public class ZeroAicyProjectService extends ProjectService {
 	/*****************************************************************/
 	public void Ws() {
         try {
-            if (this.j6 != null) {
+            if (this.currentAppHome != null) {
 				saveCurrentAppHome(null);
-                App.J0().aM();
-                App.aM().Hw();
-                App.getOpenFileService().Zo();
+                ServiceContainer.J0().aM();
+                ServiceContainer.getNavigateService().Hw();
+                ServiceContainer.getOpenFileService().Zo();
                 this.Hw.clear();
 				//this.FH = new HashMap<>();
-				this.FH.clear();
+				this.libraryMapping.clear();
 
-                App.getDebugger().v5();
-                App.getMainActivity().q7();
+                ServiceContainer.getDebugger().v5();
+                ServiceContainer.getMainActivity().q7();
 
                 jJ();
             }
@@ -267,73 +263,77 @@ public class ZeroAicyProjectService extends ProjectService {
 	}
 
 	private void super_wc() {
-		if (this.j6 != null && getProjectSupport(this.j6) == null) {
+		if (this.currentAppHome != null && getProjectSupport(this.currentAppHome) == null) {
 			Ws();
 		}
-		if (this.j6 != null) {
-			Qq();
+		if (this.currentAppHome != null) {
+			init();
 		}
 		jJ();
 	}
 
 	/*****************************************************************/
 
-	public void super_CU() {
-		if (this.j6 != null 
-			&& getProjectSupport(this.j6) == null) {
+	public void super_reloadingProject() {
+		if (this.currentAppHome != null 
+			&& getProjectSupport(this.currentAppHome) == null) {
 			Ws();
 		}
-		App.getDebugger().ef();
-		if (this.j6 != null) {
-			App.aj(new Runnable(){
+		ServiceContainer.getDebugger().ef();
+		if (this.currentAppHome != null) {
+			ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {
-						App.sy(App.getMainActivity(), "Reloading project...", new e(), new f());
+						ServiceContainer.sy(ServiceContainer.getMainActivity(), "Reloading project...", new e(), new f());
 					}
 				});
 		} else {
-			Qq();
+			init();
 			jJ();
 		}
 
 	}
 	@Override
-	public void CU() {
+	public void reloadingProject() {
 
 		if (!ExecutorsService.isUiThread()) {
-			super_CU();
+			super_reloadingProject();
 			return;
 		}
 
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_CU();
+					super_reloadingProject();
 				}
 			});
 	}
 	/*****************************************************************/
 
 	/*****************************************************************/
-	public List<BuildGradle.MavenDependency> qp() {
-		ArrayList<BuildGradle.MavenDependency> arrayList = new ArrayList<>();
-		for (String str : App.getProjectService().BT().keySet()) {
-			if (GradleTools.isGradleProject(str)) {
-				for (BuildGradle.Dependency mavenDependency : k2(str)) {
-					if (mavenDependency instanceof BuildGradle.MavenDependency) {
-						Iterator it = App.getMavenService().er(getFlatRepositoryPathMap(str), ((BuildGradle.MavenDependency)mavenDependency)).iterator();
-						while (it.hasNext()) {
-							arrayList.add((BuildGradle.MavenDependency) it.next());
-						}
+	/**
+	 * return not download maven
+	 */
+	public static List<BuildGradle.MavenDependency> qp() {
+		ArrayList<BuildGradle.MavenDependency> mavenDependencyList = new ArrayList<>();
+		for (String projectPath : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
+			if (!GradleTools.isGradleProject(projectPath)) {
+				continue;
+			}
+			for (BuildGradle.Dependency mavenDependency : getProjectMavenDependencyList(projectPath)) {
+				if (mavenDependency instanceof BuildGradle.MavenDependency) {
+					List<BuildGradle.MavenDependency> notExistsLocalCache = ServiceContainer.getMavenService().getNotExistsLocalCache(getFlatRepositoryPathMap(projectPath), ((BuildGradle.MavenDependency)mavenDependency));
+					for (BuildGradle.MavenDependency dep : notExistsLocalCache) {
+						mavenDependencyList.add(dep);							
 					}
 				}
 			}
 		}
-		return arrayList;
+		return mavenDependencyList;
 
 	}
 
-	private Map<String, String> getFlatRepositoryPathMap(String str) {
+	private static Map<String, String> getFlatRepositoryPathMap(String str) {
 		HashMap<String, String> hashMap = new HashMap<>();
 		for (BuildGradle.Repository flatLocalRepository : ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str)).curProjectsRepositorys) {
 			if (flatLocalRepository instanceof BuildGradle.FlatLocalRepository) {
@@ -342,7 +342,8 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return hashMap;
 	}
-	private static List<BuildGradle.Dependency> k2(String str) {
+	
+	private static List<BuildGradle.Dependency> getProjectMavenDependencyList(String str) {
 		BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str));
 		String P8 = GradleTools.P8(str);
 		if (FileSystem.isFileAndNotZip(P8)) {
@@ -359,11 +360,11 @@ public class ZeroAicyProjectService extends ProjectService {
 						arrayList.add(dependency2);
 					}
 				}
-				arrayList.addAll(configuration.dependencies);
+				arrayList.addAll(ZeroAicyExtensionInterface.getFlavorDependencies(configuration));
 				return arrayList;
 			}
 		}
-		return configuration.dependencies;
+		return ZeroAicyExtensionInterface.getFlavorDependencies(configuration);
 
 	}
 
@@ -397,22 +398,22 @@ public class ZeroAicyProjectService extends ProjectService {
 	Runnable DW_Hw = new Runnable(){
 		@Override
 		public void run() {
-			final ArrayList<BuildGradle.MavenDependency> arrayList = new ArrayList<>();
-			arrayList.addAll(qp());
-			if (arrayList.isEmpty()) {
+			final ArrayList<BuildGradle.MavenDependency> depList = new ArrayList<>();
+			depList.addAll(qp());
+			if (depList.isEmpty()) {
 				return;
 			}
-			App.aj(new Runnable(){
+			ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {
-						App.getNativeCodeSupportService().a8(App.gn(), 
-							arrayList, 
-							WB(App.getProjectService().getCurrentAppHome()), 
+						ServiceContainer.getDownloadService().a8(ServiceContainer.gn(), 
+							depList, 
+							WB(ServiceContainer.getProjectService().getCurrentAppHome()), 
 							new Runnable(){
 								@Override
 								public void run() {
-									App.getMavenService().FH();
-									App.getProjectService().CU();
+									ServiceContainer.getMavenService().resetDepPathMap();
+									ServiceContainer.getProjectService().reloadingProject();
 								}
 							});
 					}
@@ -423,47 +424,32 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public boolean sG() {
 
-		if (this.DW instanceof AndroidProjectSupport) {
+		if (this.pojectSupport instanceof AndroidProjectSupport) {
 			executorsService.submit(DW_Hw);
 			return true;
 		}
-
-		//Log.d("sG()", Thread.currentThread().getStackTrace()[3]);
-		/*
-		 if (this.DW != null) {
-		 return this.DW.Hw();
-		 }
-
-
-		 */
-
 		return super.sG();
 	}
 
 	/*****************************************************************/
 	@Override
-	public void Eq(final boolean isBuildRefresh) {
-		/*executorsService.submit(new Runnable(){
-		 @Override
-		 public void run() {
-		 super_Eq(isBuildRefresh);
-		 }
-		 });*/
+	public void buildProject(final boolean isBuildRefresh) {
 		if (!ExecutorsService.isUiThread()) {
-			App.aj(new Runnable(){
+			ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {
-						Toast.makeText(App.getMainActivity(), "开始构建刷新", 0).show();
+						Toast.makeText(ServiceContainer.getMainActivity(), "开始构建刷新", 0).show();
 					}
 				});
 			if (isBuildRefresh) {
 				wc();		
 			}
-			Eq2(isBuildRefresh);
+			buildProject2(isBuildRefresh);
 			return;
 		}
 
-		Toast.makeText(App.getMainActivity(), "开始构建", 0).show();
+		Toast.makeText(ServiceContainer.getMainActivity(), "开始构建", 0).show();
+
 		try {
 			// 等待 wc()
 			executorsService.submit(new Runnable(){
@@ -472,10 +458,10 @@ public class ZeroAicyProjectService extends ProjectService {
 						if (isBuildRefresh) {
 							wc();		
 						}
-						App.aj(new Runnable(){
+						ServiceContainer.aj(new Runnable(){
 								@Override
 								public void run() {
-									Eq2(isBuildRefresh);
+									buildProject2(isBuildRefresh);
 								}
 							});
 					}
@@ -490,12 +476,12 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	}
 
-	private void Eq2(boolean isBuildRefresh) {
+	private void buildProject2(boolean isBuildRefresh) {
 		if (J0()) {
 			this.v5 = true;
-			this.DW.DW(isBuildRefresh);
+			this.pojectSupport.buildProject(isBuildRefresh);
 		} else if (isBuildRefresh) {
-			App.we().vy();
+			ServiceContainer.getEngineService().vy();
 		}
 	}
 
@@ -504,18 +490,18 @@ public class ZeroAicyProjectService extends ProjectService {
 	// FireBaseLogEvent??
 	public void sy(String str) {
 		HashMap<String,String> hashMap = new HashMap<>();
-		hashMap.put("isPremium", Boolean.toString(ca()));
-		hashMap.put("libraryCount", Integer.toString(this.BT().size()));
+		hashMap.put("isPremium", Boolean.toString(isPremium()));
+		hashMap.put("libraryCount", Integer.toString(this.getLibraryMapping().size()));
 		hashMap.put("referrer", str); // 来自
 		if (AndroidProjectSupport.iW(getCurrentAppHome())) {
-			hashMap.put("package", AndroidProjectSupport.kQ(getCurrentAppHome(), (String) null));
+			hashMap.put("package", AndroidProjectSupport.getProjectPackageName(getCurrentAppHome(), (String) null));
 		}
 		FireBaseLogEvent.EQ("Project opened", hashMap);
     }
 
 	private void saveCurrentAppHome(String str) {
-		this.j6 = null;
-		SharedPreferences.Editor edit = App.getContext().getSharedPreferences("ProjectService", 0).edit();
+		this.currentAppHome = null;
+		SharedPreferences.Editor edit = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0).edit();
 		edit.putString("CurrentAppHome", str);
 		edit.commit();
 	}
@@ -525,8 +511,8 @@ public class ZeroAicyProjectService extends ProjectService {
 		if (str == null) {
 			return null;
 		}
-		for (ProjectSupport projectSupport : App.getProjectSupports()) {
-			if (projectSupport.er(str)) {
+		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
+			if (projectSupport.isSupport(str)) {
 				return projectSupport;
 			}
 		}

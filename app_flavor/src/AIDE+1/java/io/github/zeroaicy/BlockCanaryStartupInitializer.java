@@ -1,6 +1,6 @@
 package io.github.zeroaicy;
 
-/*
+//*
 import android.app.Application;
 import android.content.Context;
 import androidx.startup.Initializer;
@@ -27,11 +27,11 @@ public class BlockCanaryStartupInitializer implements Initializer<BlockCanarySta
 		BlockCanaryConfig blockCanaryConfig = BlockCanaryConfig
 			.newBuilder()
 			// 区块阈值时间
-			.blockThresholdTime(1500)
+			.blockThresholdTime(1800)
 			// 区块最大阈值时间
 			.blockMaxThresholdTime(40_000)
 			// 堆栈采样间隔
-			.stackSampleInterval(20)
+			.stackSampleInterval(10)
 			// 最大堆栈样本缓存计数
 			.maxStackSampleCacheCount(100_000)
 			//

@@ -9,7 +9,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import androidx.core.content.FileProvider;
-import com.aide.ui.App;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.firebase.FireBaseLogEvent;
 import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.util.FileSystem;
@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import com.aide.ui.ServiceContainer;
 
 public class DistributeEvents {
 	
@@ -49,15 +50,15 @@ public class DistributeEvents {
 	public static boolean customInstaler(String appPath) {
 		try {
 			
-            if (!App.isTrainerMode() 
-				|| App.nw().Ws()) {
+            if (!ServiceContainer.isTrainerMode() 
+				|| ServiceContainer.nw().Ws()) {
                 Intent intent = new Intent(Intent.ACTION_DEFAULT);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				//分屏
                 //intent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
 				Uri apkUri;
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    apkUri = FileProvider.getUriForFile(App.getContext(), FileSystem.j3(), new File(appPath));
+                    apkUri = FileProvider.getUriForFile(ServiceContainer.getContext(), FileSystem.j3(), new File(appPath));
                     intent.addFlags(1);
                 }
 				else {
@@ -65,11 +66,11 @@ public class DistributeEvents {
                 }
 				intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
 
-                Context context = App.getContext();
+                Context context = ServiceContainer.getContext();
 				//默认系统安装器
 				String apkInstall = ZeroAicySetting.getApkInstallPackageName();
 
-				List<ResolveInfo> queryIntentActivities = App.getContext().getPackageManager().queryIntentActivities(intent, 0);
+				List<ResolveInfo> queryIntentActivities = ServiceContainer.getContext().getPackageManager().queryIntentActivities(intent, 0);
 				if (queryIntentActivities != null && queryIntentActivities.size() > 0) {
 					for (ResolveInfo resolveInfo : queryIntentActivities) {
 						ActivityInfo activityInfo = resolveInfo.activityInfo;

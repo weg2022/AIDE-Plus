@@ -8,13 +8,13 @@
 	<application
 		android:debuggable="true">
 		<profileable android:shell="true"/>
-		<provider
+		<!--<provider
 			android:name="androidx.startup.InitializationProvider"
 			android:exported="false"
 			tools:node="merge">
 			<meta-data
 				android:name="io.github.zeroaicy.BlockCanaryStartupInitializer"
 				android:value="@string/androidx_startup" />
-		</provider>
+		</provider>-->
 	</application>
 </manifest>

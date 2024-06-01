@@ -9,9 +9,12 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import io.github.zeroaicy.aide.utils.Logger.DefaultLogListener;
 
 public class Logger implements Runnable {
 	public static Logger sLogger = new Logger();
+
+	private Logger.DefaultLogListener defaultLogListenere;
 
 
 	public static synchronized void setLogger(Logger sLogger) {
@@ -24,10 +27,18 @@ public class Logger implements Runnable {
 
 	//public String hostPackageName;
 
-	public Logger() {
-	}
+	public Logger() {}
+	
+	public class DefaultLogListener implements LogListener {
+		@Override
+		public void log(String logLine) {
+			Log.println(logLine);
+		}
 
+
+	}
 	private Thread sThread;
+
 	public void start() {
 		if (sThread != null) return;
 		sThread = new Thread(this);
@@ -35,25 +46,75 @@ public class Logger implements Runnable {
 	}
 	
 	
+	public void addDefaultLogListener(){
+		if(this.defaultLogListenere != null){
+			return;
+		}
+		this.defaultLogListenere = new DefaultLogListener();
+		addLogListener(this.defaultLogListenere);
+	}
+	
+	public void removeDefaultLogListener(){
+		if(this.defaultLogListenere == null){
+			return;
+		}
+		removeLogListener(this.defaultLogListenere);
+		this.defaultLogListenere = null;
+	}
+	
+	public interface LogListener {
+		public void log(String logLine);
+	}
+
+	private final List<LogListener> mLogListeners = new ArrayList<>();
+
+	public void addLogListener(LogListener logListener) {
+		synchronized(this.mLogListeners){
+			if (logListener == null
+				|| mLogListeners.contains(logListener)) {
+				return;
+			}
+			mLogListeners.add(logListener);
+		}
+		
+	}
+	public void removeLogListener(LogListener logListener) {
+		synchronized(this.mLogListeners){
+			mLogListeners.remove(logListener);
+		}
+	}
+
 	@Override
     public void run() {
         try {
 			Runtime.getRuntime().exec("logcat -c");
             Process exec = Runtime.getRuntime().exec("logcat -v threadtime");
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exec.getInputStream()), 20);
-            
+
 			ArrayList<String> logs = new ArrayList<>();
 			String[] empty = new String[0];
 			while (true) {
-				
-				String readLine = bufferedReader.readLine();
-				if( readLine == null){
+
+				String logLine = bufferedReader.readLine();
+				if (logLine == null) {
 					continue;
 				}
-                Log.println(readLine);
-				
-				logs.add(readLine);
-				if( logs.size() > 30){
+				// 向监听器写入
+				for (int i = mLogListeners.size() - 1; i >= 0; i--) {
+					LogListener logListener  = mLogListeners.get(i);
+					try {
+						logListener.log(logLine);
+					}
+					catch (Throwable e) {
+						// 有问题的监听器要移除
+						// 或者当监听器需要移除自身
+						// 就可以抛出异常
+						mLogListeners.remove(i);
+					}
+				}
+
+				logs.add(logLine);
+				if (logs.size() > 50) {
 					sendLogcatLines(logs.toArray(empty));
 					logs.clear();
 				}
@@ -65,9 +126,9 @@ public class Logger implements Runnable {
     }
 	private static Context context;
 	private static String debuggerPackageName;
-	
+
 	private static boolean isSendLogcat;
-	
+
 	public static void onContext(Context context, String debuggerPackageName) {
 		Logger.context = context;
 		Logger.debuggerPackageName = debuggerPackageName;
@@ -123,5 +184,5 @@ public class Logger implements Runnable {
 		intent.putExtra("lines", logs);
 		context.sendBroadcast(intent);
 	}
-	
+
 }

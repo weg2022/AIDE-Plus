@@ -5,7 +5,6 @@ import abcd.fe;
 import abcd.iy;
 import com.aide.common.ValueRunnable;
 import com.aide.engine.EngineSolution;
-import com.aide.ui.App;
 import com.aide.ui.build.BuildServiceCollect;
 import com.aide.ui.project.internal.MakeJavaEngineSolution;
 import com.aide.ui.services.ProjectSupport;
@@ -119,7 +118,7 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	public EngineSolution Ws() {
 		return makeEngineSolution();
 	}
-	private EngineSolution makeEngineSolution() {
+	public EngineSolution makeEngineSolution() {
 		return null;
 	}
 
@@ -167,7 +166,7 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 		return isSupport(projectPath);
 	}
 
-	private boolean isSupport(String projectPath) {
+	public boolean isSupport(String projectPath) {
 		return false;
 	}
 

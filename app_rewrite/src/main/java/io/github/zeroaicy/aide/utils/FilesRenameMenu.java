@@ -4,18 +4,18 @@ import abcd.*;
 
 import com.aide.common.KeyStroke;
 import com.aide.common.MessageBox;
-import com.aide.ui.App;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.rewrite.R;
 import com.aide.common.ValueRunnable;
 import java.io.File;
+import com.aide.ui.ServiceContainer;
 
 public class FilesRenameMenu extends zb {
 
 		public FilesRenameMenu() {}
 
 		public boolean DW(boolean z) {
-			String path = App.getFileBrowserService().FH();
+			String path = ServiceContainer.getFileBrowserService().FH();
 			
 			if (path != null) {
 				if( new File(path).exists()){
@@ -41,12 +41,12 @@ public class FilesRenameMenu extends zb {
 		}
 
 		public boolean run() {
-			final String FH = App.getFileBrowserService().FH();
-			MessageBox.XL(App.getMainActivity(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.getName(FH), new ValueRunnable<String>(){
+			final String FH = ServiceContainer.getFileBrowserService().FH();
+			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.getName(FH), new ValueRunnable<String>(){
 					@Override
 					public void j6(String t){
-						App.getMainActivity().w9();
-						App.we().SI(FH, t);
+						ServiceContainer.getMainActivity().w9();
+						ServiceContainer.getEngineService().SI(FH, t);
 					}
 				});
 			return true;

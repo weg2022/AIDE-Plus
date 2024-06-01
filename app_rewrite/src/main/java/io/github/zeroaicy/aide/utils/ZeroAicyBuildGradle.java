@@ -24,11 +24,25 @@ import java.util.Collections;
 import com.aide.ui.services.AssetInstallationService;
 import java.util.Set;
 import java.util.HashSet;
+import com.aide.ui.util.BuildGradle.ProductFlavor;
+import com.aide.ui.util.BuildGradle.Dependency;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
-	
+
 	private static String TAG = "ZeroAicyBuildGradle";
-	
+
+	/**
+	 * new ProductFlavor统一创建点，方便统一替换实例
+	 */
+	public ZeroAicyProductFlavor makeProductFlavor() {
+		return new ZeroAicyProductFlavor();
+	}
+	public class ZeroAicyProductFlavor extends ProductFlavor {
+		public final List<BuildGradle.Dependency> productFlavorDependencies = new ArrayList<>();
+
+
+	}
+
 	private static ZeroAicyBuildGradle singleton;
 
 
@@ -49,7 +63,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		}
 		return this.proguardFiles;
 	}
-	
+
 	/**
 	 * 单例
 	 */
@@ -98,7 +112,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			for (AST ast = groovyRecognizer.getAST(); ast != null; ast = getNextSibling(ast)) {
 				nw(ast, "");
 			}
-			
+
 			// 打印
 			//Log.d(TAG, "signingConfigMap", signingConfigMap);
 		}
@@ -106,9 +120,9 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			e.printStackTrace();
 		}
     }
-	
+
 	private void init() {
-		this.defaultConfigProductFlavor = new BuildGradle.ProductFlavor();
+		this.defaultConfigProductFlavor = makeProductFlavor();
 		this.curAndroidNodeLine = -1;
 		this.curFlavorsNodeLine = -1;
 		this.productFlavorMap = new TreeMap<>();
@@ -243,8 +257,8 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
     }
 
-    private void parserProductFlavor(AST ast, String str, ProductFlavor productFlavor) {
-		switch (str) {
+    private void parserProductFlavor(AST ast, String attributeName, ProductFlavor productFlavor) {
+		switch (attributeName) {
 			case "minSdkVersion":
 			case "minSdkVersion.apiLevel":
 				productFlavor.minSdkVersion = getAstValue(ast);
@@ -266,18 +280,30 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			case "multiDexEnabled":
 				productFlavor.multiDexEnabled = getAstValue(ast);
 				break;
+			case "dependencies":
+				/**
+				 * 为渠道包提供 dependencies块支持
+				 */
+				if (productFlavor instanceof ZeroAicyProductFlavor) {
+					List<BuildGradle.Dependency> productFlavorDependencies = ((ZeroAicyProductFlavor)productFlavor).productFlavorDependencies;
+					for (AST dependencieChildAst : u7(ast)) {
+						String dependencieChildAstName = J0(dependencieChildAst);
+						ei(dependencieChildAst, dependencieChildAstName, productFlavorDependencies);
+					}
+				}
+				break;
 		}
 
     }
 
     private void SI(AST ast, String str, int i) {
-		String j32 = getNodeSimpleNameAt(str, i);
-		if (!this.productFlavorMap.containsKey(j32)) {
-			this.productFlavorMap.put(j32, new ProductFlavor());
+		String productFlavorName = getNodeSimpleNameAt(str, i);
+		if (!this.productFlavorMap.containsKey(productFlavorName)) {
+			this.productFlavorMap.put(productFlavorName, makeProductFlavor());
 		}
 		String Mr2 = Mr(str, i + 1);
 		if (Mr2 != null) {
-			parserProductFlavor(ast, Mr2, this.productFlavorMap.get(j32));
+			parserProductFlavor(ast, Mr2, this.productFlavorMap.get(productFlavorName));
 		}
 
     }
@@ -523,7 +549,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
 								if (getType(firstChild2) == 87 
 									&& "getDefaultProguardFile".equals(getText(firstChild2))) {
-									
+
 									AST firstChild4 = getFirstChild(getFirstChild(getNextSibling(firstChild2)));
 									String defaultProguardFile = getDefaultProguardFile(getText(firstChild4));
 									proguardFiles.add(defaultProguardFile);
@@ -639,64 +665,80 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
     }
 
-    public String getFlavorApplicationId(String str) {
-		if (str != null && this.productFlavorMap.containsKey(str) && this.productFlavorMap.get(str).applicationId != null) {
-			return this.productFlavorMap.get(str).applicationId;
+	@Override
+    public String getFlavorApplicationId(String productFlavorName) {
+		if (productFlavorName != null && this.productFlavorMap.containsKey(productFlavorName) && this.productFlavorMap.get(productFlavorName).applicationId != null) {
+			return this.productFlavorMap.get(productFlavorName).applicationId;
 		}
 		return this.defaultConfigProductFlavor.applicationId;
+    }
+
+	public List<BuildGradle.Dependency> getFlavorDependencies(String productFlavorName) {
+		BuildGradle.ProductFlavor productFlavor;
+		if (productFlavorName != null 
+			&& (productFlavor = this.productFlavorMap.get(productFlavorName)) != null
+			&& productFlavor instanceof ZeroAicyProductFlavor) {
+			return ((ZeroAicyProductFlavor)productFlavor).productFlavorDependencies;
+		}
+		return Collections.emptyList();
 
     }
 
+	@Override
     public String getMinSdkVersion(String productFlavorName) {
 		if (productFlavorName != null && this.productFlavorMap.containsKey(productFlavorName) && this.productFlavorMap.get(productFlavorName).minSdkVersion != null) {
 			return this.productFlavorMap.get(productFlavorName).minSdkVersion;
 		}
 		return this.defaultConfigProductFlavor.minSdkVersion;
-
     }
 
-    public SigningConfig getSigningConfig(String signingConfigName) {
-		if (signingConfigName == null) {
-			return null;
-		}
-		return this.signingConfigMap.get(signingConfigName);
-
-    }
-
-    public String getTargetSdkVersion(String str) {
-		if (str != null 
-			&& this.productFlavorMap.containsKey(str) 
-			&& this.productFlavorMap.get(str).targetSdkVersion != null) {
-			return this.productFlavorMap.get(str).targetSdkVersion;
+	@Override
+    public String getTargetSdkVersion(String productFlavorName) {
+		if (productFlavorName != null 
+			&& this.productFlavorMap.containsKey(productFlavorName) 
+			&& this.productFlavorMap.get(productFlavorName).targetSdkVersion != null) {
+			return this.productFlavorMap.get(productFlavorName).targetSdkVersion;
 		}
 		return this.defaultConfigProductFlavor.targetSdkVersion;
 
     }
 
-    public String getVersionCode(String str) {
-		if (str != null
-			&& this.productFlavorMap.containsKey(str) 
-			&& this.productFlavorMap.get(str).versionCode != null) {
-			return this.productFlavorMap.get(str).versionCode;
+    @Override
+	public String getVersionCode(String productFlavorName) {
+		if (productFlavorName != null
+			&& this.productFlavorMap.containsKey(productFlavorName) 
+			&& this.productFlavorMap.get(productFlavorName).versionCode != null) {
+			return this.productFlavorMap.get(productFlavorName).versionCode;
 		}
 		return this.defaultConfigProductFlavor.versionCode;
 
     }
 
-    public String getVersionName(String str) {
-		if (str != null 
-			&& this.productFlavorMap.containsKey(str) 
-			&& this.productFlavorMap.get(str).versionName != null) {
-			return this.productFlavorMap.get(str).versionName;
+	@Override
+    public String getVersionName(String productFlavorName) {
+		if (productFlavorName != null 
+			&& this.productFlavorMap.containsKey(productFlavorName) 
+			&& this.productFlavorMap.get(productFlavorName).versionName != null) {
+			return this.productFlavorMap.get(productFlavorName).versionName;
 		}
 		return this.defaultConfigProductFlavor.versionName;
     }
 
-    public boolean isMultiDexEnabled(String str) {
-		if (str != null 
-			&& this.productFlavorMap.containsKey(str) 
-			&& this.productFlavorMap.get(str).multiDexEnabled != null) {
-			return "true".equals(this.productFlavorMap.get(str).multiDexEnabled);
+
+	@Override
+    public SigningConfig getSigningConfig(String signingConfigName) {
+		if (signingConfigName == null) {
+			return null;
+		}
+		return this.signingConfigMap.get(signingConfigName);
+    }
+
+	@Override
+    public boolean isMultiDexEnabled(String productFlavorName) {
+		if (productFlavorName != null 
+			&& this.productFlavorMap.containsKey(productFlavorName) 
+			&& this.productFlavorMap.get(productFlavorName).multiDexEnabled != null) {
+			return "true".equals(this.productFlavorMap.get(productFlavorName).multiDexEnabled);
 		}
 		return "true".equals(this.defaultConfigProductFlavor.multiDexEnabled);
 	}
