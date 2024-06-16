@@ -119,7 +119,10 @@ public class Aapt2TaskFromZeroAicy {
 		long genRjavaTimeMillis = System.currentTimeMillis();
 
 		//资源文件
-		generateRjava(aaptServiceArgs);
+		AaptService$b generateRjavaError = generateRjava(aaptServiceArgs);
+		if (generateRjavaError != null) {
+			return generateRjavaError;
+		}
 
 		aaptServiceArgs.log.println("aapt2 生成R耗时: " + (System.currentTimeMillis() - genRjavaTimeMillis) + "ms");
 
@@ -181,7 +184,7 @@ public class Aapt2TaskFromZeroAicy {
 		return null;
 	}
 
-	private static void generateRjava(AaptServiceArgs aaptServiceArgs) throws IOException {
+	private static AaptService$b generateRjava(AaptServiceArgs aaptServiceArgs) throws IOException {
 		//资源文件时间戳
 		long resourcesApLastModified = new File(aaptServiceArgs.resourcesApPath).lastModified();
 
@@ -214,7 +217,10 @@ public class Aapt2TaskFromZeroAicy {
 				break;
 			}
 		}
-
+		if( packageNameLine == null){
+			// 没有找到包名所在行
+			return new AaptService$b(String.format("在主项目R.java[%s]找不到包名, 请删除，重新生成", mainRJavaFile.getAbsolutePath()));
+		}
 		//消除 final
 		for (int i = 0; i < rJavaLinelist.size(); i++) {
 			rJavaLinelist.set(i, rJavaLinelist.get(i).replace(" final int ", " int "));
@@ -231,6 +237,9 @@ public class Aapt2TaskFromZeroAicy {
 			}
 			//子项目包名
 			String subPackageName = genPackageNameMap.get(subGenDirPath);
+			if(subPackageName == null){
+				aaptServiceArgs.log.println(String.format("gen路径%s查询不到包名", subGenDirPath));
+			}
 			//子项目R.java相对gen路径
 			String subRJavaAbsolutePath = subPackageName.replace('.', '/') + "/R.java";
 
@@ -278,6 +287,7 @@ public class Aapt2TaskFromZeroAicy {
 
 
 		}
+		return null;
 	}
 
 

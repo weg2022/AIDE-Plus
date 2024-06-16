@@ -19,6 +19,7 @@ public class BlockCanaryStartupInitializer implements Initializer<BlockCanarySta
         }
         Application application = (Application) applicationContext;
 		initBlockCanary(application);
+		
 		Log.d("BlockCanaryStartupInitializer", "自定义BlockCanary");
         return this;
     }

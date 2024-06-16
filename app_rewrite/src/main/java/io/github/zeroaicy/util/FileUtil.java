@@ -23,13 +23,16 @@ public class FileUtil {
 
 	public static String CrashLogPath;
 	public static String LogCatPath;
+	
 	static {
 		init();
 	}
+	
 	public static void init(){
 		FileUtil.CrashLogPath = getCrashLogPath(FileUtil.LogDir);
 		FileUtil.LogCatPath = getLogCatPath(FileUtil.CrashLogPath);
 	}
+	
 	public static String getLogCatPath(String crashLogPath) {
 
 		StringBuilder logCatPathBuilder = new StringBuilder();

@@ -1,35 +1,32 @@
 package io.github.zeroaicy.aide.ui.services;
 
 
+
+
+// 多线程版[Executors]
 import androidx.annotation.Keep;
 import com.aide.common.AppLog;
-import com.aide.ui.ServiceContainer;
 import com.aide.ui.AppPreferences;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.util.MavenDependencyVersion;
 import com.aide.ui.util.MavenMetadataXml;
 import com.aide.ui.util.PomXml;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
+import io.github.zeroaicy.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import io.github.zeroaicy.util.Log;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.Collections;
-import java.util.HashSet;
-import com.aide.ui.util.PomXml.ArtifactNode;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
-// 多线程版[Executors]
 public class ZeroAicyMavenServiceExecutors {
 	/**
 	 * 静态方法

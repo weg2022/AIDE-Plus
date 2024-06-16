@@ -4,6 +4,7 @@ import android.content.*;
 import android.content.res.*;
 import android.preference.*;
 import java.util.*;
+import com.aide.ui.rewrite.R;
 
 public class ZeroAicySetting {
 
@@ -19,17 +20,20 @@ public class ZeroAicySetting {
 		return defaultSp.getString(key, defValue);
 	}
 	
-
+	private static boolean isWatch;
 	public static void init(Context context) {
 		if (ZeroAicySetting.defaultSp != null) return;
-
+		
 		ZeroAicySetting.defaultSp = PreferenceManager.getDefaultSharedPreferences(context);
 		ZeroAicySetting.projectServiceSharedPreferences = context.getSharedPreferences("ProjectService", 0);
 		//初始化一些行为
 		//主题跟随系统实现
 		initFollowSystem(context);
+		isWatch = context.getResources().getBoolean(R.bool.watch);
 	}
-
+	public static boolean isWatch(){
+		return isWatch;
+	}
 	/*
 	 * 有问题的重写，
 	 */

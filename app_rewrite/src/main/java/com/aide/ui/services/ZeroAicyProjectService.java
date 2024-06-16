@@ -31,7 +31,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	public static ProjectService getSingleton() {
 		if (singleton == null) {
-			singleton = new ZeroAicyProjectService();
+			singleton = new ZeroAicyProjectService2();
 			Log.d(TAG,  "替换ZeroAicyProjectService");
 		}
 		return singleton;
@@ -60,7 +60,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	}
 
 	// 耗时任务 MavenService -> J8 [resolveFullDependencyTree]
-	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
+	private ExecutorsService executorsService = ExecutorsService.getExecutorsService(TAG);
 	@Override
 	protected void jJ() {
 		// 空项目
@@ -342,7 +342,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return hashMap;
 	}
-	
+
 	private static List<BuildGradle.Dependency> getProjectMavenDependencyList(String str) {
 		BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str));
 		String P8 = GradleTools.P8(str);

@@ -33,16 +33,19 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 	public AIDEEditor(Context context, AttributeSet attributeSet, int defStyleAttr) {
 		super(context, attributeSet, defStyleAttr);
-
-		CodeEditText.EditorView oEditorView = getOEditorView();
 	}
-
-
-
+	
+	
+	/**
+	 * 文件路径，也有可能是jar里的class
+	 */
 	@Override
-	protected OpenFileService.OpenFileModel Z1(final String string) {
-
-		final AIDEEditorModel editorModel = new AIDEEditorModel(string);
+	protected OpenFileService.OpenFileModel Z1(final String filePath) {
+		if( !true ){
+			// 非异步
+			return super.Z1(filePath);
+		}
+		final AIDEEditorModel editorModel = new AIDEEditorModel(filePath);
 		// 先返回，内容异步塞入
 		return editorModel;
 	}
@@ -51,6 +54,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
 
 		private static final String TAG = "AIDEEditorModel";
+		
 		public AIDEEditorModel() {
 			super();
 		}
@@ -104,7 +108,6 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				catch (Throwable e) {
 					Log.d(TAG, "等待异步加载初始化错误", e);				}
 			}
-
 			super.J0(openFile);
 		}
 
@@ -117,7 +120,6 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 		public void init(Reader reader) {
 			try {
-
 				// 读取
 				initReader(reader);
 			}
@@ -145,41 +147,20 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				}
 				textBuffers.trimToSize();
 				
-				
 				this.initing.set(false);
 				synchronized (this.lock) {
 					// 通知代码分析进程
 					this.lock.notifyAll();
+					this.lock.notifyAll();
 				}
 
 				final CodeEditText.EditorView oEditorView = getOEditorView();
-				//oEditorView.indexingLayoutTask.DW();
-				//oEditorView.postInvalidate();
-				oEditorView.setModel(this);
-				/*
-				Runnable print = new Runnable(){
-					@Override
-					public void run() {
-						Log.d(TAG, "getConsoleMaxWidth", oEditorView.getConsoleMaxWidth());
-					}
-				};
-				ServiceContainer.aj(print);
-				//*/
+				oEditorView.indexingLayoutTask.DW();
+				oEditorView.invalidateLayoutTask.DW();
 
 				EngineService engineService = ServiceContainer.getEngineService();
 				engineService.ef();
-				engineService.ef();
-
 				engineService.ei();
-
-				//synchronized (this.lock) {
-				// 通知代码分析进程
-				//this.lock.notifyAll();
-				//}
-				
-				//Log.d(TAG, "initReader");
-
-
 			}
 		}
 	}

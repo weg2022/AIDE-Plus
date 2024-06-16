@@ -1,6 +1,5 @@
 package io.github.zeroaicy;
 
-
 import android.content.pm.ApplicationInfo;
 import android.os.StrictMode;
 import com.aide.ui.AIDEApplication;
@@ -24,33 +23,29 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();
-	
+
 	static{
-		
 		// 防止各种闪退，默认写入在数据目录2.
 		DebugUtil.debug();
 	}
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-		
-		// 更改日志路径
-		DebugUtil.debug(this);
 
-		//解除反射
-		Log.d(TAG, "解除反射: " + reflectAll);
+		// 更改日志路径
+		DebugUtil.debug(this, false);
 
 		String crashProcessName = getPackageName() + ":crash";
 		String curProcessName = ContextUtil.getProcessName();
-
-		if (crashProcessName.equals(curProcessName) || curProcessName.contains("crash")) {
+		if (crashProcessName.equals(curProcessName) 
+			|| curProcessName.contains("crash")) {
 			Log.d(TAG, "crash进程: ", curProcessName);
-
 			return;
 		}
 
+		//解除反射
+		Log.d(TAG, "解除反射: " + reflectAll);
 		// 异常显示Activity
 		CrashApphandler.getInstance().onCreated();
 
@@ -67,11 +62,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		// Return if this application is not in debug mode 
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
-		
-		if ("io.github.zeroaicy.aide19999".equals(getPackageName())) {
-			method2();
-		}
-		
+
 	}
 
 	// 共存版发送logcat log

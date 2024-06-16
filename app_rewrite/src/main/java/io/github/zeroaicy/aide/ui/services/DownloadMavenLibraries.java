@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.Iterator;
 import com.aide.common.AppLog;
+import io.github.zeroaicy.util.Log;
 
 public class DownloadMavenLibraries implements Callable<Void> {
 
@@ -56,6 +57,42 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		}
 	}
 
+	public boolean resolvingMetadataFile(BuildGradle.MavenDependency dep, int count, String mavenMetadataPath, BuildGradle.RemoteRepository remoteRepository) {
+		String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
+		try {
+			StringBuilder sb = new StringBuilder();
+			sb.append("metadata -> ");
+
+			sb.append(dep.groupId);
+			sb.append(":");
+			sb.append(dep.artifactId);
+			sb.append(":");
+			sb.append(dep.version);
+
+			String dependencyString = sb.toString();
+			// 下载清单文件
+			DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
+			//已存在 长度不一致时更新
+			DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
+		}
+		catch (Throwable unused) {
+			AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: " + mavenMetadataUrl, unused);
+			return false;
+		}
+		// 检查文件是否存在
+		if (!new File(mavenMetadataPath).exists()) {
+			return false;
+		}
+		MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
+		//查看maven-metadata.xml是否下载成功
+		String version = metadataXml.getVersion(dep.version);
+		if (version == null) return false;
+
+		// 更新依赖库版本
+		dep.version = version;
+		return true;
+	}
+	
     @Override
     public Void call() {
 		//是否有已完成的下载
@@ -65,93 +102,77 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			try {
 				//遍历远程仓库
 				for (BuildGradle.RemoteRepository remoteRepository : this.remoteRepositorys) {
-					String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
-					String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
 					try {
-						StringBuilder sb = new StringBuilder();
-						sb.append("metadata -> ");
 
-						sb.append(dep.groupId);
-						sb.append(":");
-						sb.append(dep.artifactId);
-						sb.append(":");
-						sb.append(dep.version);
+						String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
 
-						String dependencyString = sb.toString();
-						// 下载清单文件
-						DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
-						//已存在 长度不一致时更新
-						DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
-					}
-					catch (Throwable unused) {
-						AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: " + mavenMetadataUrl, unused);
-						// 仓库有问题
-						continue;
-					}
+						if (!resolvingMetadataFile(dep, count, mavenMetadataPath, remoteRepository)) {
+							// 下载失败 仓库有问题[跳过]
+							continue;
+						}
 
-					// 判断是否存在
-					if (!new File(mavenMetadataPath).exists()) {
-						continue;
-					}
+						// 下载pom文件
+						final String version = dep.version;
 
-					MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
-					//查看maven-metadata.xml是否下载成功
-					String version = metadataXml.getVersion(dep.version);
-					if (version == null) continue;
+						// 下载[成功|失败]
+						if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
+							continue;
+						}
 
-					// 更新依赖库版本
-					dep.version = version;
+						String pomPath = MavenService.getArtifactPath(remoteRepository, dep, dep.version, ".pom");
 
-					// 下载pom文件
-					if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
-						//仓库有问题，跳过
-						continue;
-					}
+						// 解析pom
+						PomXml configuration = PomXml.empty.getConfiguration(pomPath);
 
-					String pomPath = MavenService.getArtifactPath(remoteRepository, dep, dep.version, ".pom");
-					PomXml configuration = PomXml.empty.getConfiguration(pomPath);
-					// pom中的 packaging 
-					String curPackaging = configuration.getPackaging();
+						// pom中的 packaging 
+						String curPackaging = configuration.getPackaging();
 
-					// 父类依赖认为是 pom
-					// 或当前pom 声明是pom
-					if ("pom".equals(curPackaging)
-						|| "pom".equals(dep.packaging)) {
-						count++;
-						downloadComplete = true;
-						break;
-					}
-					// 更新type
-					dep.packaging = curPackaging;
-					// 从父依赖解析出来的，最为准确
-					boolean isAttemptn = false;
-					if (TextUtils.isEmpty(dep.packaging)) {
-						// 启用尝试 下载aar模式
-						isAttemptn = true;
-						dep.packaging = "aar";
-					}
+						// 父类依赖认为是 pom
+						// 或当前pom 声明是pom
+						if ("pom".equals(curPackaging)
+							|| "pom".equals(dep.packaging)) {
+							count++;
+							downloadComplete = true;
+							break;
+						}
+						// 更新type
+						// 从父依赖解析出来的，最为准确
+						dep.packaging = curPackaging;
+						// 默认不尝试
+						boolean isAttemptn = false;
+						// 没有packaging信息，启用尝试模式
+						if (TextUtils.isEmpty(dep.packaging)) {
+							// 启用尝试 下载aar模式
+							isAttemptn = true;
+							dep.packaging = "aar";
+						}
 
-					String artifactType = "." + dep.packaging;
-					//下载
-					if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
-						count++;
-						downloadComplete = true;
-						break;
-					}
-
-					if (isAttemptn) {
-						dep.packaging = "jar";
-						artifactType = "." + dep.packaging;
+						String artifactType = "." + dep.packaging;
+						//下载
 						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 							count++;
 							downloadComplete = true;
 							break;
 						}
+
+						// 失败接着尝试
+						if (isAttemptn) {
+							dep.packaging = "jar";
+							artifactType = "." + dep.packaging;
+							if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
+								count++;
+								downloadComplete = true;
+								break;
+							}
+						}
+					}
+					catch (Throwable e) {
+						continue;
 					}
 				}
 			}
 			catch (Throwable e) {
-
+				continue;
 			}
 		}
 		final boolean downloadComplete2 = downloadComplete;

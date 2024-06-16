@@ -6,18 +6,20 @@ public class DebugUtil{
 	
 	
 	public static void debug(){
-		Log.SetSystemOut(true);
-		Log.enable(FileUtil.LogCatPath);
-		CrashApplication.CrashInit();
+		debug(ContextUtil.getContext(), false);
 	}
 
 	public static void debug(Context context){
+		debug(context, true);
+	}
+	public static void debug(Context context, boolean isChangerLog){
 		Log.SetSystemOut(true);
-		FileUtil.init();
+		
+		if( isChangerLog){
+			FileUtil.init();
+		}
 		Log.enable(FileUtil.LogCatPath);
 		CrashApplication.CrashInit(context);
-
-
 	}
 	
 	public static void notDebug(){

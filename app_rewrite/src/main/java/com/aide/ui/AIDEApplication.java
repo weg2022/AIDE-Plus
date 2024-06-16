@@ -8,10 +8,14 @@ import androidx.multidex.MultiDexApplication;
 import com.aide.ui.marketing.b;
 import com.aide.ui.rewrite.R;
 import io.github.zeroaicy.util.ContextUtil;
+import abcd.iy;
 
 public class AIDEApplication extends MultiDexApplication{
 	public void onCreate() {
         super.onCreate();
+		
+		iy.VH(this, 1615898270903L, "androidRelease", "fe5d2222", true, false, "https://probes.probelytics.com/project/iF0snISTR5Ko3hbTUY88bg/audience/dev/current.probes2", "https://probes.probelytics.com/project/iF0snISTR5Ko3hbTUY88bg/audience/public/current.probes2", "https://ingest.probelytics.com/api/report/v1alpha1/data/project/iF0snISTR5Ko3hbTUY88bg2");
+		
 		// 共存版关键
 		ServiceContainer.lp("com.aide.ui");
 		

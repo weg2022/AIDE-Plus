@@ -1,5 +1,8 @@
 package abcd;
 
+//
+// Decompiled by Jadx - 1509ms
+//
 
 import android.app.Activity;
 import android.app.Application;
@@ -13,6 +16,8 @@ import android.content.IntentSender;
 import android.os.Build;
 import android.os.Bundle;
 import java.io.File;
+import java.lang.reflect.Field;
+import io.github.zeroaicy.util.Log;
 
 public class iy {
     private static Application DW;
@@ -119,7 +124,6 @@ public class iy {
     public static void VH(Object obj, long j, String str, String str2, boolean z, boolean z2, String str3, String str4, String str5) {
         Application FH2;
         try {
-			if( true ) return;
             synchronized (Hw) {
                 if (j6 == null && Build.VERSION.SDK_INT >= 14 && (FH2 = FH(obj)) != null) {
                     j6 = FH2;
@@ -182,6 +186,13 @@ public class iy {
     public static void Zo(Class<?> cls) {
         try {
             ry.EQ(cls);
+			for (Field field : cls.getDeclaredFields()) {
+                if (field.getAnnotation(gy.class) != null) {
+                    field.setAccessible(true);
+                    field.set(null, Boolean.valueOf(true));
+                    return;
+                }
+            }
         } catch (Throwable th) {
             b00.VH("Runtime Error", th);
         }
@@ -199,6 +210,7 @@ public class iy {
 
     public static void aM(Throwable th, long j, Object obj) {
         try {
+			Log.d("iy.aM", obj, th);
             if (ry.DW.contains(Long.valueOf(j))) {
                 py.sh(j, th, obj, new Object[0]);
             }

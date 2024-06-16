@@ -77,6 +77,9 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
      * context
      */
     protected Context mContext;
+	protected void setContext(Context mContext) {
+		this.mContext = mContext;
+	}
 	public OnCrashListener onCrashListener;
 	//无参构造
 	public void init(){
@@ -85,16 +88,16 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 
 	public void init(Context context){
 		try{
-			if ( context == null ){
-				//
-				context = ContextUtil.getContext();
-			}
-
-			if ( context instanceof Application ){
-				//直接保存Application
-				this.mContext = context;
-			}else if ( context != null ){
-				this.mContext = context;
+			if ( context != null ){
+				// 尽量保存ApplicationContext
+				Context applicationContext = context.getApplicationContext();
+				if (applicationContext != null) {
+					context = applicationContext;
+				}
+				setContext(context);
+			}else{
+				//反射构造
+				setContext(ContextUtil.getContext());
 			}
 
 			/**

@@ -286,7 +286,7 @@ public class SigningService {
 			//Log.d(TAG, "signingConfig is null");
 			if (storePath.endsWith(".x509.pem") 
 				|| storePath.endsWith(".pk8")) {
-				runnable.j6(storePath, signingConfig.storePassword, signingConfig.keyAlias, signingConfig.keyPassword);
+				runnable.j6(storePath, "", "", "");
 				return;
 			}
 			v5(storePath, runnable);

@@ -4,8 +4,13 @@
 package io.github.zeroaicy.aide.extend;
 
 
+import android.text.TextUtils;
+import androidx.annotation.Keep;
+import com.aide.codemodel.api.Model;
+import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.ui.MainActivity;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ZeroAicyProjectService;
@@ -15,19 +20,9 @@ import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
-import java.util.List;
-import com.aide.codemodel.api.Model;
 import java.util.ArrayList;
-import com.aide.codemodel.api.abstraction.CodeModel;
-import com.aide.codemodel.language.smali.SmaliCodeModel;
-import androidx.annotation.Keep;
-import com.aide.ui.project.internal.GradleTools;
-import com.aide.ui.util.FileSystem;
-import com.aide.ui.ServiceContainer;
-import com.aide.ui.util.BuildGradle.Dependency;
-import android.text.TextUtils;
-import io.github.zeroaicy.util.Log;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * 1.aapt2

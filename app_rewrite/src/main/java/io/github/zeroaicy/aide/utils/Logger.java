@@ -1,15 +1,13 @@
 package io.github.zeroaicy.aide.utils;
 
+import android.content.Context;
+import android.content.Intent;
+import io.github.zeroaicy.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import io.github.zeroaicy.util.Log;
-import android.content.Context;
-import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import io.github.zeroaicy.aide.utils.Logger.DefaultLogListener;
 
 public class Logger implements Runnable {
 	public static Logger sLogger = new Logger();
@@ -34,8 +32,19 @@ public class Logger implements Runnable {
 		public void log(String logLine) {
 			Log.println(logLine);
 		}
-
-
+	}
+	
+	public static class SendLog implements LogListener {
+		List<String> logs = new ArrayList<>();
+		String[] empty = new String[0];
+		@Override
+		public void log(String logLine) {
+			logs.add(logLine);
+			if (logs.size() > 50) {
+				sendLogcatLines(logs.toArray(empty));
+				logs.clear();
+			}
+		}
 	}
 	private Thread sThread;
 
@@ -91,8 +100,6 @@ public class Logger implements Runnable {
             Process exec = Runtime.getRuntime().exec("logcat -v threadtime");
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exec.getInputStream()), 20);
 
-			ArrayList<String> logs = new ArrayList<>();
-			String[] empty = new String[0];
 			while (true) {
 
 				String logLine = bufferedReader.readLine();
@@ -112,12 +119,6 @@ public class Logger implements Runnable {
 						mLogListeners.remove(i);
 					}
 				}
-
-				logs.add(logLine);
-				if (logs.size() > 50) {
-					sendLogcatLines(logs.toArray(empty));
-					logs.clear();
-				}
             }
         }
 		catch (IOException e) {
@@ -130,9 +131,13 @@ public class Logger implements Runnable {
 	private static boolean isSendLogcat;
 
 	public static void onContext(Context context, String debuggerPackageName) {
+		if( debuggerPackageName != null ){
+			return;
+		}
 		Logger.context = context;
 		Logger.debuggerPackageName = debuggerPackageName;
 		Logger.isSendLogcat = true;
+		getLogger().addLogListener(new SendLog());
 	}
 
 	public static void sendConnect(String str) {

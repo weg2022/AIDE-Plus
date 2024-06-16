@@ -72,6 +72,9 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (enableActionDrawerLayout()) {
 			setUpDrawerLayout();
 		}
+		if(ZeroAicySetting.isWatch()){
+			return;
+		}
 		// 隐藏Home键
 		// 检查并申请管理外部储存权限
 		showRequestManageExternalStorage();

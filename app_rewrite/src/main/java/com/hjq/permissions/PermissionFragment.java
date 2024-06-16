@@ -205,10 +205,20 @@ public final class PermissionFragment extends Fragment implements Runnable {
                 // 当前必须是 Android 11 及以上版本，因为在旧版本上是拿旧权限做的判断
                 continue;
             }
-            // 跳转到特殊权限授权页面
-            startActivityForResult(PermissionUtils.getSmartPermissionIntent(activity,
-																			PermissionUtils.asArrayList(permission)), getArguments().getInt(REQUEST_CODE));
-            requestSpecialPermission = true;
+
+			try {
+				// 跳转到特殊权限授权页面
+				startActivityForResult(
+					PermissionUtils.getSmartPermissionIntent(
+						activity,
+						PermissionUtils.asArrayList(permission)), 
+					getArguments().getInt(REQUEST_CODE));
+
+				requestSpecialPermission = true;
+			}
+			catch (Throwable e) {
+				return;
+			}
         }
 
         if (requestSpecialPermission) {

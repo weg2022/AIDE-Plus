@@ -9,10 +9,7 @@ import io.github.zeroaicy.aide.ui.services.ZeroAicyMavenService;
 import androidx.annotation.Keep;
 
 /**
- * 所有在此类重复声明的函数
- * 是为了底包2.2做准备
- * 一旦更新2.2底包后，直接删除这些混淆的方法
- * @Keep为未修的[不知道为啥漏了]
+ * @Keep为2.2未修的[不知道为啥漏了]
  */
 // 底包对MavenService的全部引用
 public class MavenService {
@@ -24,8 +21,6 @@ public class MavenService {
 	// 需要考虑对字段的并发操作
 	
 	//
-	
-	
 	ZeroAicyMavenService proxy = new ZeroAicyMavenService();
 	
 	// refreshing maven cache

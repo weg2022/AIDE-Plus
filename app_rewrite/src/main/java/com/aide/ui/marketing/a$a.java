@@ -28,7 +28,7 @@ public class a$a {
 		this.j6 = ImageIconId;
 		
 		//跟随App.P8，表示是aide还是web等
-		repair(appFlag);
+		repair(this, appFlag);
 		
 		this.FH = title;
 		this.Hw = str3;
@@ -37,13 +37,13 @@ public class a$a {
 	/**
 	 * 修复更新弹窗
 	 */
-	private void repair(String appFlag) {
+	private static void repair(a$a a, String appFlag) {
 		if (appFlag.equals(ServiceContainer.P8)) {
 			//更新为当前包名
-			this.DW = ContextUtil.getPackageName();
-			Log.d(appFlag, DW);
+			a.DW = ContextUtil.getPackageName();
+			Log.d(appFlag, a.DW);
 		} else {
-			this.DW = appFlag;
+			a.DW = appFlag;
 		}
 	}
     private List<String> FH(Context context, String str) {
