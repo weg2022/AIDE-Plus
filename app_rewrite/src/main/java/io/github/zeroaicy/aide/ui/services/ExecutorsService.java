@@ -14,10 +14,12 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.aide.ui.build.android.AaptService$d;
+import java.util.concurrent.FutureTask;
 
 public class ExecutorsService {
 
-	private static final boolean isDebug = true;
+	public static final boolean isDebug = !true;
 	
 	private static final String TAG = "ExecutorsService";
 	private static ThreadFactory threadFactory = new ThreadFactory(){
@@ -60,6 +62,13 @@ public class ExecutorsService {
 	// 暂时用这种
 	private ExecutorService service = Executors.newFixedThreadPool(1, threadFactory);
 	
+	/**
+	 * 使得AaptService可以使用此线程池
+	 * 已免运行aapt2时
+	 */
+	public <V> void execute(FutureTask<V> futureTask) {
+		service.execute(futureTask);
+	}
 	/**
 	 * 保证一组调用都在子线程中
 	 */
@@ -109,16 +118,23 @@ public class ExecutorsService {
 			long now = System.currentTimeMillis();
 			try {
 				this.runnable.run();
+				
 			}
 			catch (Throwable e) {
 				Log.e("异步错误", this.stackTrace, e);
 			}
 			now = System.currentTimeMillis() - now;
-			//Log.d("ExecutorsService", "耗时 ", (now) + "ms");
+			if( isDebug){
+				Log.d("ExecutorsService", "耗时 ", (now) + "ms");
+				Log.println(stackTraces);
+			}
 		}
 	}
 
-
+	
+	/**
+	 * 自动阻塞
+	 */
 	public <T> T runTask(Callable<T> callable) {
 		try {
 			return service.submit(callable).get();

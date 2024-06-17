@@ -44,8 +44,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
         super.onHeaderClick(header, position);
     }
 
-    private 
-	Menu mOptionMenu;
+    private Menu mOptionMenu;
 
     public Menu getOptionMenu() {
         return mOptionMenu;

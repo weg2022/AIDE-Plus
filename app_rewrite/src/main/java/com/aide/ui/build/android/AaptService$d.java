@@ -14,17 +14,24 @@ import com.aide.ui.build.android.AaptService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import io.github.zeroaicy.util.Log;
+import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 
 class AaptService$d extends FutureTask<AaptService$b> {
 
 
     final AaptService aaptService;
-	
     public AaptService$d(AaptService aaptService, AaptService$a aVar) {
         super(aVar);
 		this.aaptService = aaptService;
+		if( ExecutorsService.isDebug){
+			Log.printlnStack();
+		}
     }
-
+	
+	/**
+	 * 必须运行在ProjectService所在线程
+	 * 否则可能导致并发问题
+	 */
     @Override
     protected void done() {
 		if (isCancelled()) {
@@ -33,10 +40,8 @@ class AaptService$d extends FutureTask<AaptService$b> {
 		try {
 			AaptService$b aaptService$b = get();
 			if (aaptService$b.FH == null) {
-				//Log.e(this.toString(), aaptService$b.toString(), new Throwable());
+				// 切换到主线程
 				AaptService.j6(this.aaptService, aaptService$b.j6);
-				
-				
 			} else {
 				AaptService.DW(this.aaptService, aaptService$b.FH);
 			}

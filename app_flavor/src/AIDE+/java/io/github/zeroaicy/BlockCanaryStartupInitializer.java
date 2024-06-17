@@ -1,6 +1,6 @@
 package io.github.zeroaicy;
 
-//*
+/*
 import android.app.Application;
 import android.content.Context;
 import androidx.startup.Initializer;

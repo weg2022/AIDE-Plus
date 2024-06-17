@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 
 public class AaptService {
 
@@ -32,12 +33,13 @@ public class AaptService {
     private e FH;
 
     private Context Hw;
-
-    private final ExecutorService j6;
+	
+	// 只有此类使用 j6 -> 
+    private final ExecutorsService executorsService;
 
     public AaptService(Context context) {
 		this.Hw = context;
-		this.j6 = Executors.newSingleThreadExecutor();
+		this.executorsService = ExecutorsService.getExecutorsService(ServiceContainer.getProjectService().getClass().getName());
     }
 
     static void DW(AaptService aaptService, Map<String, List<SyntaxError>> map) {
@@ -131,7 +133,12 @@ public class AaptService {
 		}
 
     }
-
+	
+	/**
+	 * 会调用AndroidProjectBuildService$c::vJ
+	 * 然后在切换到主线程运行AndroidProjectBuildService$c$c类
+	 * 
+	 */
     private void J8(boolean z) {
         if (this.FH != null) {
 			this.FH.vJ(z);
@@ -171,19 +178,20 @@ public class AaptService {
         v5 = z;
         return z;
     }
-
+	
+	// AaptService$d::done调用
     static void j6(AaptService aaptService, boolean z) {
         aaptService.J8(z);
     }
 
     private AaptService$c tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
 		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
-		Map jO = AndroidProjectSupport.jO(vy, str3);
-		Map cT = AndroidProjectSupport.cT(vy, str3);
-		Map aq = AndroidProjectSupport.aq(str, vy, str3);
-		Map FN = AndroidProjectSupport.FN(vy, str3);
-		Map oY = AndroidProjectSupport.oY(vy, str3);
-		Map Z1 = AndroidProjectSupport.Z1(vy, str3);
+		Map<String, String> jO = AndroidProjectSupport.jO(vy, str3);
+		Map<String, String> cT = AndroidProjectSupport.cT(vy, str3);
+		Map<String, String> aq = AndroidProjectSupport.aq(str, vy, str3);
+		Map<String, String> FN = AndroidProjectSupport.FN(vy, str3);
+		Map<String, List<String>> oY = AndroidProjectSupport.oY(vy, str3);
+		Map<String, String> Z1 = AndroidProjectSupport.Z1(vy, str3);
 		return new AaptService$c(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
     }
 
@@ -241,7 +249,7 @@ public class AaptService {
 					return arrayList;
 				}
 			};
-            ExecutorService executorService = this.j6;
+            ExecutorsService executorService = this.executorsService;
 			AaptService$d dVar = new AaptService$d(this, new AaptService$a(this, taskFactory));
             this.DW = dVar;
             executorService.execute(dVar);
@@ -272,14 +280,13 @@ public class AaptService {
 								continue;
 							}
 							arrayList.add(tp(str4, true, false, false, str2, str3, we));
-
 						}
 					}
 					arrayList.add(tp(str, false, z, z2, str2, str3, we));
 					return arrayList;
 				}
 			};
-            ExecutorService executorService = this.j6;
+            ExecutorsService executorService = this.executorsService;
             AaptService$d dVar = new AaptService$d(this, new AaptService$a(this, taskFactory));
             this.DW = dVar;
             executorService.execute(dVar);

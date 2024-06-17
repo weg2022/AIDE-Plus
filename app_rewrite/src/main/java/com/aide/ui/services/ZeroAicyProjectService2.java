@@ -13,23 +13,45 @@ import java.util.Collections;
 import com.aide.engine.EngineSolution;
 import android.app.ProgressDialog;
 import android.view.Window;
+import java.util.Map;
+import io.github.zeroaicy.util.Log;
 
 public class ZeroAicyProjectService2 extends ProjectService {
-
-	private final ExecutorsService executorsService = ExecutorsService.getExecutorsService(ZeroAicyProjectService2.class.getName());
+	// 使用自己的类名作为线程池标记
+	private final ExecutorsService executorsService = ExecutorsService.getExecutorsService(getClass().getName());
 
 	public ZeroAicyProjectService2() {
+		super();
 		// 防止并发
 		synchronized (this) {
 			//Collections.synchronizedMap(new HashMap<String, List<String>>());
 			this.libraryMapping = new ConcurrentHashMap<String, List<String>>();
 			this.Hw = new Vector<String>();
-
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
 			ServiceContainer.getDebugger();
 		}
 	}
+
+
+	/**
+	 * 暂时没啥用
+	 */
+	@Override
+	public synchronized List<String> yS() {
+		return this.Hw;			
+	}
+	
+	@Override
+	public synchronized Map<String, List<String>> getLibraryMapping() {
+		if( ExecutorsService.isDebug){
+			Log.printlnStack();
+			Log.println("this.libraryMapping: " + this.libraryMapping);			
+		}
+		
+		return this.libraryMapping;
+	}
+	
 	/*****************************************************************/
 	/**
 	 * 防止 Hw 与 libraryMapping值被覆盖
@@ -57,14 +79,6 @@ public class ZeroAicyProjectService2 extends ProjectService {
 			th.printStackTrace();
         }
     }
-
-	/**
-	 * 暂时没啥用
-	 */
-	@Override
-	public List<String> yS() {
-		return this.Hw;			
-	}
 	/*****************************************************************/
 	public void sGAsync(){
 		super.sG();
@@ -185,29 +199,6 @@ public class ZeroAicyProjectService2 extends ProjectService {
 					}
 				}
 			});
-
-		/*
-		 // 处理的空项目情况
-		 if (this.currentAppHome == null 
-		 || this.pojectSupport == null) {
-		 List emptyList = Collections.emptyList();
-
-		 final EngineSolution engineSolution = new EngineSolution(emptyList, null, com.aide.engine.service.CodeModelFactory.j6(ServiceContainer.Hw()), ServiceContainer.Hw());
-		 //异步发送EngineSolution
-		 asyncUpdateEngineSolution(engineSolution);
-
-		 return;
-		 }                           ,
-
-		 executorsService.submit(new Runnable(){
-		 @Override
-		 public void run() {
-		 synchronized (yS()) {
-		 makeEngineSolutionAsync();
-		 }
-		 }
-		 });
-		 */
 	}
 
 	public void makeEngineSolutionAsync() {
@@ -299,18 +290,18 @@ public class ZeroAicyProjectService2 extends ProjectService {
 	@Override
 	public void wc() {
 		if (!ExecutorsService.isUiThread()) {
-			super_wc();
+			wcAsync();
 			return;
 		}
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_wc();
+					wcAsync();
 				}
 			});
 	}
 
-	private void super_wc() {
+	private void wcAsync() {
 		if (this.currentAppHome != null 
 			&& getProjectSupport(this.currentAppHome) == null) {
 			Ws();

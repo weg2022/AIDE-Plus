@@ -8,21 +8,18 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class b00 {
+	
     private static boolean j6 = false;
 
     public static void DW(String str, String str2, Throwable th) {
         if (j6) {
             return;
         }
-        /*if (uz.DW()) {
-            Log.d("PROBELYTICS", str + ": " + str2, th);
-            return;
-        }*/
         Hw(3, str + ": " + str2, th);
     }
 
     public static void FH(boolean z) {
-        //j6 = z;
+        j6 = z;
     }
 
     private static void Hw(int i, String str, Throwable th) {

@@ -196,12 +196,18 @@ public final class Log {
 	public static void println(Object x) {
 		if (isOut && Log.getLog() != null) Log.getLog().println(x);
 	}
+	public static void println(StackTraceElement[] stackTrace) {
+		if (isOut && Log.getLog() != null){
+			for (int i = 2; i < stackTrace.length - 1; i++) {
+				Log.println(stackTrace[i].toString());
+			}
+			Log.println();	
+		} 
+	}
+	
 	public static void printlnStack() {
 		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-		for (int i = 2; i < stackTrace.length - 1; i++) {
-			Log.println(stackTrace[i].toString());
-		}
-		Log.println();
+		println(stackTrace);
 	}
     /**
      * Send a {@link #VERBOSE} log message.

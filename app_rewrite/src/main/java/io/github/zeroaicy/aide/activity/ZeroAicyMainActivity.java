@@ -29,10 +29,10 @@ import androidx.legacy.app.ActionBarDrawerToggle;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
 import com.aide.common.MessageBox;
-import com.aide.ui.ServiceContainer;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
 import com.aide.ui.PromoNotificationAlarmReceiver;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.ThemedActionbarActivity;
 import com.aide.ui.activities.TrainerCourseActivity;
 import com.aide.ui.firebase.FireBaseLogEvent;
@@ -44,8 +44,10 @@ import com.aide.ui.views.SplitView;
 import com.aide.ui.y;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.ui.services.ExecutorsService;
 import io.github.zeroaicy.aide.ui.views.ZeroAicySplitView;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
@@ -57,8 +59,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
-import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 
 public class ZeroAicyMainActivity extends MainActivity {
 

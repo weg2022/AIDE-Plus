@@ -1,17 +1,18 @@
 package io.github.zeroaicy.aide.preference;
-import android.annotation.*;
-import android.content.*;
-import android.content.res.*;
-import android.preference.*;
-import java.util.*;
+import android.annotation.Nullable;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.preference.PreferenceManager;
 import com.aide.ui.rewrite.R;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ZeroAicySetting {
 
 	private static SharedPreferences defaultSp;
 	public static SharedPreferences projectServiceSharedPreferences;
 	private static final Map<String, String> gradleCmdLineMap = new LinkedHashMap<String, String>();
-
 
 	public static SharedPreferences getDefaultSp() {
 		return defaultSp;

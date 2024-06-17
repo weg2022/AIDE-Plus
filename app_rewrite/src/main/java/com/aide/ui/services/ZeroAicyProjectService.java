@@ -42,9 +42,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		synchronized (this) {
 			this.libraryMapping = new ConcurrentHashMap<>();
-
 			this.Hw = new Vector<String>();
-
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
 			ServiceContainer.getDebugger();
