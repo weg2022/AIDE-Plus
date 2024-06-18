@@ -157,8 +157,12 @@ public class ZeroAicyMavenService {
 					public void run() {
 						//重置依赖缓存映射
 						resetDepPathMap();
-						//删除 maven缓存
-						FileSystem.VH(getDefaulRepositoriePath());
+						try{
+							//删除 maven缓存
+							FileSystem.VH(getDefaulRepositoriePath());
+						}catch(Throwable e){
+
+						}
 					}
 				}, new Runnable(){
 					@Override

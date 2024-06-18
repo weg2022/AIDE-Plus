@@ -653,7 +653,11 @@ public class AaptService$c {
 				}
 				String value = entry.getValue();
 				if (new File(value).exists()) {
-					FileSystem.VH(value);
+					try{
+						FileSystem.VH(value);
+					}catch(Throwable e){
+						
+					}
 				}
             }
         }

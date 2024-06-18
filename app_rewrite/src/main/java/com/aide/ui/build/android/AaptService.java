@@ -33,7 +33,7 @@ public class AaptService {
     private e FH;
 
     private Context Hw;
-	
+
 	// 只有此类使用 j6 -> 
     private final ExecutorsService executorsService;
 
@@ -88,7 +88,7 @@ public class AaptService {
 						putSyntaxError(hashMap, str, line);
 						continue;
 					}
-					
+
 					int i4 = indexOf + 1;
 					int indexOf2 = line.indexOf(':', i4);
 
@@ -96,7 +96,7 @@ public class AaptService {
 						indexOf2 = line.indexOf(' ', i4);
 					}
 					int i;
-					
+
 					if (indexOf2 > 0) {
 						try {
 							i = Integer.parseInt(line.substring(i4, indexOf2));
@@ -133,7 +133,7 @@ public class AaptService {
 		}
 
     }
-	
+
 	/**
 	 * 会调用AndroidProjectBuildService$c::vJ
 	 * 然后在切换到主线程运行AndroidProjectBuildService$c$c类
@@ -178,7 +178,7 @@ public class AaptService {
         v5 = z;
         return z;
     }
-	
+
 	// AaptService$d::done调用
     static void j6(AaptService aaptService, boolean z) {
         aaptService.J8(z);
@@ -226,7 +226,12 @@ public class AaptService {
 				FileSystem.aj((String) Z1.get(ye));
 			}
 			String Eq = AndroidProjectSupport.Eq(str2);
-			FileSystem.VH(Eq);
+			try {
+				FileSystem.VH(Eq);
+			}
+			catch (Throwable e) {
+
+			}
 			new File(Eq).mkdirs();
 		}
 	}
