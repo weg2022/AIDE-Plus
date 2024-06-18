@@ -39,7 +39,7 @@ public class ZeroAicyExtensionInterface {
 	// 预扩展
 	public static void createCodeModels(Model model, List<String> codeModelNames, List<CodeModel> codeModels) {
 		// AIDE是根据 codeModelNames来选择是否添加 CodeModel
-		// codeModelNames开源之一 ServiceContainer.Hw()
+		// codeModelNames来源之一 ServiceContainer.Hw()
 		// 但我不遵守😕😕😕，即表示所有项目都会支持添加的CodeModel
 		//codeModels.add(new SmaliCodeModel(model))
 	}

@@ -1,47 +1,41 @@
 package com.aide.ui.services;
 
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
-import android.widget.Toast;
-import com.aide.engine.EngineSolution;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.firebase.FireBaseLogEvent;
-import com.aide.ui.project.AndroidProjectSupport;
-import com.aide.ui.project.internal.GradleTools;
-import com.aide.ui.util.BuildGradle;
-import com.aide.ui.util.FileSystem;
-import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
-import io.github.zeroaicy.util.Log;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import com.aide.ui.util.BuildGradle.MavenDependency;
+import android.Manifest;
+import java.util.Collections;
+import com.aide.engine.EngineSolution;
+import android.app.ProgressDialog;
+import android.view.Window;
+import java.util.Map;
+import io.github.zeroaicy.util.Log;
 
 public class ZeroAicyProjectService extends ProjectService {
-
 	private static final String TAG = "ZeroAicyProjectService";
-
+	
+	// 使用ProjectService的实现类的类名作为线程池标记
+	private final ExecutorsService executorsService = ExecutorsService.getExecutorsService(getClass().getName());
 	private static ProjectService singleton;
-
+	
 	public static ProjectService getSingleton() {
 		if (singleton == null) {
-			singleton = new ZeroAicyProjectService2();
+			singleton = new ZeroAicyProjectService();
 			Log.d(TAG,  "替换ZeroAicyProjectService");
 		}
 		return singleton;
 	}
-
 	public ZeroAicyProjectService() {
 		super();
-
+		// 防止并发
 		synchronized (this) {
-			this.libraryMapping = new ConcurrentHashMap<>();
+			//Collections.synchronizedMap(new HashMap<String, List<String>>());
+			this.libraryMapping = new ConcurrentHashMap<String, List<String>>();
 			this.Hw = new Vector<String>();
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
@@ -49,89 +43,110 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 	}
 
+
 	/**
-	 * 在父类构造器调用后立即被调用
+	 * 暂时没啥用
 	 */
 	@Override
 	public synchronized List<String> yS() {
 		return this.Hw;			
 	}
-
-	// 耗时任务 MavenService -> J8 [resolveFullDependencyTree]
-	private ExecutorsService executorsService = ExecutorsService.getExecutorsService(TAG);
+	
 	@Override
-	protected void jJ() {
-		// 空项目
-		if (this.currentAppHome == null 
-			|| this.pojectSupport == null) {
-			List emptyList = Collections.emptyList();
-			final EngineSolution engineSolution = new EngineSolution(emptyList, null, com.aide.engine.service.CodeModelFactory.j6(ServiceContainer.Hw()), ServiceContainer.Hw());
-            if (ExecutorsService.isUiThread()) {
-                ServiceContainer.getEngineService().er(engineSolution);
-                ServiceContainer.getEngineService().ef();
-                ServiceContainer.getEngineService().ei();
-                return;
-            }
-            sendEngineSolution(engineSolution);
-            return;
-        }
+	public synchronized Map<String, List<String>> getLibraryMapping() {
+		if( ExecutorsService.isDebug){
+			Log.printlnStack();
+			Log.println("this.libraryMapping: " + this.libraryMapping);			
+		}
+		
+		return this.libraryMapping;
+	}
+	
+	/*****************************************************************/
+	/**
+	 * 防止 Hw 与 libraryMapping值被覆盖
+	 */
+	@Override
+	public void Ws() {
+		if (this.currentAppHome == null) {
+			return;
+		}
+        try {
+			saveCurrentAppHome(null);
+			ServiceContainer.J0().aM();
+			ServiceContainer.getNavigateService().Hw();
+			ServiceContainer.getOpenFileService().Zo();
+			// 替换原实现
+			this.Hw.clear();
+			this.libraryMapping.clear();
 
+			ServiceContainer.getDebugger().v5();
+			ServiceContainer.getMainActivity().q7();
+
+			jJ();
+        }
+		catch (Throwable th) {
+			th.printStackTrace();
+        }
+    }
+	/*****************************************************************/
+	public void sGAsync(){
+		super.sG();
+	}
+	
+	/**
+	 * verifyResourcesDownload
+	 */
+	@Override
+	public boolean sG() {
 		executorsService.submit(new Runnable(){
 				@Override
-				public void run() { 
-					// 不要以为使用了同步集合就万事大吉，
-					// 同步集合只能保证本身的操作是同步的，
-					// 但是它所属的代码块不是同步的话，
-					// 多线程情况下也会出问题
-
-					// 如果集合正在遍历，这时又有写入操作就会触发并发错误
-					// 如上所述，并发集合仅是集合自己的操作是有锁
-					// 但是集合的遍历器不是
-					// 防止并发错误
-					synchronized (yS()) {
-						ProjectSupport dW = ZeroAicyProjectService.this.pojectSupport;
-						final EngineSolution engineSolution = dW.makeEngineSolution();
-						sendEngineSolution(engineSolution);
-					}
+				public void run() {
+					sGAsync();
 				}
 			});
+		return false;
 	}
-	private void sendEngineSolution(final EngineSolution engineSolution) {
-		ServiceContainer.aj(new Runnable(){
+	
+	/*****************************************************************/
+	protected void etAsync(List<String> list, boolean p) {
+		if (this.pojectSupport != null) {
+			this.pojectSupport.cn(list, p);
+		}
+	}
+	@Override
+	public void et(final List<String> list, final boolean p) {
+		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					ServiceContainer.getEngineService().er(engineSolution);
-					ServiceContainer.getEngineService().ef();
-					ServiceContainer.getEngineService().ei();
+					etAsync(list, p);
 				}
 			});
 	}
-
 	/*****************************************************************/
 
 	@Override
 	public void openProject(final String string) {
 		try {
+			//*
+			final ProgressDialog show = ProgressDialog.show(ServiceContainer.getMainActivity(), null, "打开项目中[请等待]...", true, false);
+			Window window = show.getWindow();
+			window.addFlags(128);
+			window.clearFlags(2);
 
-			final ProgressDialog show = ProgressDialog.show(ServiceContainer.getMainActivity(), null, "Opening project...", true, false);
-			show.getWindow().addFlags(128);
-			show.getWindow().clearFlags(2);
-
+			// 打开完毕，再取消
 			final Runnable dismissRunnable = new Runnable(){
 				@Override
 				public void run() {
 					show.dismiss();
 				}
 			};
+			//*/
+
 			executorsService.submit(new Runnable(){
 					@Override
 					public void run() {
-						try {
-							super_openProject(string);
-						}
-						catch (Throwable e) {
-							Log.e(" run", "super_cb", e);
-						}
+						openProjectAsync(string);
 						ServiceContainer.aj(dismissRunnable);
 					}
 				});
@@ -143,17 +158,21 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 	}
 
-	public void super_openProject(String str) {
-		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0);
+	public void openProjectAsync(String projectPath) {
+
+		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("ProjectService", Context.MODE_PRIVATE);
+
 		if (!ServiceContainer.isTrainerMode() 
-			&& ServiceContainer.getMainActivity().checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE")) {
-			if (str != null) {
-				FireBaseLogEvent.tp("App init: From intent");
-				saveCurrentAppHome(SI(str));
+			&& ServiceContainer.getMainActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+			if (projectPath != null) {
+				//FireBaseLogEvent.tp("App init: From intent");
+				saveCurrentAppHome(SI(projectPath));
 			} else {
 				String string = sharedPreferences.getString("CurrentAppHome", null);
 				this.currentAppHome = string;
+
 				if (string != null && getProjectSupport(string) == null) {
+					// 没有支持此目录的项目支持器，置空
 					this.currentAppHome = null;
 				}
 			}
@@ -163,35 +182,89 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		init();
 
-		if (ZeroAicyProjectService.this.pojectSupport != null) {
-
-			ServiceContainer.getDebugger().P8(ZeroAicyProjectService.this.pojectSupport.yS(), true);
+		if (this.pojectSupport != null) {
+			ServiceContainer.getDebugger().P8(this.pojectSupport.yS(), true);
 		}
-		if (ZeroAicyProjectService.this.currentAppHome != null) {
-			FireBaseLogEvent.tp("App init: Opened existing project");
+
+		if (this.currentAppHome != null) {
+			//FireBaseLogEvent.tp("App init: Opened existing project");
 			et(null, false);
 			sy("init");
 		}
 	}
 
+	/*******************************************************************/
+	protected void jJAsync() {
+		super.jJ();
+	}
 
-
-	/*****************************************************************/
 	@Override
-	protected void init() {
-		if (!ExecutorsService.isUiThread()) {
-			super_init();
-			return;
-		}
+	protected void jJ() {
+		// updateEngineSolution
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_init();
+					synchronized (yS()) {
+						jJAsync();
+					}
 				}
 			});
 	}
 
-	protected void super_init() {
+	public void makeEngineSolutionAsync() {
+		// 不要以为使用了同步集合就万事大吉，
+		// 同步集合只能保证本身的操作是同步的，
+		// 但是它所属的代码块不是同步的话，
+		// 多线程情况下也会出问题
+
+		// 如果集合正在遍历，这时又有写入操作就会触发并发错误
+		// 如上所述，并发集合仅是集合自己的操作是有锁
+		// 但是集合的遍历器不是
+		// 防止并发错误
+
+		asyncUpdateEngineSolution(this.pojectSupport.makeEngineSolution());
+
+	}
+
+	/**
+	 * 在主线程中设置EngineService
+	 */
+	private void asyncUpdateEngineSolution(final EngineSolution engineSolution) {
+		if (ExecutorsService.isUiThread()) {
+			// 就在子进程设置试试，应该可以
+			EngineService engineService = ServiceContainer.getEngineService();
+			engineService.er(engineSolution);
+			engineService.ef();
+
+			engineService.ei();
+			return;
+		}
+
+		ServiceContainer.aj(new Runnable(){
+				@Override
+				public void run() {
+					EngineService engineService = ServiceContainer.getEngineService();
+					engineService.er(engineSolution);
+					engineService.ef();
+
+					engineService.ei();
+				}
+			});
+	}
+	/*****************************************************************/
+	@Override
+	protected void init() {
+		//异步
+		executorsService.submit(new Runnable(){
+				@Override
+				public void run() {
+					initAsync();
+				}
+			});
+	}
+
+	protected void initAsync() {
+		// 重置
 		this.Hw.clear();
 		this.libraryMapping.clear();
 
@@ -203,65 +276,44 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	/*****************************************************************/
 
-	protected void super_et(List<String> list, boolean p) {
-		if (this.pojectSupport != null) {
-			this.pojectSupport.cn(list, p);
-		}
-	}
-	@Override
-	public void et(final List<String> list, final boolean p) {
-		if (!ExecutorsService.isUiThread()) {
-			super_et(list, p);
-			return;
-		}
-
-		executorsService.submit(new Runnable(){
-				@Override
-				public void run() {
-					super_et(list, p);
-				}
-			});
+	private void saveCurrentAppHome(String projectPath) {
+		this.currentAppHome = null;
+		SharedPreferences.Editor edit = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0).edit();
+		edit.putString("CurrentAppHome", projectPath);
+		edit.commit();
 	}
 
-	/*****************************************************************/
-	public void Ws() {
-        try {
-            if (this.currentAppHome != null) {
-				saveCurrentAppHome(null);
-                ServiceContainer.J0().aM();
-                ServiceContainer.getNavigateService().Hw();
-                ServiceContainer.getOpenFileService().Zo();
-                this.Hw.clear();
-				//this.FH = new HashMap<>();
-				this.libraryMapping.clear();
-
-                ServiceContainer.getDebugger().v5();
-                ServiceContainer.getMainActivity().q7();
-
-                jJ();
-            }
-        }
-		catch (Throwable th) {
-			th.printStackTrace();
-        }
+	private ProjectSupport getProjectSupport(String projectPath) {
+		if (projectPath == null) {
+			return null;
+		}
+		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
+			if (projectSupport.isSupport(projectPath)) {
+				return projectSupport;
+			}
+		}
+		return null;
     }
+
+
 	/*****************************************************************/
 	@Override
 	public void wc() {
 		if (!ExecutorsService.isUiThread()) {
-			super_wc();
+			wcAsync();
 			return;
 		}
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_wc();
+					wcAsync();
 				}
 			});
 	}
 
-	private void super_wc() {
-		if (this.currentAppHome != null && getProjectSupport(this.currentAppHome) == null) {
+	private void wcAsync() {
+		if (this.currentAppHome != null 
+			&& getProjectSupport(this.currentAppHome) == null) {
 			Ws();
 		}
 		if (this.currentAppHome != null) {
@@ -272,7 +324,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	/*****************************************************************/
 
-	public void super_reloadingProject() {
+	public void reloadingProjectAsync() {
 		if (this.currentAppHome != null 
 			&& getProjectSupport(this.currentAppHome) == null) {
 			Ws();
@@ -293,227 +345,11 @@ public class ZeroAicyProjectService extends ProjectService {
 	}
 	@Override
 	public void reloadingProject() {
-
-		if (!ExecutorsService.isUiThread()) {
-			super_reloadingProject();
-			return;
-		}
-
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
-					super_reloadingProject();
+					reloadingProjectAsync();
 				}
 			});
 	}
-	/*****************************************************************/
-
-	/*****************************************************************/
-	/**
-	 * return not download maven
-	 */
-	public static List<BuildGradle.MavenDependency> qp() {
-		ArrayList<BuildGradle.MavenDependency> mavenDependencyList = new ArrayList<>();
-		for (String projectPath : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
-			if (!GradleTools.isGradleProject(projectPath)) {
-				continue;
-			}
-			for (BuildGradle.Dependency mavenDependency : getProjectMavenDependencyList(projectPath)) {
-				if (mavenDependency instanceof BuildGradle.MavenDependency) {
-					List<BuildGradle.MavenDependency> notExistsLocalCache = ServiceContainer.getMavenService().getNotExistsLocalCache(getFlatRepositoryPathMap(projectPath), ((BuildGradle.MavenDependency)mavenDependency));
-					for (BuildGradle.MavenDependency dep : notExistsLocalCache) {
-						mavenDependencyList.add(dep);							
-					}
-				}
-			}
-		}
-		return mavenDependencyList;
-
-	}
-
-	private static Map<String, String> getFlatRepositoryPathMap(String str) {
-		HashMap<String, String> hashMap = new HashMap<>();
-		for (BuildGradle.Repository flatLocalRepository : ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str)).curProjectsRepositorys) {
-			if (flatLocalRepository instanceof BuildGradle.FlatLocalRepository) {
-				hashMap.put(((BuildGradle.FlatLocalRepository)flatLocalRepository).getFlatDir(str), GradleTools.EQ(str));
-			}
-		}
-		return hashMap;
-	}
-
-	private static List<BuildGradle.Dependency> getProjectMavenDependencyList(String str) {
-		BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str));
-		String P8 = GradleTools.P8(str);
-		if (FileSystem.isFileAndNotZip(P8)) {
-			BuildGradle configuration2 = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(P8);
-			if (configuration2.subProjectsDependencies.size() > 0 || configuration2.allProjectsDependencies.size() > 0) {
-				ArrayList<BuildGradle.Dependency> arrayList = new ArrayList<>();
-				for (BuildGradle.Dependency dependency : configuration2.subProjectsDependencies) {
-					if (dependency instanceof BuildGradle.MavenDependency) {
-						arrayList.add(dependency);
-					}
-				}
-				for (BuildGradle.Dependency dependency2 : configuration2.allProjectsDependencies) {
-					if (dependency2 instanceof BuildGradle.MavenDependency) {
-						arrayList.add(dependency2);
-					}
-				}
-				arrayList.addAll(ZeroAicyExtensionInterface.getFlavorDependencies(configuration));
-				return arrayList;
-			}
-		}
-		return ZeroAicyExtensionInterface.getFlavorDependencies(configuration);
-
-	}
-
-	private static List<BuildGradle.RemoteRepository> WB(String str) {
-		ArrayList<BuildGradle.RemoteRepository> arrayList = new ArrayList<>();
-		if (GradleTools.isGradleProject(str)) {
-			for (BuildGradle.Repository remoteRepository : ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.Zo(str)).curProjectsRepositorys) {
-				if (remoteRepository instanceof BuildGradle.RemoteRepository) {
-					arrayList.add((BuildGradle.RemoteRepository)remoteRepository);
-				}
-			}
-			String P8 = GradleTools.P8(str);
-			if (FileSystem.isFileAndNotZip(P8)) {
-				BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(P8);
-				for (BuildGradle.Repository remoteRepository2 : configuration.allProjectsRepositorys) {
-					if (remoteRepository2 instanceof BuildGradle.RemoteRepository) {
-						arrayList.add((BuildGradle.RemoteRepository)remoteRepository2);
-					}
-				}
-				for (BuildGradle.Repository remoteRepository3 : configuration.subProjectsRepositorys) {
-					if (remoteRepository3 instanceof BuildGradle.RemoteRepository) {
-						arrayList.add((BuildGradle.RemoteRepository)remoteRepository3);
-					}
-				}
-			}
-		}
-		return arrayList;
-
-	}
-
-	Runnable DW_Hw = new Runnable(){
-		@Override
-		public void run() {
-			final ArrayList<BuildGradle.MavenDependency> depList = new ArrayList<>();
-			depList.addAll(qp());
-			if (depList.isEmpty()) {
-				return;
-			}
-			ServiceContainer.aj(new Runnable(){
-					@Override
-					public void run() {
-						ServiceContainer.getDownloadService().a8(ServiceContainer.gn(), 
-							depList, 
-							WB(ServiceContainer.getProjectService().getCurrentAppHome()), 
-							new Runnable(){
-								@Override
-								public void run() {
-									ServiceContainer.getMavenService().resetDepPathMap();
-									ServiceContainer.getProjectService().reloadingProject();
-								}
-							});
-					}
-				});
-
-		}
-	};
-	@Override
-	public boolean sG() {
-
-		if (this.pojectSupport instanceof AndroidProjectSupport) {
-			executorsService.submit(DW_Hw);
-			return true;
-		}
-		return super.sG();
-	}
-
-	/*****************************************************************/
-	@Override
-	public void buildProject(final boolean isBuildRefresh) {
-		if (!ExecutorsService.isUiThread()) {
-			ServiceContainer.aj(new Runnable(){
-					@Override
-					public void run() {
-						Toast.makeText(ServiceContainer.getMainActivity(), "开始构建刷新", 0).show();
-					}
-				});
-			if (isBuildRefresh) {
-				wc();		
-			}
-			buildProject2(isBuildRefresh);
-			return;
-		}
-
-		Toast.makeText(ServiceContainer.getMainActivity(), "开始构建", 0).show();
-
-		try {
-			// 等待 wc()
-			executorsService.submit(new Runnable(){
-					@Override
-					public void run() {
-						if (isBuildRefresh) {
-							wc();		
-						}
-						ServiceContainer.aj(new Runnable(){
-								@Override
-								public void run() {
-									buildProject2(isBuildRefresh);
-								}
-							});
-					}
-				})
-				//.get()
-				;
-
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	private void buildProject2(boolean isBuildRefresh) {
-		if (J0()) {
-			this.v5 = true;
-			this.pojectSupport.buildProject(isBuildRefresh);
-		} else if (isBuildRefresh) {
-			ServiceContainer.getEngineService().vy();
-		}
-	}
-
-	/*****************************************************************/
-
-	// FireBaseLogEvent??
-	public void sy(String str) {
-		HashMap<String,String> hashMap = new HashMap<>();
-		hashMap.put("isPremium", Boolean.toString(isPremium()));
-		hashMap.put("libraryCount", Integer.toString(this.getLibraryMapping().size()));
-		hashMap.put("referrer", str); // 来自
-		if (AndroidProjectSupport.iW(getCurrentAppHome())) {
-			hashMap.put("package", AndroidProjectSupport.getProjectPackageName(getCurrentAppHome(), (String) null));
-		}
-		FireBaseLogEvent.EQ("Project opened", hashMap);
-    }
-
-	private void saveCurrentAppHome(String str) {
-		this.currentAppHome = null;
-		SharedPreferences.Editor edit = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0).edit();
-		edit.putString("CurrentAppHome", str);
-		edit.commit();
-	}
-
-
-	private ProjectSupport getProjectSupport(String str) {
-		if (str == null) {
-			return null;
-		}
-		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
-			if (projectSupport.isSupport(str)) {
-				return projectSupport;
-			}
-		}
-		return null;
-    }
 }
