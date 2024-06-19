@@ -30,6 +30,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return singleton;
 	}
+	
 	public ZeroAicyProjectService() {
 		super();
 		// 防止并发
@@ -54,14 +55,30 @@ public class ZeroAicyProjectService extends ProjectService {
 	
 	@Override
 	public synchronized Map<String, List<String>> getLibraryMapping() {
-		if( ExecutorsService.isDebug){
-			Log.printlnStack();
-			Log.println("this.libraryMapping: " + this.libraryMapping);			
+		synchronized(this.libraryMapping){
+			if( this.libraryMapping == null || ExecutorsService.isDebug){
+				Log.printlnStack();
+				Log.println("this.libraryMapping: " + this.libraryMapping);			
+			}
+
+			return this.libraryMapping;			
 		}
-		
-		return this.libraryMapping;
 	}
-	
+
+	/*****************************************************************/
+	/**
+	 * 需要异步原因是 com.aide.ui.build.android.AndroidProjectBuildService.dx
+	 * 会使用 yS().get(yS().size() -1);
+	 * 在一个线程应该就不会了
+	 * 不对 yS().size()如果为0必然get(-1)
+	 * 所以问题不在并发
+	 */
+	@Override
+	public void buildProject(boolean p) {
+		// TODO: Implement this method
+		
+		super.buildProject(p);
+	}
 	/*****************************************************************/
 	/**
 	 * 防止 Hw 与 libraryMapping值被覆盖

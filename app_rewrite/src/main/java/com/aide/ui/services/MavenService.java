@@ -23,6 +23,10 @@ public class MavenService {
 	//
 	ZeroAicyMavenService proxy = new ZeroAicyMavenService();
 	
+	@Keep
+	public final void refresh() {
+		this.refreshMavenCache();
+	}
 	// refreshing maven cache
 	// @Override
 	public final void refreshMavenCache() {
@@ -34,17 +38,17 @@ public class MavenService {
 		// resolvingMavenDependency
 		this.resolvingMavenDependency(dependency);
 	}*/
-	// @Override
+	@Keep
 	public final void resolvingMavenDependency(BuildGradle.MavenDependency dependency) {
 		proxy.resolvingDependency(dependency);
 	}
 	
-	@Keep
+
 	// 计算并返回dependency在maven缓存仓库中的路径
+	@Keep
 	public final String u7(BuildGradle.MavenDependency dependency){
 		return this.resolveMavenDepPath(dependency);
 	}
-	// @Override
 	public final String resolveMavenDepPath(BuildGradle.MavenDependency dependency) {
 		return proxy.resolveMavenDepPath(dependency);
 	}
@@ -53,6 +57,7 @@ public class MavenService {
 	/*public final List<BuildGradle.MavenDependency> er(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency){
 		return this.getNotExistsLocalCache(flatRepoPathMap, dependency);
 	}*/
+	@Keep
 	public final List<BuildGradle.MavenDependency> getNotExistsLocalCache(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency) {
 		return proxy.getNotExistsLocalCache(flatRepoPathMap, dependency);
 	}
@@ -76,16 +81,18 @@ public class MavenService {
 	/*public final List<String> J8(Map<String, String> flatRepositoryPathMap, BuildGradle.MavenDependency dependency){
 		return this.resolveFullDependencyTree(flatRepositoryPathMap, dependency);
 	}*/
-	// @Override
+	@Keep
 	public final List<String> resolveFullDependencyTree(Map<String, String> flatRepositoryPathMap, BuildGradle.MavenDependency dep) {
 		return proxy.resolveFullDependencyTree(flatRepositoryPathMap, dep);
 	}
+	
+	
 	/*
 	// 依赖存在本地缓存
 	public final boolean BT(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency){
 		return this.existsLocalMavenCache(flatRepoPathMap, dependency);
 	}*/
-	// @Override
+	@Keep
 	public final boolean existsLocalMavenCache(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency) {
 		return proxy.existsLocalMavenCache(flatRepoPathMap, dependency);
 	}
@@ -94,7 +101,7 @@ public class MavenService {
 	/*public final void FH(){
 		this.resetDepPathMap();
 	}*/
-	// @Override
+	@Keep
 	public final void resetDepPathMap() {
 		proxy.resetDepPathMap();
 	}
@@ -105,7 +112,7 @@ public class MavenService {
 	public final void ei(){
 		this.resetDepMap();
 	}*/
-	// @Override
+	@Keep
 	public final void resetDepMap() {
 		proxy.resetDepMap();
 	}
@@ -115,6 +122,7 @@ public class MavenService {
 	public static Map j6(MavenService mavenService){
 		return getDepPathMapping(mavenService);
 	}*/
+	@Keep
 	public static Map getDepPathMapping(MavenService mavenService) {
 		return ZeroAicyMavenService.getDepPathMapping(mavenService.proxy);
 	}
@@ -127,6 +135,7 @@ public class MavenService {
 	public static String DW(){
 		return getDefaulRepositoriePath();
 	}*/
+	@Keep
 	public static String getDefaulRepositoriePath() {
         return ZeroAicyMavenService.getDefaulRepositoriePath();
     }
@@ -135,6 +144,7 @@ public class MavenService {
 	/*public static String rN(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency) {
 		return getMetadataUrl(remoteRepository, dependency);
 	}*/
+	@Keep
 	public static String getMetadataUrl(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency) {
 		return ZeroAicyMavenService.getMetadataUrl(remoteRepository, dependency);
 	}
@@ -143,6 +153,7 @@ public class MavenService {
 	/*public static String lg(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency) {
 		return getMetadataPath(remoteRepository, dependency);
 	}*/
+	@Keep
 	public static String getMetadataPath(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency) {
 		return ZeroAicyMavenService.getMetadataPath(remoteRepository, dependency);
 	}
@@ -151,10 +162,12 @@ public class MavenService {
 	/*public static String XL(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String type) {
 		return getArtifactPath(remoteRepository, dependency, version, type);
 	}*/
+	@Keep
 	public static String getArtifactPath(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String type) {
 		return ZeroAicyMavenService.getArtifactPath(remoteRepository, dependency, version, type);
 	}
 	
+	@Keep
 	public static String getArtifactUrl(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String type) {
 		return ZeroAicyMavenService.getArtifactUrl(remoteRepository, dependency, version, type);
 	}

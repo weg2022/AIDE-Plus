@@ -23,6 +23,7 @@ import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import android.app.Activity;
 
 /**
  * 1.aapt2
@@ -154,5 +155,17 @@ public class ZeroAicyExtensionInterface {
 		dependencies.addAll(defaultDependencies);
 
 		return dependencies;
+	}
+	
+	// 用于修复MessageBox::gW()可能在子线程运行的情况
+	public static void showDialogMessageBox(final Activity activity, final int id){
+		if( activity == null ) return;
+		//保证在主线程调用
+		activity.runOnUiThread(new Runnable(){
+				@Override
+				public void run() {
+					activity.showDialog(id);
+				}
+		});
 	}
 }
