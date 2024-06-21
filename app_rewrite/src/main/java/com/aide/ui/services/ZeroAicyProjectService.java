@@ -1,28 +1,28 @@
 package com.aide.ui.services;
 
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.view.Window;
+import com.aide.engine.EngineSolution;
 import com.aide.ui.ServiceContainer;
-import com.aide.ui.firebase.FireBaseLogEvent;
 import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.util.Log;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import android.Manifest;
-import java.util.Collections;
-import com.aide.engine.EngineSolution;
-import android.app.ProgressDialog;
-import android.view.Window;
-import java.util.Map;
-import io.github.zeroaicy.util.Log;
+import com.aide.ui.util.FileSystem;
+import java.util.Hashtable;
 
 public class ZeroAicyProjectService extends ProjectService {
 	private static final String TAG = "ZeroAicyProjectService";
-	
+
 	// 使用ProjectService的实现类的类名作为线程池标记
 	private final ExecutorsService executorsService = ExecutorsService.getExecutorsService(getClass().getName());
 	private static ProjectService singleton;
-	
+
 	public static ProjectService getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyProjectService();
@@ -30,13 +30,13 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return singleton;
 	}
-	
+
 	public ZeroAicyProjectService() {
 		super();
 		// 防止并发
 		synchronized (this) {
 			//Collections.synchronizedMap(new HashMap<String, List<String>>());
-			this.libraryMapping = new ConcurrentHashMap<String, List<String>>();
+			this.libraryMapping = new Hashtable<String, List<String>>();
 			this.Hw = new Vector<String>();
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
@@ -44,7 +44,10 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 	}
 
-
+	@Override
+	public boolean tp(String string) {
+		return super.tp(string);
+	}
 	/**
 	 * 暂时没啥用
 	 */
@@ -52,11 +55,11 @@ public class ZeroAicyProjectService extends ProjectService {
 	public synchronized List<String> yS() {
 		return this.Hw;			
 	}
-	
+
 	@Override
 	public synchronized Map<String, List<String>> getLibraryMapping() {
-		synchronized(this.libraryMapping){
-			if( this.libraryMapping == null || ExecutorsService.isDebug){
+		synchronized (this.libraryMapping) {
+			if (this.libraryMapping == null || ExecutorsService.isDebug) {
 				Log.printlnStack();
 				Log.println("this.libraryMapping: " + this.libraryMapping);			
 			}
@@ -65,6 +68,48 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 	}
 
+	@Override
+	public String SI(String str) {
+        try {
+            if (FileSystem.cb(str)) {
+                return null;
+            }
+            while (!FileSystem.Sf(str)) {
+                if (getProjectSupport(str) != null) {
+                    return str;
+                }
+                str = FileSystem.getParent(str);
+            }
+        }
+		catch (Throwable th) {
+
+        }
+		return null;
+    }
+	// 返回当前已的文件是否支持[Design]
+	@Override
+	public boolean J8() {
+		if (this.pojectSupport == null) {
+			return false;
+		}
+		String curOpenFile = ServiceContainer.getOpenFileService().u7();
+		if (curOpenFile == null) {
+			return false;
+		}
+		/**
+		 * if (SI(curOpenFile) == null) {
+		 *	return false;
+		 * }
+		 */
+		if (!ServiceContainer.isTrainerMode() 
+			|| ServiceContainer.ro().CU(curOpenFile)) {
+			// 非常耗时的操作
+			// getProjectSupport(SI).u7(u7)
+			// 我认为就应该只是当前ProjectSupport进行判断
+			return this.pojectSupport.u7(curOpenFile);
+		}
+		return false;
+	}
 	/*****************************************************************/
 	/**
 	 * 需要异步原因是 com.aide.ui.build.android.AndroidProjectBuildService.dx
@@ -76,7 +121,6 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public void buildProject(boolean p) {
 		// TODO: Implement this method
-		
 		super.buildProject(p);
 	}
 	/*****************************************************************/
@@ -107,10 +151,10 @@ public class ZeroAicyProjectService extends ProjectService {
         }
     }
 	/*****************************************************************/
-	public void sGAsync(){
+	public void sGAsync() {
 		super.sG();
 	}
-	
+
 	/**
 	 * verifyResourcesDownload
 	 */
@@ -124,7 +168,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			});
 		return false;
 	}
-	
+
 	/*****************************************************************/
 	protected void etAsync(List<String> list, boolean p) {
 		if (this.pojectSupport != null) {

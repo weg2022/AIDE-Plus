@@ -22,6 +22,8 @@ public class ExecutorsService {
 	public static final boolean isDebug = !true;
 	
 	private static final String TAG = "ExecutorsService";
+	private static final int maxThreadNumber = 8;
+	
 	private static ThreadFactory threadFactory = new ThreadFactory(){
 		private final AtomicInteger poolNumber = new AtomicInteger();
 		@Override
@@ -38,29 +40,49 @@ public class ExecutorsService {
 	public static boolean isUiThread() {
 		return uiThread == Thread.currentThread();
 	}
+	
 	// 默认子线程
 	private static ExecutorsService defaultExecutorsService;
 	
+	// 默认线程为4
 	public static ExecutorsService getExecutorsService() {
 		if (defaultExecutorsService == null) {
-			defaultExecutorsService = getExecutorsService("default");
+			defaultExecutorsService = getExecutorsService("default", 4);
 		}
 		return defaultExecutorsService;
 	}
 
 	private static Map<String, ExecutorsService> executorsNameMap = new HashMap<>();
+	
+	/**
+	 * 默认线程数为 1
+	 */
 	public static ExecutorsService getExecutorsService(String executorsName) {
+		return getExecutorsService(executorsName, 1);
+	}
+	
+	private static ExecutorsService getExecutorsService(String executorsName, int threadNumber) {
 		ExecutorsService temp = executorsNameMap.get(executorsName);
 		if (temp == null) {
-			temp = new ExecutorsService();
+			temp = new ExecutorsService(threadNumber);
 			executorsNameMap.put(executorsName, temp);
 		}
 		return temp;
 	}
-
 	// invokeAll阻塞调用处线程
 	// 暂时用这种
-	private ExecutorService service = Executors.newFixedThreadPool(1, threadFactory);
+	private final ExecutorService service;
+	public ExecutorsService(){
+		service = Executors.newFixedThreadPool(1, threadFactory);
+	}
+	
+	public ExecutorsService(int threadNumber){
+		if( threadNumber > maxThreadNumber){
+			threadNumber = maxThreadNumber;
+		}
+		service = Executors.newFixedThreadPool(threadNumber, threadFactory);
+		
+	}
 	
 	/**
 	 * 使得AaptService可以使用此线程池

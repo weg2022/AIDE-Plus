@@ -18,6 +18,7 @@ import com.aide.ui.MainActivity;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.views.editor.OEditor;
 import java.io.StringReader;
+import com.aide.ui.views.editor.Model;
 
 
 
@@ -79,13 +80,33 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
         if (outText == null) {
             return false;
         }
-
 		outText.text = "1234";
-		if (this.oEditor !=  null && this.oEditor.getSelectionVisibility()) {
-			outText.flags = ExtractedText.FLAG_SELECTING;
-			outText.selectionStart = 0; 
-			outText.selectionEnd = 1; 
+		
+	
+		// 如果返回当前所在行，适合Watch
+		// 也能增强依赖getExtractedText输入法的兼容性
+		if( this.oEditor !=  null){
+			Model model = this.oEditor.getModel();
+			int caretLine = this.oEditor.getCaretLine();
+			
+			// 修复 下一行只有一个\n的情况复制不了的问题
+			int nextLine = 0;
+			if( caretLine != model.getLineCount()){
+				nextLine = 1;
+			}
+			char[] readLineText = new char[model.getColumnCount(caretLine) + nextLine];
+			model.readLineText(caretLine, readLineText);
+			if( nextLine == 1){
+				readLineText[readLineText.length -1] = '\n';
+			}
+			outText.text = new String(readLineText);
+			if( this.oEditor.getSelectionVisibility()) {
+				outText.flags = ExtractedText.FLAG_SELECTING;
+				outText.selectionStart = 0; 
+				outText.selectionEnd = outText.text.length();
+			}
 		}
+		
 		outText.startOffset = 0;
         return true;
     }

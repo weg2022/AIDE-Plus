@@ -23,7 +23,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 		}
 		return mTrainerService;
 	}
-	
+
 	public class cZeroAicy extends com.aide.ui.trainer.c {
 		private AtomicBoolean inited = new AtomicBoolean(false);
 		private final Lock lock = new ReentrantLock();
@@ -116,12 +116,12 @@ public class ZeroAicyTrainerService extends abcd.mf {
 			notifyThread();
 		}
 	}
-	
+
 	// 默认子线程
 	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
 	// ui进程
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
-	
+
 	// 原来的实现是每次都new一个Handler
 	@Override
 	public void hz() {
@@ -142,4 +142,17 @@ public class ZeroAicyTrainerService extends abcd.mf {
 		}
 		this.j6.startLesson(EQ);
 	}
+
+	// Labcd/gb;[教程]::isVisible
+	@Override
+	public boolean dx() {
+		if (true) {
+			return true;		
+		}
+		
+		// 有点慢
+		return super.dx();
+	}
+
+
 }

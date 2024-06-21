@@ -41,10 +41,6 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	 */
 	@Override
 	protected OpenFileService.OpenFileModel Z1(final String filePath) {
-		if( !true ){
-			// 非异步
-			return super.Z1(filePath);
-		}
 		final AIDEEditorModel editorModel = new AIDEEditorModel(filePath);
 		// 先返回，内容异步塞入
 		return editorModel;
@@ -86,11 +82,20 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 		@Override
 		public void j6() {
+			// 异步
+			ExecutorsService.getExecutorsService().submit(
+				new Runnable(){
+					@Override
+					public void run() {
+						j6Async();
+					}
+				});
+		}
+		public void j6Async() {
 			synchronized (this) {
 				super.j6();
-			}
+			}			
 		}
-
 		// OpenFileModel 由代码分析进程通过aidl调用
 		// 通过阻塞防止代码分析进程获取的是空内容
 		// 虽然可以主动通知 代码分析进程，

@@ -9,6 +9,7 @@ import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.util.FileSystem;
 import java.io.File;
+import com.aide.ui.rewrite.R;
 
 /**
  * 安卓项目 添加xxx文件
@@ -39,7 +40,7 @@ public class be {
 					}
 				});
 		} else if (v5(dirPath)) {
-			MessageBox.XL(ServiceContainer.getMainActivity(), 0x7f0d0022, 0x7f0d05ca, "", new ValueRunnable<String>(){
+			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.command_files_add_new_xml, 0x7f0d05ca, "", new ValueRunnable<String>(){
 					@Override
 					public void j6(String name) {
 						if (name.endsWith(".xml")) {
@@ -66,28 +67,34 @@ public class be {
 		return 0x7f07003e;
     }
 	public static int Hw(String dirPath) {
-
-
 		if (Zo(dirPath)) {
-			return 0x7f0d0021;
+			return R.string.command_files_add_new_class;
 		}
+		// 是否是res资源
 		if (v5(dirPath)) {
-			return 0x7f0d0022;
+			return R.string.command_files_add_new_xml;
 		}
-		
-		
 		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
-		if (dirPath.startsWith(FileSystem.getParent(currentAppHome)) && dirPath.contains("/java/")) {
-			return 0x7f0d0021;
+
+		// Java源码目录
+		if (!dirPath.startsWith(FileSystem.getParent(currentAppHome))) {
+			return 0;
+		}
+		if (dirPath.contains("/java")) {
+			return R.string.command_files_add_new_class;				
+		} else if (dirPath.endsWith("/res/layout") 
+			|| dirPath.endsWith("/res/menu")) {
+			// 是layout目录
+			return R.string.command_files_add_new_xml;
 		}
 		return 0;
     }
 
     public static int Hw2(String dirPath) {
 		if (Zo(dirPath)) {
-			return 0x7f0d0021;
+			return R.string.command_files_add_new_class;
 		}
-		return v5(dirPath) ? 0x7f0d0022 : 0;
+		return v5(dirPath) ? R.string.command_files_add_new_xml : 0;
     }
 
 	/**
@@ -98,29 +105,39 @@ public class be {
     }
 
     public static boolean j6(String dirPath) {
-		if (!Zo(dirPath) && !v5(dirPath) && !ZeroAicy(dirPath)) {
-			return false;
-		}
-		return true;
+
+		if (ZeroAicy(dirPath)
+			|| Zo(dirPath) 
+			|| v5(dirPath)) {
+			return true;
+		}		
+		return false;
 	}
+
 
 	/**
 	 * 异步导致的向getProjectService 获取项目信息时[数据正在异步]
 	 * 并用AndroidProjectSupport判断是否启用时出现数据不同步
+	 * 符合返回true
 	 */
 	private static boolean ZeroAicy(String dirPath) {
 
 		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
+		// 不是项目里
 		if (!dirPath.startsWith(FileSystem.getParent(currentAppHome))) {
 			return false;
 		}
-		if (!dirPath.contains("/java/")) {
-			return false;
+		// 是Java目录
+		if (dirPath.contains("/java")) {
+			return true;
 		}
-		if (!dirPath.endsWith("/res/layout") || !dirPath.endsWith("/res/menu")) {
-			return false;
-		}		
-		return true;
+		// 是layout目录
+		if (dirPath.endsWith("/res/layout") 
+			|| dirPath.endsWith("/res/menu")) {
+			return true;
+		}
+
+		return false;
 	}
 
     private static boolean v5(String str) {
@@ -131,4 +148,32 @@ public class be {
 		}
 		return false;
     }
+
+
+	public static boolean isJavaDir(String dirPath) {
+		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
+		// 不是项目里
+		if (dirPath.startsWith(FileSystem.getParent(currentAppHome))) {
+			return true;
+		}
+		// 是Java目录
+		if (dirPath.contains("/java")) {
+			return true;
+		}
+
+		return false;
+	}
+	public static boolean isXmlDir(String dirPath) {
+		String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
+		// 不是项目里
+		if (dirPath.startsWith(FileSystem.getParent(currentAppHome))) {
+			return true;
+		}
+		// 是layout目录
+		if (dirPath.endsWith("/res/layout") 
+			|| dirPath.endsWith("/res/menu")) {
+			return true;
+		}
+		return false;
+	}
 }

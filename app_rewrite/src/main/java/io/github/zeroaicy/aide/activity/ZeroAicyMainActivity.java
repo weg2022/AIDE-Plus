@@ -62,20 +62,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
-	private static final String TAG = "ZeroAicyMainActivity";;
+	private static final String TAG = "ZeroAicyMainActivity";
+	
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
-
+		// 隐藏Home键
 		getActionBar().setDisplayShowHomeEnabled(false);
+		
 		if (enableActionDrawerLayout()) {
 			setUpDrawerLayout();
 		}
 		if(ZeroAicySetting.isWatch()){
 			return;
 		}
-		// 隐藏Home键
+		
 		// 检查并申请管理外部储存权限
 		showRequestManageExternalStorage();
 	}
@@ -84,22 +86,30 @@ public class ZeroAicyMainActivity extends MainActivity {
 		return !ServiceContainer.isTrainerMode() 
 			&& ZeroAicySetting.enableActionDrawerLayout();
 	}
-
-	public void super_DW() {
+	public void DWGAsync() {
 		super.DW();
 	}
 	@Override
 	public void DW() {
-		if (!ExecutorsService.isUiThread()) {
-			ServiceContainer.aj(new Runnable(){
-					@Override
-					public void run() {
-						super_DW();
-					}
-				});
-		} else {
-			super.DW();
-		}
+		runOnUiThread(new Runnable(){
+				@Override
+				public void run() {
+					DWGAsync();
+				}
+			});
+	}
+
+	@Override
+	public void eU() {
+		runOnUiThread(new Runnable(){
+				@Override
+				public void run() {
+					eUAsync();
+				}
+			});
+	}
+	public void eUAsync() {
+		super.eU();
 	}
 	// mainMasterButton 点击回调
 	//*
