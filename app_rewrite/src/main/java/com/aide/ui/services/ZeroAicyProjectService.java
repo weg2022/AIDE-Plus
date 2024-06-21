@@ -15,6 +15,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import com.aide.ui.util.FileSystem;
 import java.util.Hashtable;
+import java.util.HashMap;
 
 public class ZeroAicyProjectService extends ProjectService {
 	private static final String TAG = "ZeroAicyProjectService";
@@ -36,7 +37,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		// 防止并发
 		synchronized (this) {
 			//Collections.synchronizedMap(new HashMap<String, List<String>>());
-			this.libraryMapping = new Hashtable<String, List<String>>();
+			this.libraryMapping = new ConcurrentHashMap<String, List<String>>();
 			this.Hw = new Vector<String>();
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
@@ -63,7 +64,9 @@ public class ZeroAicyProjectService extends ProjectService {
 				Log.printlnStack();
 				Log.println("this.libraryMapping: " + this.libraryMapping);			
 			}
-
+			if( ExecutorsService.isUiThread()){
+				return new HashMap<String, List<String>>(this.libraryMapping);
+			}
 			return this.libraryMapping;			
 		}
 	}
