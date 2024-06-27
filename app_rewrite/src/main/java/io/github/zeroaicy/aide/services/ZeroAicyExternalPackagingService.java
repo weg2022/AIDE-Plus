@@ -6,6 +6,8 @@ import com.aide.ui.ServiceContainer;
 public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 	@Override
 	public void onCreate() {
+		Log.d("ZeroAicyExternalPackagingService", "初始化");
+		
 		try {
 			// 初始化 App
 			ServiceContainer.sh(getApplicationContext());
@@ -18,7 +20,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				this.WB = externalPackagingServiceWorker;			
 			}	
 		} catch (Throwable e) {
-			Log.d("ExternalPackagingServiceWrapper", "替换打包实现失败", e);
+			Log.d("ZeroAicyPackagingWorker", "替换打包实现失败", e);
 		}
 		super.onCreate();
 	}

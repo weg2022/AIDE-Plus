@@ -10,7 +10,9 @@ import java.io.File;
 import com.aide.ui.command.KeyStrokeCommand;
 import com.aide.ui.command.MenuCommand;
 import abcd.tf;
+import androidx.annotation.Keep;
 
+@Keep
 public class OpenAideTermux implements KeyStrokeCommand, MenuCommand {
 
 	@Override

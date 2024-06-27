@@ -14,7 +14,7 @@ import com.aide.ui.build.android.AaptService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import io.github.zeroaicy.util.Log;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 
 class AaptService$d extends FutureTask<AaptService$b> {
 
@@ -23,9 +23,6 @@ class AaptService$d extends FutureTask<AaptService$b> {
     public AaptService$d(AaptService aaptService, AaptService$a aVar) {
         super(aVar);
 		this.aaptService = aaptService;
-		if( ExecutorsService.isDebug){
-			Log.printlnStack();
-		}
     }
 	
 	/**
@@ -39,6 +36,7 @@ class AaptService$d extends FutureTask<AaptService$b> {
 		}
 		try {
 			AaptService$b aaptService$b = get();
+			// 判断aapt是否有错误
 			if (aaptService$b.FH == null) {
 				// 切换到主线程
 				AaptService.j6(this.aaptService, aaptService$b.j6);

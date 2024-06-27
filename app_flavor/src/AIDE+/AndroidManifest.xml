@@ -5,9 +5,7 @@
 	android:sharedUserId="io.github.zeroaicy"
 	android:installLocation="auto">
 	
-	<application
-		android:debuggable="true">
-		<profileable android:shell="true"/>
+	<application>
 		<!--<provider
 			android:name="androidx.startup.InitializationProvider"
 			android:exported="false"

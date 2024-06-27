@@ -9,7 +9,7 @@ import com.aide.ui.util.FileSystem;
 import com.aide.ui.views.editor.EditorModel;
 import com.aide.ui.views.editor.EditorModelKt;
 import com.aide.ui.views.editor.TextBuffer;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Vector;
@@ -70,7 +70,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			textBuffers.addElement(new TextBuffer("异步加载中....".toCharArray()));
 
 			// 异步
-			ExecutorsService.getExecutorsService().submit(
+			ThreadPoolService.getExecutorsService().submit(
 				new Runnable(){
 					@Override
 					public void run() {
@@ -83,7 +83,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		@Override
 		public void j6() {
 			// 异步
-			ExecutorsService.getExecutorsService().submit(
+			ThreadPoolService.getExecutorsService().submit(
 				new Runnable(){
 					@Override
 					public void run() {

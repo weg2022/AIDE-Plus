@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
+import com.aide.ui.services.ZeroAicyProjectService;
 
 public class AaptService {
 
@@ -35,11 +36,11 @@ public class AaptService {
     private Context Hw;
 
 	// 只有此类使用 j6 -> 
-    private final ExecutorsService executorsService;
+    private final ThreadPoolService executorsService;
 
     public AaptService(Context context) {
 		this.Hw = context;
-		this.executorsService = ExecutorsService.getExecutorsService(ServiceContainer.getProjectService().getClass().getName());
+		this.executorsService =  ZeroAicyProjectService.getProjectServiceThreadPoolService();
     }
 
     static void DW(AaptService aaptService, Map<String, List<SyntaxError>> map) {
@@ -186,6 +187,7 @@ public class AaptService {
 
     private AaptService$c tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
 		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
+		
 		Map<String, String> jO = AndroidProjectSupport.jO(vy, str3);
 		Map<String, String> cT = AndroidProjectSupport.cT(vy, str3);
 		Map<String, String> aq = AndroidProjectSupport.aq(str, vy, str3);
@@ -235,7 +237,8 @@ public class AaptService {
 			new File(Eq).mkdirs();
 		}
 	}
-
+	
+	// AndroidProjectBuildService::yO -> Mr
     public void Mr(final String str) {
         try {
             final String we = we();
@@ -243,7 +246,9 @@ public class AaptService {
                 this.DW.cancel(true);
                 this.DW = null;
             }
-			// 改成异步
+			
+			// 改成异步获取，在主线程获取会导致没有初始化完
+			// 但此线程池用的是项目服务线程池
 			AaptService$a.TaskFactory taskFactory = new AaptService$a.TaskFactory(){
 				@Override
 				public List<AaptService$c> getTasks() {
@@ -254,10 +259,9 @@ public class AaptService {
 					return arrayList;
 				}
 			};
-            ExecutorsService executorService = this.executorsService;
-			AaptService$d dVar = new AaptService$d(this, new AaptService$a(this, taskFactory));
-            this.DW = dVar;
-            executorService.execute(dVar);
+            ThreadPoolService executorService = this.executorsService;
+            this.DW = new AaptService$d(this, new AaptService$a(this, taskFactory));
+            executorService.execute(this.DW);
         }
 		catch (Throwable th) {
         }
@@ -291,7 +295,7 @@ public class AaptService {
 					return arrayList;
 				}
 			};
-            ExecutorsService executorService = this.executorsService;
+            ThreadPoolService executorService = this.executorsService;
             AaptService$d dVar = new AaptService$d(this, new AaptService$a(this, taskFactory));
             this.DW = dVar;
             executorService.execute(dVar);

@@ -9,6 +9,8 @@ import com.aide.ui.rewrite.R;
 import com.aide.common.ValueRunnable;
 import java.io.File;
 import com.aide.ui.ServiceContainer;
+import android.text.TextUtils;
+import com.aide.ui.rewrite.R;
 
 public class FilesRenameMenu extends zb {
 
@@ -42,6 +44,9 @@ public class FilesRenameMenu extends zb {
 
 		public boolean run() {
 			final String FH = ServiceContainer.getFileBrowserService().FH();
+			if( TextUtils.isEmpty( FH)){
+				return false;
+			}
 			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.getName(FH), new ValueRunnable<String>(){
 					@Override
 					public void j6(String t){

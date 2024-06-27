@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import com.aide.ui.command.KeyStrokeCommand;
 import com.aide.ui.command.MenuItemCommand;
+import android.util.SparseArray;
+import androidx.annotation.Keep;
+import io.github.zeroaicy.util.Log;
 
 public class AppCommands {
 
@@ -44,7 +47,7 @@ public class AppCommands {
     static {
         try {
 			//空的
-			
+
             j6(Hw, we);
             j6(v5, J0);
 
@@ -55,10 +58,12 @@ public class AppCommands {
 				new i9(), new g9(), new ca(), new bc(), new gb()};
 
 			// 文件浏览器
-			DW = new sf[]{new s9(), new ib(), new nb(), 
-				new qc(), new a9(), new r9(), new oa(), 
-				new oc(), new yc(), new nc(), 
-				new FilesRenameMenu(), new v9(), 
+			DW = new sf[]{
+				// 新建项目文件 
+				new s9(), new ib(), new nb(), 
+				new qc(), new a9(), new r9(), 
+				new oa(), new oc(), new yc(), 
+				new nc(), new FilesRenameMenu(), new v9(), 
 				new m9(), new q9(), new p9(), 
 				new ic(), new z8(), new xb(), 
 				new ta(), new ua(), new qa(), 
@@ -74,7 +79,7 @@ public class AppCommands {
 			Zo = new sf[]{new aa(), new kc(), new b9(), 
 				new rc(), new j9(), new z9(), new y9(),
 				new cd()};
-				
+
 			//
             VH = new sf[]{new c9(), new h9(), new pb(), 
 				new mc(), new lc(), new hb(), new wa(), 
@@ -110,60 +115,65 @@ public class AppCommands {
         }
     }
 
-	private static List<rf> rf = null;
-	public static List<rf> rf() {
-		if (rf == null) {
-			rf = new ArrayList<>();
-			for (sf sfVar : Hw()) {
-				if (sfVar instanceof rf) {
-					rf.add((rf)sfVar);
-				}
-			}
-		}
-		return rf;
-    }
-
-	private static List<MenuItemCommand> dg;
-	private static List<MenuItemCommand> dgList() {
-		if (dg == null) {
-			dg = new ArrayList<>();
-			for (sf sfVar : Hw()) {
-				if ((sfVar instanceof MenuItemCommand)) {
-					dg.add(((MenuItemCommand)sfVar));
-				}
-			}
-		}
-		return dg;
-	}
-
+	
+	
     public AppCommands() {}
 
 	/**
 	 * API
 	 */
 
+	private static SparseArray<rf> rf = null;
+	private static SparseArray<rf> rf() {
+		if (AppCommands.rf == null) {
+			AppCommands.rf = new SparseArray<>();
+			for (sf sfVar : Hw()) {
+				if (sfVar instanceof rf) {
+					rf rfVar = (rf)sfVar;
+					rf.put(rfVar.gn(), rfVar);
+				}
+			}
+		}
+		return AppCommands.rf;
+    }
 	/**
+	 * 菜单
+	 */
+	@Keep
+    public static MenuItemCommand u7(int id) {
+		return get_dgSparseArray().get(id);
+    }
+	
+	/**
+	 * 菜单
 	 * 寻找rf
 	 */
+	@Keep
     public static rf DW(int id) {
-		for (rf rfVar  : rf()) {
-			if (id == rfVar.gn()) {
-				return rfVar;
-			}
+		if( u7(id) != null ){
+			return null;
 		}
-		return null;
+		return rf().get(id);
     }
 
-    public static MenuItemCommand u7(int id) {
-		for (MenuItemCommand dgVar : dgList()) {
-			if (id == dgVar.getMenuItemId()) {
-				return dgVar;
+	private static SparseArray<MenuItemCommand> dgSparseArray;
+	private static SparseArray<MenuItemCommand> get_dgSparseArray() {
+		if (dgSparseArray == null) {
+			dgSparseArray = new SparseArray<>();
+			for (sf sfVar : Hw()) {
+				if ((sfVar instanceof MenuItemCommand)) {
+					MenuItemCommand menuItemCommand = (MenuItemCommand)sfVar;
+					dgSparseArray.put(menuItemCommand.getMenuItemId(), menuItemCommand);
+				}
 			}
 		}
-		return null;
-    }
+		return dgSparseArray;
+	}
+	
 	private static List<tf> tf = null;
-	public static List<tf> FH() {
+	
+	@Keep
+    public static List<tf> FH() {
 		if (tf == null) {
 			tf = new ArrayList<>();
 			for (sf sfVar : Hw()) {
@@ -172,39 +182,46 @@ public class AppCommands {
 				}
 			}
 		}
+		
 		return tf;
     }
 	/**
 	 * 字段 Zo, VH
 	 */
-    public static List<KeyStrokeCommand> v5() {
+	@Keep
+	public static List<KeyStrokeCommand> v5() {
 		return EQ;
     }
 
 	/**
 	 * 所有
 	 */
+    @Keep
     public static List<sf> Hw() {
 		return allCommands;
     }
 
 
+    @Keep
     public static List<KeyStrokeCommand> VH() {
 		return tp;
     }
-    public static List<KeyStrokeCommand> gn() {
+	@Keep
+	public static List<KeyStrokeCommand> gn() {
 		return J8;
     }
 
 	/**
 	 * 只有字段j6
 	 */
+    @Keep
     public static List<KeyStrokeCommand> Zo() {
 		return we;
     }
 	/**
 	 * 只有字段j6
 	 */
+    @Keep
     public static List<KeyStrokeCommand> tp() {
 		return J0;
     }

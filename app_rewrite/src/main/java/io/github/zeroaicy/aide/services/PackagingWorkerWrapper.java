@@ -20,7 +20,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 	ExternalPackagingService externalPackagingService;
 	private String noBackupFilesDirPath;
 	public PackagingWorkerWrapper(ExternalPackagingService externalPackagingService) {
-		//父类没有使用外部类[ExternalPackagingService]
+		//父类没有使用封闭类[ExternalPackagingService]
 		null.super();
 		this.externalPackagingService = externalPackagingService;
 	}
@@ -70,7 +70,9 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		//构建时缓存文件的父目录
 		private String outDirPath;
-
+		// 若为gradle项目才有
+		private ZeroAicyBuildGradle zeroAicyBuildGradle;
+		
 		//构建文件地址[类型分为apk和zip]
 		private String outFilePath;
 		// .ap_文件(aapt2 link产物)
@@ -82,6 +84,9 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		//所有依赖库
 		private String[] dependencyLibs;
+		// 使用替代
+		private ScopeTypeQuerier scopeTypeQuerier;
+		
 		//源码目录
 		private String[] sourceDirs;
 		//源码目录
@@ -129,10 +134,16 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			this.allClassFileRootDirs = classFileRootDirs;
 			this.sourceDirs = sourceDirs;
 			this.dependencyLibs = dependencyLibs;
-
+			
 			//  build/bin | bin/[debug | release]/dex
 			this.outDirPath = outDirPath;
-
+			this.zeroAicyBuildGradle = getZeroAicyBuildGradle();
+			try{
+				this.scopeTypeQuerier = new ScopeTypeQuerier(this.dependencyLibs, zeroAicyBuildGradle);
+			}catch(Throwable e){
+				e.printStackTrace();
+			}
+			
 			//Zo
 			this.defaultJarDexDirPath = this.getIntermediatesChildDirPath("jardex");
 
@@ -184,12 +195,15 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			return projectMinSdk;
 		}
 
-		private ZeroAicyBuildGradle zeroAicyBuildGradle;
+		/**
+		 * 在outDirPath赋值后
+		 */
 		public ZeroAicyBuildGradle getZeroAicyBuildGradle() {
 			if (zeroAicyBuildGradle != null) {
 				return zeroAicyBuildGradle;
 			}
 			ZeroAicyBuildGradle singleton = ZeroAicyBuildGradle.getSingleton();
+			
 			String buildOutDirPath = this.getBuildOutDirPath();
 
 			// 不是gradle项目
@@ -207,6 +221,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			}
 			return this.zeroAicyBuildGradle = singleton.getConfiguration(buildGradleFile.getAbsolutePath());
 		}
+		
 		private AndroidManifestParser getAndroidManifestParser() {
 			String buildOutDirPath = getBuildOutDirPath();
 			AndroidManifestParser androidManifestParser = null;  
@@ -418,7 +433,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String[] getAllDependencyLibs() {
 			return this.dependencyLibs;
 		}
-
+		public ScopeTypeQuerier getScopeTypeQuerier(){
+			return this.scopeTypeQuerier;
+		}
+		
 		public String getDefaultJarDexDirPath() {
 			return this.defaultJarDexDirPath;
 		}

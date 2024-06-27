@@ -40,15 +40,12 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.io.ByteArrayOutputStream;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -86,6 +83,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 	public class ZeroAicyR8Task extends TaskWrapper{
 		public ZeroAicyR8Task(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aAptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX){
 			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aAptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
+			
+			// 从文件夹添加原生库文件，
+			this.nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
+			this.libgdxNativesTransformer = new ZipEntryTransformer.LibgdxNativesTransformer(getAndroidFxtractNativeLibs());
+			
 		}
 
 		@Override
@@ -153,7 +155,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("Run D8 Dexing", 60);
 
 			String dexingMergingJarDexFiles = null;
-			if ( !getValidDependencyLibs().isEmpty() ){
+			if ( !getValidLibs().isEmpty() ){
 				dexingMergingJarDexFiles = dexingMergingJarDexFiles();
 			}
 
@@ -191,18 +193,18 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			boolean existsCacheDir = new File(dependencyLibDexZipFilePath).exists();
 
 			//dexing 没有Jardex缓存的依赖
-			for ( String dependencyLibPath : getValidDependencyLibs() ){
+			for ( String libPath : getValidLibs() ){
 				checkInterrupted();
 
-				File jarFile = new File(dependencyLibPath);
-				String dexCachePath = getJarDexCachePath(dependencyLibPath);
+				File jarFile = new File(libPath);
+				String dexCachePath = getJarDexCachePath(libPath);
 				File dexCacheFile = new File(dexCachePath);
 
 				//根据时间戳判断是否需要dexing
 				if ( isBuildRefresh() || ! existsCacheDir
 					|| !dexCacheFile.exists() 
 					|| jarFile.lastModified() > dexCacheFile.lastModified() ){
-						dexingDependencyLibFile(dependencyLibPath);
+						dexingJarLibFile(libPath);
 				}
 				dependencyLibDexs.add(dexCachePath);
 			}
@@ -321,9 +323,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * dexing库
 		 */
-		private String dexingDependencyLibFile(String dependencyLibPath) throws CompilationFailedException, IOException, Throwable{
+		private String dexingJarLibFile(String libPath) throws CompilationFailedException, IOException, Throwable{
 			//out
-			String dexCachePath = getJarDexCachePath(dependencyLibPath);
+			String dexCachePath = getJarDexCachePath(libPath);
 			File dexCacheFile = new File(dexCachePath);
 
 
@@ -337,17 +339,20 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			
 			
 			// dexing *.jar 提前脱糖
-			fillD8Args(argsList, getMinSdk(), false, true, user_androidjar, /*null/*/getValidDependencyLibs()/**/, dexZipTempFile.getAbsolutePath());
+			// compileOnlyLibs不能作为jar库依赖的脱糖库
+			// 因为会脱掉compileOnlyLibs
+			fillD8Args(argsList, getMinSdk(), false, true, user_androidjar, getValidLibs(), dexZipTempFile.getAbsolutePath());
 			
 			//添加需要编译的jar
-			argsList.add(dependencyLibPath);
+			argsList.add(libPath);
 			try{
 				try{
+					logDebug("dexing -> " + libPath);
 					//dexing jar
 					com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
 				}catch(Throwable e){
 					//删除缓存
-					new File(dependencyLibPath).delete();
+					dexZipTempFile.delete();
 					throw e;
 				}
 				//临时文件移动到实际输出文件
@@ -407,9 +412,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			return mainClassesDexZipFilePath;
 		}
-
-
-
+		
 		public void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 			// 都启用多线程dexing ❛˓◞˂̵✧
 			argsList.add("--thread-count");
@@ -441,10 +444,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			 argsList.add("--desugared-lib");
 			 argsList.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/META-INF/desugar/d8/desugar.json");
 			 } */
-			 
-			 // 测试 32线程编译
-			argsList.add("--thread-count");
-			argsList.add("32");
 			
 			argsList.add("--output");
 			argsList.add(outPath);
@@ -465,11 +464,15 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 存在的依赖，但不包括_resource.jar
 		 */
-		public List<String> getCompileDependencyLibs(){
+		public List<String> getLibs(){
 			List<String> existsDependencyLibs = new ArrayList<>();
-			existsDependencyLibs.addAll(getValidDependencyLibs());
+			existsDependencyLibs.addAll(getValidLibs());
 			existsDependencyLibs.addAll(compileOnlyLibs);
-
+			
+			// 处理 desugar_libs
+			/*if( desugar_libs ){
+				existsDependencyLibs.add("");
+			}*/
 			return existsDependencyLibs;
 		}
 		// dexing所有class
@@ -492,7 +495,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 所以必须提前脱糖
 			
 			// dexing AIDE编译的 *.class
-			fillD8Args(argsList, minSdk, true, true, user_androidjar, getCompileDependencyLibs(), outPath);
+			fillD8Args(argsList, minSdk, true, true, user_androidjar, getValidLibs(), outPath);
 			//添加需要编译的jar
 			argsList.addAll(dexingClassFiles);
 
@@ -575,94 +578,72 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 		}
 		/**
-		 *有效依赖为[非(compile | runtime) only，存在且是jar]
+		 * dexing
 		 */
 		private List<String> validLibs = new ArrayList<>();
+		public List<String> getValidLibs(){
+			return validLibs;
+		}
 		/**
 		 * compileOnly
 		 */
 		private List<String> compileOnlyLibs  = new ArrayList<>();
-
+		
 		/**
-		 * runtimeOnly
-		 */
-		private List<String> runtimeOnlyLibs = new ArrayList<>();
-
-		/**
-		 * aar混淆文件
+		 * aar混淆规则文件
 		 */
 		private List<Path> proguardPaths  = new ArrayList<>();
+		
+		
+		/**
+		 * 初始化环境
+		 */
 		private void initBuildEnvironment(){
+			
 			if ( isBuildRefresh() ){
-				File defaultJarDexDir = new File(getDefaultJarDexDirPath());
-				File defaultClassDexCacheDir = new File(getDefaultClassDexCacheDirPath());
-				File mergerCacheDir = new File(getMergerCacheDirPath());
-				
-				FileUtil.deleteFolder(defaultJarDexDir);
-				FileUtil.deleteFolder(defaultClassDexCacheDir);
-				FileUtil.deleteFolder(mergerCacheDir);
-				
-				defaultJarDexDir.mkdirs();
-				defaultClassDexCacheDir.mkdirs();
-				mergerCacheDir.mkdirs();
+				deleteCacheDir();
 			}
-
-			for ( String dependencyLib : getAllDependencyLibs() ){
-				File jarFile = new File(dependencyLib);
-				if ( !jarFile.exists() ){
-					//不是依赖库跳过
-					continue;
+			
+			ScopeTypeQuerier scopeTypeQuerier = getScopeTypeQuerier();
+			this.compileOnlyLibs = scopeTypeQuerier.getCompileOnlyLibs();
+			//this.runtimeOnlyLibs = scopeTypeQuerier.getRuntimeOnlyLibs();
+			this.validLibs = scopeTypeQuerier.getDexingLibs();
+			
+			if( isMinify()){
+				for ( String dependencyLib : this.validLibs ){
+					String fileName = getFileName(dependencyLib).toLowerCase();
+					File jarFile = new File(dependencyLib);
+					if (  fileName.equals("classes.jar") ){
+						File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
+						if ( proguardFile.isFile() ){
+							proguardPaths.add(proguardFile.toPath());
+						}					
+					}
 				}
-				
-				String fileName = getFileName(dependencyLib).toLowerCase();
-				if ( !fileName.endsWith(".jar") ){
-					continue;
-				}
-				if ( isRuntimeOnly(fileName) ){
-					runtimeOnlyLibs.add(dependencyLib);
-					continue;
-				}
-
-				if ( isCompileOnly(fileName) ){
-					compileOnlyLibs.add(dependencyLib);
-					continue;
-				}
-
-				if ( isMinify() && fileName.equals("classes.jar") ){
-					File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
-					if ( proguardFile.isFile() ){
-						proguardPaths.add(proguardFile.toPath());
-					}					
-				}
-
-
-				try{
-					//嗅探一下，d8打不开zip，不报路径😭
-					new ZipFile(jarFile);
-				}
-				catch (IOException e){
-					throw new Error(dependencyLib + "不是一个zip文件");
-				}
-
-				validLibs.add(dependencyLib);
 			}
-
-			/* desugar_libs:{
-			 validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs/2.0.4/desugar_jdk_libs-2.0.4.jar");
-			 validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/desugar_jdk_libs_configuration-2.0.4.jar");
-			 } */
-
+			
 		}
+		private void deleteCacheDir() {
+			File defaultJarDexDir = new File(getDefaultJarDexDirPath());
+			File defaultClassDexCacheDir = new File(getDefaultClassDexCacheDirPath());
+			File mergerCacheDir = new File(getMergerCacheDirPath());
 
-		public List<String> getValidDependencyLibs(){
-			return validLibs;
+			FileUtil.deleteFolder(defaultJarDexDir);
+			FileUtil.deleteFolder(defaultClassDexCacheDir);
+			FileUtil.deleteFolder(mergerCacheDir);
+
+			defaultJarDexDir.mkdirs();
+			defaultClassDexCacheDir.mkdirs();
+			mergerCacheDir.mkdirs();
 		}
 
 		// dex.zip转换器，即根目录下有classes%d.dex的zip文件的转换器
-		ZipEntryTransformer.DexZipTransformer dexZipEntryTransformer = new ZipEntryTransformer.DexZipTransformer();
+		final ZipEntryTransformer.DexZipTransformer dexZipEntryTransformer = new ZipEntryTransformer.DexZipTransformer();
 		// 从jar依赖添加资源的过滤器，
-		ZipEntryTransformer.ZipResourceTransformer zipResourceZipEntryTransformer = new ZipEntryTransformer.ZipResourceTransformer();
-		
+		final ZipEntryTransformer.ZipResourceTransformer zipResourceZipEntryTransformer = new ZipEntryTransformer.ZipResourceTransformer();
+		// 从文件夹添加原生库文件，
+		final ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer;
+		final ZipEntryTransformer.LibgdxNativesTransformer libgdxNativesTransformer;
 		
 		/**
 		 * 
@@ -719,7 +700,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			 * 有效依赖
 			 */
 			List<Path> validDepPaths = new ArrayList<>();
-			for ( String validDepPath : this.getValidDependencyLibs() ){
+			for ( String validDepPath : this.getValidLibs() ){
 				validDepPaths.add(Paths.get(validDepPath));
 			}
 			int minSdk = getMinSdk();
@@ -790,7 +771,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 还是算了
 			ZeroAicyBuildGradle zeroAicyBuildGradle = getZeroAicyBuildGradle();
 			
-			return this.isNotDebugFormAIDE && zeroAicyBuildGradle.isMinifyEnabled();
+			return !zeroAicyBuildGradle.isSingleton() && this.isNotDebugFormAIDE && zeroAicyBuildGradle.isMinifyEnabled();
 		}
 		
 		// 安卓支持混淆才有意义，也只能是安卓
@@ -826,6 +807,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			packagingSourceDirsResource(packagingZipOutput);			
 			//打包jar资源，优先第一个
 			packagingJarResources(packagingZipOutput);
+			// 打包 libgdxNatives依赖资源
+			packagingLibgdxNativesResources(packagingZipOutput);
 			//打包完成
 			packagingZipOutput.close();
 
@@ -1026,8 +1009,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			//打包resources.ap_ 文件
 			packagingZipFile(aAptResourceFilePath, zipResourceZipEntryTransformer, packagingZipOutput, true);
 
-			// 从文件夹添加原生库文件，
-			ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
 			//从原生库目录添加so
 			logDebug("添加原生库");
 			for ( String nativeLibDirPath : this.getNativeLibDirs() ){
@@ -1042,11 +1023,24 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			packagingSourceDirsResource(packagingZipOutput);			
 			//打包jar资源，优先第一个
 			packagingJarResources(packagingZipOutput);
+			// 打包 libgdxNatives依赖资源
+			packagingLibgdxNativesResources(packagingZipOutput);
+			
 			//打包完成
 			packagingZipOutput.close();
 
 			//优化apk
 			zipalignApk();
+		}
+
+		private void packagingLibgdxNativesResources(PackagingStream packagingZipOutput) throws IOException {
+			logDebug("从LibgdxNatives添加资源");
+			for (String libgdxNativesLibPath : getScopeTypeQuerier().getLibgdxNativesLibs()) {
+				logDebug("添加 " + libgdxNativesLibPath);
+				this.libgdxNativesTransformer.setCurLibgdxNativesLibsPath(libgdxNativesLibPath);
+				this.packagingZipFile(libgdxNativesLibPath, libgdxNativesTransformer, packagingZipOutput, false);
+			}
+			
 		}
 
 		private void packagingSourceDirsResource(PackagingStream packagingZipOutput) throws IOException{
@@ -1066,64 +1060,26 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		}
 
 		private void packagingJarResources(PackagingStream packagingZipOutput) throws IOException{
-			String[] dependencyLibs = getAllDependencyLibs();
-			if ( dependencyLibs == null ){
-				return;
-			}
-			logDebug("从JAR文件添加资源");
-			List<String> runtimeOnlyJars = new ArrayList<>();
 			
-			for ( String dependencyLibPath : dependencyLibs ){
-				String dependencyLibLowerCase = dependencyLibPath.toLowerCase();
-
-				if ( isCompileOnly(dependencyLibLowerCase) ){
-					//仅编译文件不打包
-					continue;
-				}
-				if ( isRuntimeOnly(dependencyLibLowerCase) ){
-					runtimeOnlyJars.add(dependencyLibPath);
-					continue;
-				}
+			logDebug("从JAR文件添加资源");
+			
+			// dexing jar资源
+			for ( String dependencyLibPath : this.validLibs){
 				this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
 			}
+			// 备注⚠️ 现在runtimeOnlyJars不仅仅是_[%d]_resource.jar为名字了
+			// 还没想好怎么设置优先级
+			// 使用 依赖顺序，从主项目依次遍历
+			// 先声明的先加载
 			//排序，_%d_resource.jar %d作为排序依据
 			// 越小则越往后打包
-			runtimeOnlyJars.sort(new Comparator<String>(){
-					@Override
-					public int compare(String o1, String o2){
-						String o1Name = new File(o1).getName();
-						String o2Name = new File(o2).getName();
-
-						int defaultVersion = 0;
-						int o1Version = defaultVersion;
-						int o2Version = defaultVersion;
-						
-						
-						int suffixLength = "_resource.jar".length();
-						int versionTempStart = o1Name.lastIndexOf("_", o1Name.length() - suffixLength - 1);
-						if ( versionTempStart > 0 ){
-							String versionTemp = o1Name.substring(versionTempStart + 1, o1Name.lastIndexOf("_"));
-							try{
-								o1Version = Integer.parseInt(versionTemp);
-							}
-							catch (NumberFormatException e){}
-						}
-						
-						versionTempStart = o2Name.lastIndexOf("_", o2Name.length() - suffixLength - 1);
-						if ( versionTempStart > 0 ){
-							String versionTemp = o2Name.substring(versionTempStart + 1, o2Name.lastIndexOf("_"));
-							try{
-								o2Version = Integer.parseInt(versionTemp);
-							}
-							catch (NumberFormatException e){}
-						}
-						return o2Version - o1Version;
-					}
-				});
-			for( String runtimeOnlyJarPath : runtimeOnlyJars){
+			// runtimeOnly Jar资源
+			for( String runtimeOnlyJarPath : getScopeTypeQuerier().getRuntimeOnlyLibs()){
+				logDebug("从 -> " + runtimeOnlyJarPath + " 添加资源");
+				
 				this.packagingZipFile(runtimeOnlyJarPath, dexZipEntryTransformer, packagingZipOutput, false);
-				//System.out.println(runtimeOnlyJarPath);
 			}
+			
 		}
 
 		/**

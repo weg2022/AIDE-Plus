@@ -59,7 +59,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 	// 不为null时调用此方法
 	@Override
 	public boolean setSelection(int start, int end) {
-		if (start == 0 && end == 4) {
+		if (start == 0 && end == this.extractedTextEnd) {
 			// setSelection(0, getExtractedText().text.length)
 			// 就是selectAll
 			return performContextMenuAction(android.R.id.selectAll);
@@ -75,14 +75,13 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		}
 		return null;
 	}
-
+	
+	private int extractedTextEnd;
 	private boolean extractTextInternal(ExtractedTextRequest request, ExtractedText outText) {
         if (outText == null) {
             return false;
         }
 		outText.text = "1234";
-		
-	
 		// 如果返回当前所在行，适合Watch
 		// 也能增强依赖getExtractedText输入法的兼容性
 		if( this.oEditor !=  null){
@@ -94,17 +93,21 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			if( caretLine != model.getLineCount()){
 				nextLine = 1;
 			}
-			char[] readLineText = new char[model.getColumnCount(caretLine) + nextLine];
+			this.extractedTextEnd = model.getColumnCount(caretLine) + nextLine;
+			char[] readLineText = new char[extractedTextEnd];
 			model.readLineText(caretLine, readLineText);
 			if( nextLine == 1){
 				readLineText[readLineText.length -1] = '\n';
 			}
 			outText.text = new String(readLineText);
+			
 			if( this.oEditor.getSelectionVisibility()) {
 				outText.flags = ExtractedText.FLAG_SELECTING;
 				outText.selectionStart = 0; 
 				outText.selectionEnd = outText.text.length();
 			}
+		}else{
+			this.extractedTextEnd = 0;
 		}
 		
 		outText.startOffset = 0;

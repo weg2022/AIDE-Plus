@@ -47,7 +47,7 @@ import com.hjq.permissions.XXPermissions;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import io.github.zeroaicy.aide.ui.views.ZeroAicySplitView;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
@@ -59,22 +59,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import android.text.TextUtils;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
 	private static final String TAG = "ZeroAicyMainActivity";
-	
+
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		// 隐藏Home键
 		getActionBar().setDisplayShowHomeEnabled(false);
-		
+
 		if (enableActionDrawerLayout()) {
 			setUpDrawerLayout();
 		}
-		if(ZeroAicySetting.isWatch()){
+		if (ZeroAicySetting.isWatch()) {
 			return;
 		}
 		
@@ -82,10 +83,15 @@ public class ZeroAicyMainActivity extends MainActivity {
 		showRequestManageExternalStorage();
 	}
 
+	/**
+	 * 是否启用DrawerLayout
+	 */
 	private boolean enableActionDrawerLayout() {
 		return !ServiceContainer.isTrainerMode() 
 			&& ZeroAicySetting.enableActionDrawerLayout();
 	}
+
+
 	public void DWGAsync() {
 		super.DW();
 	}
@@ -99,6 +105,10 @@ public class ZeroAicyMainActivity extends MainActivity {
 			});
 	}
 
+
+	public void eUAsync() {
+		super.eU();
+	}
 	@Override
 	public void eU() {
 		runOnUiThread(new Runnable(){
@@ -108,9 +118,25 @@ public class ZeroAicyMainActivity extends MainActivity {
 				}
 			});
 	}
-	public void eUAsync() {
-		super.eU();
+	
+	// 必须在主线程
+	@Override
+	public void Hw(final String string) {
+		if( ThreadPoolService.isUiThread()){
+			super.Hw(string);
+			return;
+		}
+		runOnUiThread(new Runnable(){
+				@Override
+				public void run() {
+					HwAsync(string);
+				}
+			});
 	}
+	public void HwAsync(String string){
+		super.Hw(string);
+	}
+	
 	// mainMasterButton 点击回调
 	//*
 	@Override
@@ -278,7 +304,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 	public void setHasEmbeddedTabs() {
 		//ServiceContainer.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
-						 || (ServiceContainer.isTrainerMode() && AndroidHelper.u7(this) <= 610.0f));
+						 || (ServiceContainer.isTrainerMode() 
+						 && AndroidHelper.u7(this) <= 610.0f));
 		//绑定监听器
 		AndroidHelper.nw(this);
 	}
@@ -460,6 +487,9 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 	private boolean hasGradlew(String currentAppHome) {
+		if( TextUtils.isEmpty(currentAppHome)){
+			return false;
+		}
 		File gradleProjectRootDir = new File(currentAppHome).getParentFile();
 
 		File gradlewFile = new File(gradleProjectRootDir, "gradlew");

@@ -11,7 +11,7 @@ import com.aide.common.AppLog;
 import com.aide.common.StreamUtilities;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.util.FileSystem;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -266,7 +266,7 @@ public class AssetInstallationService {
 		}
 		return this.v5;
     }
-	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
+	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
     public void we() {
 		AssetInstallationService.this.DW = getOutputPath("android.jar", true);
 

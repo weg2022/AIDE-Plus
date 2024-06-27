@@ -22,14 +22,18 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import com.aide.ui.project.JavaProjectSupport;
 import com.aide.ui.util.ClassPath;
+import androidx.annotation.Keep;
+import org.codehaus.plexus.util.IOUtil;
+import io.github.zeroaicy.util.IOUtils;
 
+@Keep
 public class EngineSolutionProject implements Parcelable {
 
 
 	public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 
     public final String projectName;
-
+	
     final String AL;
     final List<String> Jl;
     final String Q6;
@@ -47,9 +51,10 @@ public class EngineSolutionProject implements Parcelable {
     final List<String> qp;
     final String w9;
     final String zh;
-
-
+	
+	// 压缩标志
 	private boolean compress = false;
+	
     public EngineSolutionProject(String projectNamespace, String projectPath, String str3, List<EngineSolution.File> sourceSolutionFiles, List<String> depProjectNamespaces, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5) {
 		// 项目名 此EngineSolutionProject唯一id
 		// 项目命名空间
@@ -231,17 +236,16 @@ public class EngineSolutionProject implements Parcelable {
     }
 
 	private Parcel decompression(Parcel dest) {
+		GZIPInputStream gzipInputStream = null;
 		try {
 			//读取数据长度
 			byte[] buf = dest.createByteArray();
-			GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(buf));
-			byte[] unzipParcelData = gzipInputStream.readAllBytes();
+			gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(buf));
+			
+			byte[] unzipParcelData = IOUtil.toByteArray(gzipInputStream);
 			Parcel obtain = Parcel.obtain();
 			obtain.unmarshall(unzipParcelData, 0, unzipParcelData.length);
 			obtain.setDataPosition(0);
-
-			//关闭
-			gzipInputStream.close();
 
 			return obtain;
 		}
@@ -249,6 +253,8 @@ public class EngineSolutionProject implements Parcelable {
 			Log.d("EngineSolutionProject", "unZipParcel", e);
 
 			throw new Error(e);
+		}finally{
+			IOUtils.close(gzipInputStream);
 		}
 	}
 }

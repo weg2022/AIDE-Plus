@@ -4,16 +4,23 @@ import android.content.Context;
 import android.os.Bundle;
 import android.app.Activity;
 
+@Keep
 public class FirebaseAnalytics {
+	
+	@Keep
 	private static volatile FirebaseAnalytics DW;
 
 	//private final zzbw j6;
 
 	//private FirebaseAnalytics(zzbw zzbw) {}
+	
+	@Keep
 	private FirebaseAnalytics() {}
 	
+	@Keep
 	public final void DW(boolean p) {}
-
+	
+	@Keep
 	public final void FH(String string, String string1) {}
 
 	@Keep
@@ -21,7 +28,9 @@ public class FirebaseAnalytics {
 		return "";
 	}
 	
+	@Keep
 	static FirebaseAnalytics instance;
+	
 	@Keep
 	public static FirebaseAnalytics getInstance(Context context) {
 		if( instance == null){
@@ -30,6 +39,7 @@ public class FirebaseAnalytics {
 		return instance;
 	}
 
+	@Keep
 	public final void j6(String string, Bundle bundle) {}
 
 	@Keep

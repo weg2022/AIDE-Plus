@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import android.app.Activity;
+import java.util.concurrent.ExecutorService;
 
 /**
  * 1.aapt2
@@ -114,7 +115,15 @@ public class ZeroAicyExtensionInterface {
 	public static ProjectService getProjectService() {
 		return ZeroAicyProjectService.getSingleton();
 	}
-
+	
+	/**
+	 * 项目服务运行的线程服务
+	 */
+	@Keep
+	public static ExecutorService getProjectExecutorService() {
+		return ZeroAicyProjectService.getProjectServiceExecutorService();
+	}
+	
 	/**
 	 * 优化冷启动
 	 */

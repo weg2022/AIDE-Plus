@@ -18,6 +18,7 @@ import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import com.aide.ui.util.BuildGradle.MavenDependency;
 
 /**
  * 同名覆盖底包中的类
@@ -25,9 +26,14 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
  */
 public class PomXml extends Configuration<PomXml> {
 
-
-
 	public static class ArtifactNode extends BuildGradle.MavenDependency {
+
+		public static String getClassifier(BuildGradle.MavenDependency dependency) {
+			if (dependency instanceof ArtifactNode) {
+				return ((ArtifactNode)dependency).classifier;
+			}
+			return null;
+		}
 		// 装箱
 		public static ArtifactNode pack(BuildGradle.MavenDependency dep) {
 			if (dep instanceof ArtifactNode) {
@@ -35,29 +41,72 @@ public class PomXml extends Configuration<PomXml> {
 			}
 			return new ArtifactNode(dep, dep.version);
 		}
-
 		// 依赖排除
 		private List<Exclusion> exclusions;
+		public String classifier;
+
 		public ArtifactNode(BuildGradle.MavenDependency dep, String version) {
 			super(dep, version);
 			if (dep instanceof ArtifactNode) {
 				// 直接用字段，getExclusions可能返回emptyList
-				setExclusions(((ArtifactNode)dep).exclusions);
+				ArtifactNode artifactNode = (ArtifactNode)dep;
+				setExclusions(artifactNode.exclusions);
+				this.classifier = artifactNode.classifier;
 			}
 			// 保留 packaging
 			this.packaging = dep.packaging;
 		}
-		
+
 		public ArtifactNode() {
 			super(1);
 		}
+		public ArtifactNode(int line) {
+			super(line);
+		}
+
 		public ArtifactNode(PomXml pom) {
 			this();
 			this.groupId = pom.group;
 			this.artifactId = pom.artifact;
+
 			this.version = pom.curVersion;
 			// 从pom解析出来的
 			this.packaging = pom.getPackaging();
+		}
+
+		@Override
+		public String getGroupIdArtifactId() {
+			String groupIdArtifactId = super.getGroupIdArtifactId();
+			if (this.classifier != null) {
+				groupIdArtifactId = groupIdArtifactId + ":" + this.classifier;
+			}
+			return groupIdArtifactId;
+		}
+		@Override
+		public String toString() {
+			String toString = super.toString();
+			if (this.classifier != null) {
+				toString += ":" + this.classifier;
+			}
+			return toString;
+		}
+		
+		@Override
+		public int hashCode() {
+			int hashCode = super.hashCode();
+			if (this.classifier != null) {
+				hashCode += this.classifier.hashCode();
+			}
+			return hashCode;
+		}
+
+		@Override
+		public boolean equals(Object object) {
+			if (object instanceof BuildGradle.MavenDependency) {
+				return getGroupIdArtifactId().equals(((BuildGradle.MavenDependency)object).getGroupIdArtifactId());
+			}else{
+				return false;
+			}
 		}
 
 		public void setExclusions(List<Exclusion> exclusions) {
@@ -80,7 +129,11 @@ public class PomXml extends Configuration<PomXml> {
 		}
 
 	}
-    public  static PomXml empty = new PomXml();
+    public static PomXml empty = new PomXml(true);
+	private final boolean isEmpty;
+	public boolean isEmpty() {
+		return this.isEmpty;
+	}
 
 	String group = "";
 	String artifact = "";
@@ -88,9 +141,10 @@ public class PomXml extends Configuration<PomXml> {
 
 	String packaging = null;
 
-	public PomXml() {
-		this.deps = null;
-		this.depManages = null;
+	public PomXml(boolean isEmpty) {
+		this.isEmpty = isEmpty;
+		this.deps = new ArrayList<>();
+		this.depManages = new ArrayList<>();
 
 	}
 
@@ -105,9 +159,13 @@ public class PomXml extends Configuration<PomXml> {
 		return this.packaging;
 	}
 
-    public PomXml makeConfiguration(String str) {
+    public PomXml makeConfiguration(String pomPath) {
         try {
-            return new PomXml(str);
+			File file = new File(pomPath);
+			if (!file.exists()) {
+				return empty;
+			}
+            return new PomXml(pomPath);
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -142,8 +200,12 @@ public class PomXml extends Configuration<PomXml> {
 		try {
 			File file = new File(filePath);
 			if (!file.exists()) {
+				// 未解析
+				this.isEmpty = true;
 				return;
 			}
+			this.isEmpty = false;
+
 			FileInputStream inputStream = new FileInputStream(file);
 			// pom文件模型
 			Model model = mavenXpp3Reader.read(inputStream);
@@ -166,6 +228,7 @@ public class PomXml extends Configuration<PomXml> {
 		}
 		catch (Throwable e) {
 			Log.d(e.getMessage(), e);
+			this.isEmpty = true;
 		}
 
 	}
@@ -263,7 +326,7 @@ public class PomXml extends Configuration<PomXml> {
 			}
 		}
 
-		if (version.startsWith("[")
+		if (version != null && version.startsWith("[")
 			&& version.endsWith("]")) {
 			version = version.substring(1, version.length() - 1);
 		}

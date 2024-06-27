@@ -26,8 +26,45 @@ import java.util.Set;
 import java.util.HashSet;
 import com.aide.ui.util.BuildGradle.ProductFlavor;
 import com.aide.ui.util.BuildGradle.Dependency;
+import com.aide.ui.util.PomXml;
+import android.text.TextUtils;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
+	public static class DependencyExt extends Dependency {
+		public static final int CompileOnly = 0x1;
+		public static final int RuntimeOnly = 0x2;
+		public static final int LibgdxNatives = 0x3;
+
+		public final int type;
+		public final Dependency dependency;
+		public DependencyExt(int type, Dependency dependency) {
+			super(dependency.line);
+			this.type = type;
+			this.dependency = dependency;
+		}
+		public boolean isCompileOnly() {
+			return this.type == CompileOnly;
+		}
+		public boolean isRuntimeOnly() {
+			return this.type == RuntimeOnly;
+		}
+		public boolean isLibgdxNatives() {
+			return this.type == LibgdxNatives;
+		}
+		public static boolean isCompileOnly(int type) {
+			return type == CompileOnly;
+		}
+		public static boolean isRuntimeOnly(int type) {
+			return type == RuntimeOnly;
+		}
+		public static boolean isLibgdxNatives(int type) {
+			return type == LibgdxNatives;
+		}
+		public static boolean isExt(int type) {
+			return type == CompileOnly || type == RuntimeOnly || type == LibgdxNatives;
+		}
+
+	}
 
 	private static String TAG = "ZeroAicyBuildGradle";
 
@@ -44,8 +81,30 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 	}
 
 	private static ZeroAicyBuildGradle singleton;
+	/**
+	 * 单例
+	 */
+	public static synchronized ZeroAicyBuildGradle getSingleton() {
+		if (singleton == null) {
+			singleton = new ZeroAicyBuildGradle(true);
 
+			Log.d("ZeroAicyBuildGradle",  "替换gradle解析器");
+		}
+		return singleton;
+	}
+	// xxx project(xxxxx)依赖
+	private List<ProjectDependency> projectDependencys = new ArrayList<>();
+	public List<ProjectDependency> getProjectDependencys() {
+		return this.projectDependencys;
+	}
+	private List<DependencyExt> dependencyExts = new ArrayList<>();
+	public List<DependencyExt> getDependencyExts() {
+		return this.dependencyExts;
+	}
 
+	/**
+	 * 混淆
+	 */
 	private boolean minifyEnabled;
 	private boolean shrinkResources;
 	private List<String> proguardFiles;
@@ -63,38 +122,29 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		}
 		return this.proguardFiles;
 	}
-
-	/**
-	 * 单例
-	 */
-	public static ZeroAicyBuildGradle getSingleton() {
-		if (singleton == null) {
-			singleton = new ZeroAicyBuildGradle();
-			Log.d("ZeroAicyBuildGradle",  "替换gradle解析器");
-		}
-		return singleton;
+	private final boolean isSingleton;
+	public boolean isSingleton() {
+		return this.isSingleton;
 	}
-
 	@Override
 	public ZeroAicyBuildGradle getConfiguration(String path) {
-		return (ZeroAicyBuildGradle)super.getConfiguration(path);
+		return (ZeroAicyBuildGradle) super.getConfiguration(path);
 	}
     public ZeroAicyBuildGradle makeConfiguration(String path) {
 		return new ZeroAicyBuildGradle(path);
     }
 
-	public ZeroAicyBuildGradle() {
+	private ZeroAicyBuildGradle(boolean isSingleton) {
 		super();
+		this.isSingleton = isSingleton;
 		init();
     }
-
-
-
 	public ZeroAicyBuildGradle(String filePath) {
 		super();
 		// getConfiguration在调用 makeConfiguration后会赋值
 		// 导致解析时无法使用此变量, 赋值
 		this.configurationPath = filePath;
+		this.isSingleton = false;
 		init();
 
 		try {
@@ -141,7 +191,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		return nodeName.startsWith(parentNodeName + ".");
     }
 
-    private String EQ(AST ast, String nodeName) {
+    private String getValue(AST ast, String nodeName) {
 		AST XL = getNextSibling(getFirstChild(getFirstChild(ast)));
 		if (getType(XL) == 33 
 			&& 
@@ -229,7 +279,21 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				repositorys.add(new RemoteRepository(ast.getLine(), "http://repo.maven.apache.org/maven2"));
 				break;
 			case "maven.url":
-				repositorys.add(new RemoteRepository(ast.getLine(), getAstValue(ast)));
+				String url = getAstValue(ast);
+				if (TextUtils.isEmpty(url)) {
+					break;
+				}
+
+				if (url.endsWith("/")) {
+					int length = url.length() - 2;
+					if (length < 1) {
+						break;
+					}
+					// 规范化repositorieURL
+					url = url.substring(0, length);						
+				}
+
+				repositorys.add(new RemoteRepository(ast.getLine(), url));
 				break;
 			case "flatDir.dirs":
 				FlatLocalRepository flatLocalRepository = new FlatLocalRepository(ast.getLine());
@@ -346,89 +410,167 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				signingConfig.keyAlias = getAstValue(ast);
 				break;
 			case "storeFile":
-				signingConfig.storeFilePath = EQ(ast, "file");
+				signingConfig.storeFilePath = getValue(ast, "file");
 				break;
 		}
     }
 
-    private void ei(AST ast, String str, List<Dependency> list) {
-        Map<String, String> we;
+	
+	public static int getDependencyExtType(String type) {
+		switch (type) {
+			case "compileOnly":
+				return DependencyExt.CompileOnly;
+				// 仅打包 看看能不能
+				// 不在编译列表，仅在打包列表中
+			case "runtimeOnly":
+				return DependencyExt.RuntimeOnly;
 
-		switch (str) {
+			case "libgdxNatives":
+				return DependencyExt.LibgdxNatives;
+			default: 
+				return -1;
+		}
+	}
+    private void ei(AST ast, String str, List<Dependency> dependencieList) {
+        switch (str) {
 			case "testCompile":
 			case "androidTestCompile":
-				list.add(new k(ast.getLine()));
+				dependencieList.add(new k(ast.getLine()));
 				break;
 			case "wearApp":
-				String EQ = EQ(ast, "project");
-				if (EQ == null && (we = we(ast, "project")) != null && we.containsKey("path")) {
-					EQ = we.get("path");
+				Map<String, String> we;
+				String projectValue = getValue(ast, "project");
+				if (projectValue == null && (we = we(ast, "project")) != null && we.containsKey("path")) {
+					projectValue = we.get("path");
 				}
-				if (EQ != null) {
+				if (projectValue != null) {
 					ProjectDependency projectDependency = new ProjectDependency(ast.getLine());
 					this.wearAppProject = projectDependency;
-					projectDependency.projectName = EQ;
+					projectDependency.projectName = projectValue;
 					return;
 				}
-				list.add(new l(ast.getLine()));
+				dependencieList.add(new l(ast.getLine()));
 
 				break;
+				// 仅用于标记依赖
+				// 仅加入编译列表
+				// 不加入打包列表
+			case "compileOnly":
+				// 仅打包 看看能不能
+				// 不在编译列表，仅在打包列表中
+			case "runtimeOnly":
+			case "libgdxNatives":
+
 			case "implementation":
 			case "api":
 			case "compile":
+				int dependencyExtType = getDependencyExtType(str);
 				{
-					String EQ2 = EQ(ast, "project");
-					if (EQ2 != null) {
-						ProjectDependency projectDependency2 = new ProjectDependency(ast.getLine());
-						list.add(projectDependency2);
-						projectDependency2.projectName = EQ2;
-						return;
-					}
-					String EQ3 = EQ(ast, "files");
-					if (EQ3 != null) {
-						FilesDependency filesDependency = new FilesDependency(ast.getLine());
-						list.add(filesDependency);
-						filesDependency.filesPath = EQ3;
-						return;
-					}
-					Map<String, String> we2 = we(ast, "fileTree");
-					if (we2 != null) {
-						FileTreeDependency fileTreeDependency = new FileTreeDependency(ast.getLine());
-						list.add(fileTreeDependency);
-						fileTreeDependency.dirPath = we2.get("dir");
-						we2.get("include");
-						return;
-					}
-					String J8 = getAstValue(ast);
-					if (J8 != null) {
-						MavenDependency mavenDependency = new MavenDependency(ast.getLine());
-						list.add(mavenDependency);
-						mavenDependency.coords = J8;
-						String[] split = J8.split(":");
-						if (split.length > 0) {
-							mavenDependency.groupId = split[0];
-						}
-						if (split.length > 1) {
-							mavenDependency.artifactId = split[1];
-						}
-						if (split.length > 2) {
-							String version = split[2];
-							if (version.indexOf("@") >= 0) {
-								mavenDependency.version = version.substring(0, version.indexOf("@"));
-								mavenDependency.packaging = version.substring(version.indexOf("@") + 1);
-								return;
-							}
-							mavenDependency.version = version;
+					{
+						// xxx project(:"xx");
+						String projectPath = getValue(ast, "project");
+						if (projectPath != null) {
+							ProjectDependency projectDependency = new ProjectDependency(ast.getLine());
+							projectDependency.projectName = projectPath;
+
+							dependencieList.add(projectDependency);
+							// 添加项目依赖
+							this.projectDependencys.add(projectDependency);
 							return;
 						}
-						return;
 					}
-					list.add(new l(ast.getLine()));
+					
+					{
+						// xxx files("xx");
+						String getFilesValue = getValue(ast, "files");
+						if (getFilesValue != null) {
+							FilesDependency filesDependency = new FilesDependency(ast.getLine());
+							if( !DependencyExt.isRuntimeOnly(dependencyExtType)){
+								// runtimeOnly files 依赖会在打包服务进程自动添加
+								// 在此处拦截可以使得编译器不知道这个依赖
+								filesDependency.filesPath = getFilesValue;
+							}
+							dependencieList.add(filesDependency);
+							if (DependencyExt.isExt(dependencyExtType)) {
+								this.dependencyExts.add(new DependencyExt(dependencyExtType, filesDependency));
+							}
+							return;
+						}
+					}
+					
+					{
+						// xxx fileTree(dir: "xx");
+						Map<String, String> getFileTree = we(ast, "fileTree");
+						if (getFileTree != null) {
+							FileTreeDependency fileTreeDependency = new FileTreeDependency(ast.getLine());
+							//getFileTree.get("include");
+							fileTreeDependency.dirPath = getFileTree.get("dir");
+							dependencieList.add(fileTreeDependency);
+
+							if (DependencyExt.isExt(dependencyExtType)) {
+								this.dependencyExts.add(new DependencyExt(dependencyExtType, fileTreeDependency));
+							}
+
+							return;
+						}
+					}
+					
+					{
+						// xxx groupId:artifactId:version:classifier@extension
+						String coords = getAstValue(ast);
+						if (coords != null) {
+							PomXml.ArtifactNode mavenDependency = new PomXml.ArtifactNode(ast.getLine());
+							dependencieList.add(mavenDependency);
+
+							if (DependencyExt.isExt(dependencyExtType)) {
+								this.dependencyExts.add(new DependencyExt(dependencyExtType, mavenDependency));
+							}
+
+							mavenDependency.coords = coords;
+							String[] coordsArray = coords.split(":");
+
+							if (coordsArray.length > 0) {
+								mavenDependency.groupId = coordsArray[0];
+							}
+							if (coordsArray.length > 1) {
+								mavenDependency.artifactId = coordsArray[1];
+							}
+							if (coordsArray.length > 2) {
+								// groupId:artifactId:version@extension
+								// {group}:{name}:{version}[{:classifier}@{extension}]
+								if (coordsArray.length == 3) {
+									String version = coordsArray[2];
+									int extensionEnd = version.indexOf("@");
+									if (extensionEnd >= 0) {
+										mavenDependency.version = version.substring(0, extensionEnd);
+										mavenDependency.packaging = version.substring(extensionEnd + 1);
+										return;
+									}
+									mavenDependency.version = version;
+									return;
+								}
+
+								if (coordsArray.length > 3) {
+									mavenDependency.version = coordsArray[2];
+									String classifier = coordsArray[3];
+
+									int extensionEnd = classifier.indexOf("@");
+									if (extensionEnd >= 0) {
+										mavenDependency.classifier = classifier.substring(0, extensionEnd);
+										mavenDependency.packaging = classifier.substring(extensionEnd + 1);
+										return;
+									}
+									mavenDependency.classifier = classifier;
+									return;
+								}
+							}
+						}
+					}
+					dependencieList.add(new l(ast.getLine()));
 				}
 				break;
-
 			default: 
-				list.add(new l(ast.getLine()));
+				dependencieList.add(new l(ast.getLine()));
 				break;
 		}
     }

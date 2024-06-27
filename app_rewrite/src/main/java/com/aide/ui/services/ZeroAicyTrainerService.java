@@ -3,7 +3,7 @@ import android.os.Handler;
 import android.os.Looper;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.trainer.TrainerState;
-import io.github.zeroaicy.aide.ui.services.ExecutorsService;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
@@ -118,7 +118,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 	}
 
 	// 默认子线程
-	ExecutorsService executorsService = ExecutorsService.getExecutorsService();
+	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
 	// ui进程
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
 

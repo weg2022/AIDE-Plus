@@ -41,17 +41,21 @@ public class DownloadMavenLibraries implements Callable<Void> {
     }
 
 	private void deduplication(List<BuildGradle.RemoteRepository> remoteRepositorys) {
-		Set<BuildGradle.RemoteRepository> remoteRepositorySet = new HashSet<>();
+		// 过滤重复仓库
+		Set<String> remoteRepositorySet = new HashSet<>();
 		// 添加默认maven仓库
-		remoteRepositorySet.add(defaultRemoteRepository);
+		this.remoteRepositorys.add(defaultRemoteRepository);
+		remoteRepositorySet.add(defaultRemoteRepository.repositorieURL);
+		
 		// 过滤重复maven仓库
 		for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
-			if (remoteRepositorySet.contains(remoteRepository)) {
+			if (remoteRepositorySet.contains(remoteRepository.repositorieURL)) {
 				// 过滤重复仓库
 				continue;
 			}
+			
 			// 标记
-			remoteRepositorySet.add(remoteRepository);
+			remoteRepositorySet.add(remoteRepository.repositorieURL);
 
 			this.remoteRepositorys.add(remoteRepository);
 		}
@@ -92,7 +96,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		dep.version = version;
 		return true;
 	}
-	
+
     @Override
     public Void call() {
 		//是否有已完成的下载
@@ -108,6 +112,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						if (!resolvingMetadataFile(dep, count, mavenMetadataPath, remoteRepository)) {
 							// 下载失败 仓库有问题[跳过]
+							System.out.println(mavenMetadataPath + "下载失败");
 							continue;
 						}
 
@@ -116,6 +121,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						// 下载[成功|失败]
 						if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
+							System.out.println( "pom下载失败");
 							continue;
 						}
 
@@ -129,24 +135,28 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						// 父类依赖认为是 pom
 						// 或当前pom 声明是pom
-						if ("pom".equals(curPackaging)
-							|| "pom".equals(dep.packaging)) {
+						String classifier = PomXml.ArtifactNode.getClassifier(dep);
+						
+						if (classifier == null && ("pom".equals(curPackaging)
+							|| "pom".equals(dep.packaging))) {
 							count++;
 							downloadComplete = true;
 							break;
 						}
+
 						// 更新type
 						// 从父依赖解析出来的，最为准确
 						dep.packaging = curPackaging;
 						// 默认不尝试
 						boolean isAttemptn = false;
+						
 						// 没有packaging信息，启用尝试模式
-						if (TextUtils.isEmpty(dep.packaging)) {
+						if (classifier != null || TextUtils.isEmpty(dep.packaging)) {
 							// 启用尝试 下载aar模式
 							isAttemptn = true;
 							dep.packaging = "aar";
 						}
-
+						
 						String artifactType = "." + dep.packaging;
 						//下载
 						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
@@ -167,11 +177,14 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						}
 					}
 					catch (Throwable e) {
+						AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: ", e);
+						
 						continue;
 					}
 				}
 			}
 			catch (Throwable e) {
+				e.printStackTrace();
 				continue;
 			}
 		}
@@ -192,8 +205,11 @@ public class DownloadMavenLibraries implements Callable<Void> {
 	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
 
 		String artifactUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, artifactType);
+		
 		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
-
+		
+		AppLog.FH("下载 artifactPath: " + artifactUrl + " \nartifactPath:" + artifactPath);
+	
 		File artifactFile = new File(artifactPath);
 		if (artifactFile.exists()) {
 			return true;
@@ -204,6 +220,12 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		sb.append(dependency.artifactId);
 		sb.append(":");
 		sb.append(version);
+		
+		String classifier = PomXml.ArtifactNode.getClassifier(dependency);
+		if( classifier != null ){
+			sb.append(":");
+			sb.append(classifier);
+		}
 		sb.append("@");
 		sb.append(dependency.packaging);
 
@@ -216,9 +238,8 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
-//				Log.d(" Maven Download", "dep", dependencyString);
-//				Log.d(" Maven Download", Log.getStackTraceString(unused));					
-
+				Log.d(" Maven Download", "dep", dependencyString);
+				Log.d(" Maven Download", Log.getStackTraceString(unused));
 			return false;
 		}
 

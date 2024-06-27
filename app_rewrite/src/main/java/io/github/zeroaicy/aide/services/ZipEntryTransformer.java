@@ -9,6 +9,49 @@ public interface ZipEntryTransformer {
 	public ZipEntry transformer(ZipEntry zipEntry, PackagingStream packagingStream);
 
 	/**
+	 * 处理libgdx库
+	 */
+	public class LibgdxNativesTransformer implements ZipEntryTransformer {
+
+		private String curLibgdxNativesABI;
+		private boolean androidExtractNativeLibs;
+		public LibgdxNativesTransformer(boolean androidExtractNativeLibs) {
+			this.androidExtractNativeLibs = androidExtractNativeLibs;
+		}
+		public void setCurLibgdxNativesLibsPath(String path) {
+			if (path.endsWith("natives-arm64-v8a.jar")) {
+				curLibgdxNativesABI = "arm64-v8a";
+			} else if (path.endsWith("natives-armeabi-v7a.jar")) {
+				curLibgdxNativesABI = "armeabi-v7a";
+			} else if (path.endsWith("natives-armeabi.jar")) {
+				curLibgdxNativesABI = "armeabi";
+			} else if (path.endsWith("natives-x86_64.jar")) {
+				curLibgdxNativesABI = "x86_64";
+			} else if (path.endsWith("natives-x86.jar")) {
+				curLibgdxNativesABI = "x86";
+			} else {
+				curLibgdxNativesABI = null;
+			}
+		}
+
+		@Override
+		public ZipEntry transformer(ZipEntry zipEntry, PackagingStream packagingStream) {
+
+			String zipEntryName = zipEntry.getName();
+			if (curLibgdxNativesABI == null
+				|| zipEntry.isDirectory()
+				|| !zipEntryName.endsWith(".so")) {
+				return null;				
+			}
+			ZipEntry newZipEntry = new ZipEntry("lib/" + this.curLibgdxNativesABI + "/" + zipEntryName);
+			if (!androidExtractNativeLibs) {
+				//android:extractNativeLibs="false"时必须无压缩
+				newZipEntry.setMethod(ZipEntry.STORED);
+			}
+			return newZipEntry;
+		}
+	}
+	/**
 	 * dex.zip转换器
 	 * 不过滤任何资源，即都会添加
 	 * 但是会重命名classes%d.dex式文件
@@ -28,14 +71,14 @@ public interface ZipEntryTransformer {
 			}
 
 			String dexEntryName = classesCountDex > 1 ? String.format("classes%d.dex", classesCountDex) : "classes.dex";
-			
+
 			//查询 dexEntryName是否已添加
 			while (packagingStream.contains(dexEntryName) 
 				   && classesCountDex < packagingStream.getZipEntryCount() + 1) {
 				classesCountDex++;
 				dexEntryName = String.format("classes%d.dex", classesCountDex);
 			}
-			
+
 			return new ZipEntry(dexEntryName);
 		}
 
