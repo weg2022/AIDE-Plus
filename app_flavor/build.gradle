@@ -11,43 +11,6 @@ android {
         versionCode 2008210017
         versionName "2.2.0.2-alpha02-[3.2.210316]"
     }
-	
-    productFlavors {
-		
-		"AIDE+" {
-			applicationId "io.github.zeroaicy.aide"
-			
-			dependencies {
-				/*
-				//引入卡顿监控实现依赖库
-				api 'io.github.knight-zxw:blockcanary:+'
-				//引入卡顿消息通知及相关展示UI
-				api 'io.github.knight-zxw:blockcanary-ui:+'
-				api "androidx.lifecycle:lifecycle-livedata:2.3.1"
-				//*/
-			}
-		}
-		"AIDE+1" {
-			applicationId "io.github.zeroaicy.aide1"
-			dependencies {
-				//*
-				//引入卡顿监控实现依赖库
-				api 'io.github.knight-zxw:blockcanary:+'
-				//引入卡顿消息通知及相关展示UI
-				api 'io.github.knight-zxw:blockcanary-ui:+'
-				api "androidx.lifecycle:lifecycle-livedata:2.3.1"
-				//*/
-			}
-		}
-		"AIDE+2" {
-			applicationId "io.github.zeroaicy.aide2"
-			versionName "2.1.1.2-[3.2.210316]"
-		}
-		"AIDE+4" {
-			applicationId "io.github.zeroaicy.aide4"
-		}
-		
-	}
 	signingConfigs{
 		release{
 			keyAlias "AIDE+"
@@ -74,6 +37,13 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+	/*
+	//引入卡顿监控实现依赖库
+	api 'io.github.knight-zxw:blockcanary:+'
+	//引入卡顿消息通知及相关展示UI
+	api 'io.github.knight-zxw:blockcanary-ui:+'
+	api "androidx.lifecycle:lifecycle-livedata:2.3.1"
+	//*/
 	
 	api project(':app_rewrite')
 	

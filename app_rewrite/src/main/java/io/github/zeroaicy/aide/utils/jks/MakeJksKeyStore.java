@@ -30,7 +30,7 @@ public class MakeJksKeyStore {
 // 用于初始化
 	JksKeyStore mJksKeyStore;
 	
-
+	/*
 	public static void main(String[] args) throws Exception {
 		PrivateKey privateKey = null;
 		X509Certificate certificate;
@@ -98,7 +98,7 @@ public class MakeJksKeyStore {
 
 		System.out.println("JKS file generated successfully.");
 	}
-
+	//*/
 
 	public static KeyStore loadKeyStore(String str, char[] cArr) {
         try {

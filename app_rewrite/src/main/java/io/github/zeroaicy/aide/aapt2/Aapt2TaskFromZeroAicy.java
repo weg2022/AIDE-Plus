@@ -30,6 +30,8 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import com.aide.common.AppLog;
+import com.aide.ui.ServiceContainer;
+import com.aide.ui.services.EngineService;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -145,7 +147,19 @@ public class Aapt2TaskFromZeroAicy {
 
 		// 生成BuildConfig.java
 		aaptServiceArgs.generateBuildConfigJava();
-
+		
+		EngineService engineService = ServiceContainer.getEngineService();
+		engineService.ef();
+		engineService.ei();
+		class RefreshEngineService implements Runnable{
+			@Override
+			public void run() {
+				EngineService engineService = ServiceContainer.getEngineService();
+				engineService.ef();
+				engineService.ei();
+			}
+		}
+		ServiceContainer.aj(new RefreshEngineService());
 		return new AaptService$b(false);
 	}
 

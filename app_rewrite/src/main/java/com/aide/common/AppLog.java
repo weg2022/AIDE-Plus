@@ -46,5 +46,9 @@ public class AppLog {
     public static void v5(Throwable th) {
         if( isPrintLog ) Log.e("AIDE", th.toString(), th);
     }
+	
+	public static void d(String TAG, Object... objects){
+		if( isPrintLog ) Log.d(TAG, objects);
+    }
 }
 

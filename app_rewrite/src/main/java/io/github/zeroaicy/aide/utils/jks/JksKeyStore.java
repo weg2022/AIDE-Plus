@@ -44,7 +44,7 @@ public class JksKeyStore extends KeyStore{
 	}
 	
 	
-
+	/*
 	static void test(){
 
 
@@ -67,7 +67,7 @@ public class JksKeyStore extends KeyStore{
 		for (String s : Security.getAlgorithms("KeyPairGenerator")){
 			System.out.println(s);
 		}
-	}
+	}//*/
 
 }
 

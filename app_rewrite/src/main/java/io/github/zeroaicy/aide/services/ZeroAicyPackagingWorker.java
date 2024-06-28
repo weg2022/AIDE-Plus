@@ -1036,7 +1036,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		private void packagingLibgdxNativesResources(PackagingStream packagingZipOutput) throws IOException {
 			logDebug("从LibgdxNatives添加资源");
 			for (String libgdxNativesLibPath : getScopeTypeQuerier().getLibgdxNativesLibs()) {
-				logDebug("添加 " + libgdxNativesLibPath);
 				this.libgdxNativesTransformer.setCurLibgdxNativesLibsPath(libgdxNativesLibPath);
 				this.packagingZipFile(libgdxNativesLibPath, libgdxNativesTransformer, packagingZipOutput, false);
 			}
@@ -1075,7 +1074,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 越小则越往后打包
 			// runtimeOnly Jar资源
 			for( String runtimeOnlyJarPath : getScopeTypeQuerier().getRuntimeOnlyLibs()){
-				logDebug("从 -> " + runtimeOnlyJarPath + " 添加资源");
 				
 				this.packagingZipFile(runtimeOnlyJarPath, dexZipEntryTransformer, packagingZipOutput, false);
 			}

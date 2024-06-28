@@ -1,33 +1,31 @@
 package io.github.zeroaicy.aide.utils;
 
 
+import android.text.TextUtils;
 import com.aide.common.AppLog;
+import com.aide.ui.services.AssetInstallationService;
+import com.aide.ui.util.ArtifactNode;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.Configuration;
 import com.aide.ui.util.FileSystem;
 import groovyjarjarantlr.collections.AST;
+import io.github.zeroaicy.util.Log;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.UnicodeEscapingReader;
 import org.codehaus.groovy.antlr.parser.GroovyLexer;
 import org.codehaus.groovy.antlr.parser.GroovyRecognizer;
-import io.github.zeroaicy.util.Log;
-import java.util.Collections;
-import com.aide.ui.services.AssetInstallationService;
-import java.util.Set;
-import java.util.HashSet;
-import com.aide.ui.util.BuildGradle.ProductFlavor;
-import com.aide.ui.util.BuildGradle.Dependency;
-import com.aide.ui.util.PomXml;
-import android.text.TextUtils;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
 	public static class DependencyExt extends Dependency {
@@ -485,15 +483,18 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 						String getFilesValue = getValue(ast, "files");
 						if (getFilesValue != null) {
 							FilesDependency filesDependency = new FilesDependency(ast.getLine());
+							filesDependency.filesPath = getFilesValue;
+							
 							if( !DependencyExt.isRuntimeOnly(dependencyExtType)){
 								// runtimeOnly files 依赖会在打包服务进程自动添加
 								// 在此处拦截可以使得编译器不知道这个依赖
-								filesDependency.filesPath = getFilesValue;
+								dependencieList.add(filesDependency);
 							}
-							dependencieList.add(filesDependency);
+							
 							if (DependencyExt.isExt(dependencyExtType)) {
 								this.dependencyExts.add(new DependencyExt(dependencyExtType, filesDependency));
 							}
+							
 							return;
 						}
 					}
@@ -519,7 +520,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 						// xxx groupId:artifactId:version:classifier@extension
 						String coords = getAstValue(ast);
 						if (coords != null) {
-							PomXml.ArtifactNode mavenDependency = new PomXml.ArtifactNode(ast.getLine());
+							ArtifactNode mavenDependency = new ArtifactNode(ast.getLine());
 							dependencieList.add(mavenDependency);
 
 							if (DependencyExt.isExt(dependencyExtType)) {

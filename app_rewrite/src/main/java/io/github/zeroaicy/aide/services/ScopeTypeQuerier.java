@@ -19,6 +19,7 @@ import java.util.Set;
 import com.aide.ui.util.BuildGradle.MavenDependency;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Arrays;
 
 
 /**
@@ -139,27 +140,37 @@ public class ScopeTypeQuerier {
 
 	// 需要dexing的 
 	private final List<String> dexingLibs = new ArrayList<>();
+	private final Set<String> dexingLibsSet = new HashSet<>();
+	
 	// 仅compile，当做库参与dexing，不打包资源
 	private final List<String> compileOnlyLibs = new ArrayList<>();
-
+	private final Set<String> compileOnlyLibsSet = new HashSet<>();
+	
 	// 仅打包，不参与compile和dexing
 	private final List<String> runtimeOnlyLibs = new ArrayList<>();
-
+	private final Set<String> runtimeOnlyLibsSet = new HashSet<>();
+	
 	// libgdxNatives 依赖 仅打包，但需要对内部的so的名称进行额外处理
 	private final List<String> libgdxNativesLibs = new ArrayList<>();
-
+	private final Set<String> libgdxNativesLibsSet = new HashSet<>();
+	
 	private ScopeTypeMap scopeTypeMap = new ScopeTypeMap();
 
 	public ScopeTypeQuerier(String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle) {
-
+		if( dependencyLibs == null ){
+			return;
+		}
+		// gradle项目才支持
 		if (!zeroAicyBuildGradle.isSingleton()) {
 			String curProjectPath = FileSystem.getParent(zeroAicyBuildGradle.configurationPath);
-
 			resolvingProjectDependency(curProjectPath, new HashSet<String>());
 		}
-
+		
+		
 		// 标记依赖并分组
-		for (String libFilePath : dependencyLibs) {
+		HashSet<String> hashSet = new HashSet<String>(Arrays.asList(dependencyLibs));
+		System.out.println("ScopeTypeQuerier dependencyLibs具有重复依赖: " + (hashSet.size() != dependencyLibs.length));
+		for (String libFilePath : hashSet) {
 			File libFile = new File(libFilePath);
 
 			if (!libFile.exists()) {
@@ -185,17 +196,26 @@ public class ScopeTypeQuerier {
 			 * 兼容旧方案
 			 */
 			if (this.isCompileOnly(libFileNameLowerCase)) {
+				if( this.compileOnlyLibsSet.contains(libFilePath)){
+					continue;
+				}
+				this.compileOnlyLibsSet.add(libFilePath);
+
 				this.compileOnlyLibs.add(libFilePath);
 				continue;
 			}
 			if (this.isRuntimeOnly(fileName)) {
-				this.runtimeOnlyLibs.add(libFilePath);
+				addRuntimeOnlyLibs(libFilePath);
 				continue;
 			}
 			/**
 			 * 非gradle项目 兼容旧方案
 			 */
 			if (zeroAicyBuildGradle.isSingleton()) {
+				if( this.dexingLibsSet.contains(libFilePath)){
+					continue;
+				}
+				this.dexingLibsSet.add(libFilePath);
 				this.dexingLibs.add(libFilePath);
 				continue;
 			}
@@ -206,9 +226,10 @@ public class ScopeTypeQuerier {
 					this.compileOnlyLibs.add(libFilePath);
 					break;
 				case runtimeOnly:
-					this.runtimeOnlyLibs.add(libFilePath);
+					addRuntimeOnlyLibs(libFilePath);
 					break;
 				case libgdxNatives:
+					
 					this.libgdxNativesLibs.add(libFilePath);
 					break;
 				case dexing:
@@ -295,9 +316,9 @@ public class ScopeTypeQuerier {
 				// 
 				String filesPath = ((BuildGradle.FilesDependency)dependency).getFilesPath(curProjectPath);
 				this.scopeTypeMap.put(filesPath, scopeType);
-				// 添加runtimeOnly，那么在BuildGradle解析中就可以不添加他了
-				this.runtimeOnlyLibs.add(filesPath);
-				
+				if( scopeType == scopeType.runtimeOnly){
+					addRuntimeOnlyLibs(filesPath);
+				}
 				continue;
 			}
 			
@@ -338,6 +359,15 @@ public class ScopeTypeQuerier {
 			}
 
 		}
+	}
+
+	private void addRuntimeOnlyLibs(String filesPath) {
+		if (this.runtimeOnlyLibsSet.contains(filesPath)) {
+			return;
+		}
+		this.runtimeOnlyLibsSet.add(filesPath);
+		// 添加runtimeOnly，那么在BuildGradle解析中就可以不添加他了
+		this.runtimeOnlyLibs.add(filesPath);
 	}
 	public List<String> getDexingLibs() {
 		return dexingLibs;

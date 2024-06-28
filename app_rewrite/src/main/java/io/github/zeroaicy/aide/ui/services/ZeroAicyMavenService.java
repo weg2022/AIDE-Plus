@@ -9,7 +9,7 @@ import com.aide.ui.util.FileSystem;
 import com.aide.ui.util.MavenDependencyVersion;
 import com.aide.ui.util.MavenMetadataXml;
 import com.aide.ui.util.PomXml;
-import com.aide.ui.util.PomXml.ArtifactNode;
+import com.aide.ui.util.ArtifactNode;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,11 +19,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import io.github.zeroaicy.util.Log;
+import android.text.TextUtils;
+import com.aide.ui.util.BuildGradle.MavenDependency;
 
 /**
  * 更新底包时，再优化，那时必须抽离出修改点，只保留底包对其引用的api
  */
 public class ZeroAicyMavenService {
+	public static final String TAG = "ZeroAicyMavenService";
+
 	public static final int defaultDepth = 10;
 	/**
 	 * 静态方法
@@ -112,7 +117,8 @@ public class ZeroAicyMavenService {
 	public List<BuildGradle.MavenDependency> getNotExistsLocalCache(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dep) {
         try {
             List<BuildGradle.MavenDependency> notExistsLocalCache = new ArrayList<>();
-			ArtifactNode artifactNode = PomXml.ArtifactNode.pack(dep);
+			// 装箱
+			ArtifactNode artifactNode = ArtifactNode.pack(dep);
             getNotExistsLocalCache(flatRepoPathMap, artifactNode, notExistsLocalCache, defaultDepth);
 
             return notExistsLocalCache;
@@ -125,49 +131,46 @@ public class ZeroAicyMavenService {
         }
     }
 	// 递归查找依赖缓存，不存在时加入list
-    private void getNotExistsLocalCache(Map<String, String> flatRepoPathMap, PomXml.ArtifactNode dependency, List<BuildGradle.MavenDependency> dependencyList, int depth) {
+    private void getNotExistsLocalCache(Map<String, String> flatRepoPathMap, ArtifactNode curArtifactNode, List<BuildGradle.MavenDependency> dependencyList, int depth) {
         try {
 			//从缓存仓库计算MavenDependency依赖路径[pom|jar|aar]
-            String depPath = resolveMavenDepPath(flatRepoPathMap, makeDep(dependency));
+			// 从依赖管理器中获取ArtifactNode
+			curArtifactNode = makeUpdateDep(curArtifactNode);
+			String curArtifactNodePath = resolveMavenDepPath(flatRepoPathMap, curArtifactNode);
 
-			if (depPath == null) {
-                dependencyList.add(dependency);
-			} else if (depth > 0) {
-				String depPomPath = getDepPomPath(depPath);
+			if (curArtifactNodePath == null) {
+                dependencyList.add(curArtifactNode);
+				return;
+			}
 
-				PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
+			if (depth <= 0) {
+				return;				
+			}
 
-				for (PomXml.ArtifactNode subArtifactNode : curPomXml.depManages) {
-					// dependencyManagement只做版本控制
-					BuildGradle.MavenDependency cache = makeDep(subArtifactNode);
+			String depPomPath = getDepPomPath(curArtifactNodePath);
+			PomXml depPomXml = PomXml.empty.getConfiguration(depPomPath);
+			for (ArtifactNode subArtifactNode : depPomXml.depManages) {
+				// dependencyManagement只做版本控制
+				makeUpdateDep(subArtifactNode);
+			}
 
-					if (subArtifactNode != cache) {
-						//控制版本里的更新
-						if (MavenDependencyVersion.compareTo(subArtifactNode.version, cache.version) > 0) {
-							this.depManager.put(subArtifactNode.getGroupIdArtifactId(), subArtifactNode);
-						}
-
-					}
+			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
+			for (ArtifactNode subArtifactNode : depPomXml.deps) {
+				// 过滤排除依赖
+				if (exclusionSet.contains(subArtifactNode.getGroupIdArtifactId())) {
+					continue;
 				}
-				PomXml.ArtifactNode curArtifactNode = makeDep(new PomXml.ArtifactNode(curPomXml));
-				Set<String> exclusionSet = curArtifactNode.getExclusionSet();
-
-				for (PomXml.ArtifactNode subArtifactNode : curPomXml.deps) {
-					if (exclusionSet.contains(subArtifactNode.getGroupIdArtifactId())) {
-						continue;
-					}
-                    if (!vy(subArtifactNode)) {
-                        getNotExistsLocalCache(flatRepoPathMap, subArtifactNode, dependencyList, depth - 1);
-                    }
-                }
-            }
-        }
+				if (!vy(subArtifactNode)) {
+					getNotExistsLocalCache(flatRepoPathMap, subArtifactNode, dependencyList, depth - 1);
+				}
+			}
+		}
 		catch (Error th) {
 			throw th;
 		}
 		catch (Throwable th) {
-            throw new Error(th);
-        }
+			throw new Error(th);
+		}
     }
 
 
@@ -253,6 +256,7 @@ public class ZeroAicyMavenService {
         try {
 			//从缓存仓库计算MavenDependency依赖路径[pom|jar|aar]
             String depPath = resolveMavenDepPath(null, dep);
+
 			if (depPath == null) {
 				// 没有此依赖未下载
 				return;
@@ -262,15 +266,9 @@ public class ZeroAicyMavenService {
 			{
 				// 获取此依赖的缓存版本
 				String version = getVersion(depPath);
-				// 依赖管理器 
-				BuildGradle.MavenDependency cache = this.depManager.get(dep.getGroupIdArtifactId());
-				if (cache == null
-					|| MavenDependencyVersion.compareTo(version, cache.version) > 0) {
-					//像依赖管理器添加依赖
-					PomXml.ArtifactNode mavenDependency = new PomXml.ArtifactNode(dep, version);
-					
-					this.depManager.put(dep.getGroupIdArtifactId(), mavenDependency);
-				}
+				// 检查是否更新依赖版本
+				makeUpdateDep(new ArtifactNode(dep, version));
+
 			}
 
 			// 限制递归层级
@@ -280,22 +278,16 @@ public class ZeroAicyMavenService {
 
 			String depPomPath = getDepPomPath(depPath);
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
-
-			for (PomXml.ArtifactNode subArtifactNode : curPomXml.depManages) {
+			for (ArtifactNode subArtifactNode : curPomXml.depManages) {
 				// dependencyManagement只做版本控制
-				PomXml.ArtifactNode cache = makeDep(subArtifactNode);
-				if (subArtifactNode != cache) {
-					//控制版本里的更新
-					if (MavenDependencyVersion.compareTo(subArtifactNode.version, cache.version) > 0) {
-						this.depManager.put(subArtifactNode.getGroupIdArtifactId(), subArtifactNode);
-					}
-				}
+				makeUpdateDep(subArtifactNode);
+
 			}
 
-			PomXml.ArtifactNode curArtifactNode = makeDep(new PomXml.ArtifactNode(curPomXml));
+			ArtifactNode curArtifactNode = makeUpdateDep(dep);
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
 
-			for (PomXml.ArtifactNode subArtifactNode : curPomXml.deps) {
+			for (ArtifactNode subArtifactNode : curPomXml.deps) {
 				if (exclusionSet.contains(subArtifactNode.getGroupIdArtifactId())) {
 					continue;
 				}
@@ -321,7 +313,7 @@ public class ZeroAicyMavenService {
 	@Keep
 	public List<String> resolveFullDependencyTree(Map<String, String> flatRepositoryPathMap, BuildGradle.MavenDependency dep) {
         try {
-            return resolveFullDependencyTree(flatRepositoryPathMap, resolveMavenDepPath(flatRepositoryPathMap, makeDep(dep)));
+            return resolveFullDependencyTree(flatRepositoryPathMap, resolveMavenDepPath(flatRepositoryPathMap, makeUpdateDep(dep)));
         }
 		catch (Error th) {
 			throw th;
@@ -374,7 +366,7 @@ public class ZeroAicyMavenService {
 	@Keep
 	public boolean existsLocalMavenCache(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency) {
         try {
-            return resolveMavenDepPath(flatRepoPathMap, makeDep(dependency)) != null;
+            return resolveMavenDepPath(flatRepoPathMap, makeUpdateDep(dependency)) != null;
         }
 		catch (Error th) {
 			throw th;
@@ -386,22 +378,24 @@ public class ZeroAicyMavenService {
 	/**
 	 * 私有，内部实现 依赖管理器
 	 */
-    private final Map<String, PomXml.ArtifactNode> depManager = new HashMap<>();
+    private final Map<String, ArtifactNode> depManager = new HashMap<>();
 
 	// 依赖与此依赖本地仓库地址
 	// 依赖与本地依赖缓存映射
-    private final Map<BuildGradle.MavenDependency, String> depPathMapping = new HashMap<>();
+    private final Map<ArtifactNode, String> depPathMapping = new HashMap<>();
 
-	public static Map<BuildGradle.MavenDependency, String> getDepPathMapping(ZeroAicyMavenService mavenService) {
+	public static Map<ArtifactNode, String> getDepPathMapping(ZeroAicyMavenService mavenService) {
 		return mavenService.depPathMapping;
 	}
 
+
+	/**
+	 * 根据缓存仓库路径和依赖，解析依赖路径
+	 */
 	private String getArtifactCachePath2(String repositoriePath, BuildGradle.MavenDependency dependency) {
 		String groupId = dependency.groupId;
 		String artifactId = dependency.artifactId;
 		String version = dependency.version;
-
-		final String classifier = ArtifactNode.getClassifier(dependency);
 		String packaging = dependency.packaging;
 
 		String artifactIdDir = repositoriePath + "/" + groupId.replace(".", "/") + "/" + artifactId;
@@ -409,20 +403,21 @@ public class ZeroAicyMavenService {
 			return null;
 		}
 
-		//搜索本地仓库已有的版本
-		//按道理不应该这样
-        String searchVersion = this.searchLocalDepVersion(artifactIdDir, version);
-
+		//搜索本地仓库已有的版本或清单
+		String searchVersion = this.searchLocalDepVersion(artifactIdDir, version);
 		if (searchVersion == null) {
             return null;
         }
-		// 使用本地已有版本
-		version = searchVersion;
+		// 使用本地已有版本或者清单
+		// 按道理不应该这样，这会导致...
+        version = searchVersion;
 
 		String artifactIdVersionDir = artifactIdDir + "/" + version + "/" + artifactId + "-" + version;
 
+		final String classifier = ArtifactNode.getClassifier(dependency);
 		// 处理仅pom依赖 当classifier不为null不处理pom依赖
-		if ("pom".equals(packaging) && classifier == null) {
+		if ("pom".equals(packaging) 
+			&& classifier == null) {
 			if (new File(artifactIdVersionDir + ".pom").isFile()) {
 				return artifactIdVersionDir + ".pom";
 			}
@@ -491,14 +486,24 @@ public class ZeroAicyMavenService {
 
 	// 查询是否已有依赖或者版本控制
 	// 即所有依赖引用都在这，方便更新版本
-    private PomXml.ArtifactNode makeDep(BuildGradle.MavenDependency dep) {
+	/**
+	 * 使用依赖管理器复用依赖
+	 */
+    private ArtifactNode makeUpdateDep(BuildGradle.MavenDependency dep) {
         try {
-
-            PomXml.ArtifactNode cache = this.depManager.get(dep.getGroupIdArtifactId());
+            ArtifactNode cache = this.depManager.get(dep.getGroupIdArtifactId());
 			if (cache == null) {
-				cache = PomXml.ArtifactNode.pack(dep);
-				this.depManager.put(dep.getGroupIdArtifactId(), cache);
+				// 装箱
+				cache = ArtifactNode.pack(dep);
+				// 首次添加
+				this.depManager.put(cache.getGroupIdArtifactId(), cache);
+
+				return cache;
             }
+
+			// 检查更新
+			updateDep(ArtifactNode.pack(dep), cache);
+
 			return cache;
         }
 		catch (Error th) {
@@ -508,7 +513,23 @@ public class ZeroAicyMavenService {
             throw new Error(th);
         }
     }
+	private void updateDep(ArtifactNode artifactNode, ArtifactNode cache) {
+		if (artifactNode != cache) {
 
+			if (artifactNode.version == null) {
+				// 没有版本，最差的情况是依赖管理里存的也是
+				return;
+			}
+			//控制版本里的更新
+			// 依赖管理里存的没有版本信息或者版本低
+			if (cache.version == null 
+				|| MavenDependencyVersion.compareTo(artifactNode.version, cache.version) > 0) {
+				this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
+				// 
+				//AppLog.d(TAG, "更新依赖版本", cache + " -> " + artifactNode.version);
+			}
+		}
+	}
 
     private boolean P8(String str, String str2) {
         try {
@@ -550,20 +571,14 @@ public class ZeroAicyMavenService {
 
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
 
-			for (PomXml.ArtifactNode artifactNode : curPomXml.depManages) {
+			for (ArtifactNode artifactNode : curPomXml.depManages) {
 				// dependencyManagement只做版本控制
-				PomXml.ArtifactNode cache = makeDep(artifactNode);
-				if (artifactNode != cache) {
-					//控制版本里的更新
-					if (MavenDependencyVersion.compareTo(artifactNode.version, cache.version) > 0) {
-						this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
-					}
-				}
+				makeUpdateDep(artifactNode);
 			}
-			PomXml.ArtifactNode curArtifactNode = makeDep(new PomXml.ArtifactNode(curPomXml));
+			ArtifactNode curArtifactNode = makeUpdateDep(new ArtifactNode(curPomXml));
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
 
-			for (PomXml.ArtifactNode subArtifactNode : curPomXml.deps) {
+			for (ArtifactNode subArtifactNode : curPomXml.deps) {
 				if (exclusionSet.contains(subArtifactNode.getGroupIdArtifactId())) {
 					continue;
 				}
@@ -572,7 +587,7 @@ public class ZeroAicyMavenService {
 					continue;
 				}
 				// 计算dependency的地址
-				String depPath = resolveMavenDepPath(flatRepositoryPathMap, makeDep(subArtifactNode));
+				String depPath = resolveMavenDepPath(flatRepositoryPathMap, makeUpdateDep(subArtifactNode));
 
 				if (depPath != null) {
 					resolveFullDependencyTree(flatRepositoryPathMap, depPath, depPaths, depth - 1);
@@ -586,6 +601,8 @@ public class ZeroAicyMavenService {
             throw new Error(th);
         }
     }
+
+
 
     private void extractedAar(String aarPath, String outDir) {
         try {
@@ -715,8 +732,6 @@ public class ZeroAicyMavenService {
         try {
             String metadataPath = artifactIdDir + "/maven-metadata.xml";
 
-
-
 			String version;
 			if (!FileSystem.isFileAndNotZip(metadataPath) 
 				|| (version = mavenMetadataXml.getConfiguration(metadataPath).getVersion(searchVersion)) == null) {
@@ -797,11 +812,12 @@ public class ZeroAicyMavenService {
 	/**
 	 * 计算依赖在maven缓存的路径
 	 */
-    private String resolveMavenDepPath(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency) {
+    private String resolveMavenDepPath(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dep) {
         try {
             if (flatRepoPathMap != null) {
+				// 从flat查找
                 for (String flatRepositoryPath : flatRepoPathMap.keySet()) {
-                    String flatArtifactPath = getFlatArtifactPath(flatRepositoryPath, dependency.groupId, dependency.artifactId, dependency.version);
+                    String flatArtifactPath = getFlatArtifactPath(flatRepositoryPath, dep.groupId, dep.artifactId, dep.version);
 					if (flatArtifactPath != null) {
                         String name = new File(flatArtifactPath).getName();
                         String flatRepoCachePath = flatRepoPathMap.get(flatRepositoryPath);
@@ -812,21 +828,23 @@ public class ZeroAicyMavenService {
                     }
                 }
             }
+			// 使用依赖管理器的
+			ArtifactNode artifactNode = makeUpdateDep(dep);
 
-            if (this.depPathMapping.containsKey(dependency)) {
-                String depPath = this.depPathMapping.get(dependency);
-                if (depPath == null || depPath.length() == 0) {
-                    return null;
+			if (this.depPathMapping.containsKey(artifactNode)) {
+                String depPath = this.depPathMapping.get(artifactNode);
+                if (TextUtils.isEmpty(depPath)) {
+				    return null;
                 }
-                return depPath;
+				return depPath;
             }
-            String dependencyPath = getMavenDependencyPath(dependency);
-            if (dependencyPath == null) {
-                this.depPathMapping.put(dependency, "");
-            } else {
-                this.depPathMapping.put(dependency, dependencyPath);
-            }
-            return dependencyPath;
+
+            String depPath = getMavenDependencyPath(artifactNode);
+			this.depPathMapping.put(artifactNode, depPath);
+
+            //AppLog.d(TAG, "解算依赖路径", artifactNode + " -> " + depPath);
+
+			return depPath;
         }
 		catch (Error th) {
 			throw th;

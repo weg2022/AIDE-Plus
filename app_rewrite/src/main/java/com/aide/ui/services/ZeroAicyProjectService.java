@@ -85,14 +85,15 @@ public class ZeroAicyProjectService extends ProjectService {
 	// canAddLib
 	@Override
 	public boolean gn(String  filePath) {
-		
+
 		// 没有打开项目
-		if( this.currentAppHome == null || this.pojectSupport == null ){
+		if (this.currentAppHome == null 
+			|| this.pojectSupport == null) {
 			return false;
 		}
 		// 对AndroidProjectSupport进行特殊处理
 		if (this.pojectSupport instanceof AndroidProjectSupport) {
-			
+
 			List<ClassPath.Entry> classPathEntrys = getClassPathEntrys();
 			if (filePath.toLowerCase().endsWith(".jar") 
 				&& classPathEntrys != null 
@@ -105,7 +106,7 @@ public class ZeroAicyProjectService extends ProjectService {
 				return true;
 			}
 		}
-		return we(filePath);
+		return super.gn(filePath);
 	}
 
 	// 是否包含库
@@ -114,12 +115,12 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public boolean we(String filePath) {
 		// 没有打开项目
-		if( this.currentAppHome == null || this.pojectSupport == null ){
+		if (this.currentAppHome == null || this.pojectSupport == null) {
 			return false;
 		}
 		// 对AndroidProjectSupport进行特殊处理
 		if (this.pojectSupport instanceof AndroidProjectSupport) {
-			
+
 			List<ClassPath.Entry> classPathEntrys = this.classPathEntrys;
 			if (this.getLibraryMapping().get(this.currentAppHome).contains(filePath)) {
 				return true;

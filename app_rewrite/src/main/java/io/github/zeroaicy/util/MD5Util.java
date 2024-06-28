@@ -46,15 +46,4 @@ public class MD5Util{
 		//字符数组组合成字符串返回
         return new String(resultCharArray);
     }
-
-    public static void main(String[] args){
-        Scanner input = new Scanner(System.in);
-        while(true){
-            System.out.println("请输入：");
-            String in = input.nextLine();
-            String value = MD5Util.stringMD5(in);
-            System.out.println("加密前：" + in);
-            System.out.println("加密后：" + value + "，长度：" + value.length());
-        }
-    }
 }

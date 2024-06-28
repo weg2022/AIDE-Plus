@@ -23,13 +23,14 @@ android {
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	
+	compileOnly fileTree(dir: 'provider', include: ['*.jar'])
+	
+	runtimeOnly fileTree(dir: 'runtime', include: ['*.jar'])
 	
 	//api "com.google.android.material:material:+"
-	
 	//api project(':material+')
-	//*
 	
-	// shizuku.
+	//* shizuku.
 	api "dev.rikka.shizuku:provider:13+"
 	
 	api "androidx.browser:browser:1.6.0"
