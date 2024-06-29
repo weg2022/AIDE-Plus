@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class DownloadMavenLibraries implements Callable<Void> {
-
-
+	
+	private static String TAG = "DownloadMavenLibraries";
 	private Runnable downloadCompleteCallback;
     private List<BuildGradle.MavenDependency> deps;
     private final List<BuildGradle.RemoteRepository> remoteRepositorys = new ArrayList<>();
@@ -80,7 +80,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 		}
 		catch (Throwable unused) {
-			AppLog.Hw("仓库" + remoteRepository.repositorieURL + " 错误 mavenMetadataUrl: " + mavenMetadataUrl, unused);
+			AppLog.d("仓库" + remoteRepository.repositorieURL, " 错误 ", mavenMetadataUrl, unused);
 			return false;
 		}
 		// 检查文件是否存在
@@ -112,7 +112,6 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						if (!resolvingMetadataFile(dep, count, mavenMetadataPath, remoteRepository)) {
 							// 下载失败 仓库有问题[跳过]
-							System.out.println(mavenMetadataPath + "下载失败");
 							continue;
 						}
 
@@ -121,7 +120,6 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						// 下载[成功|失败]
 						if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
-							System.out.println("pom下载失败");
 							continue;
 						}
 
@@ -208,8 +206,6 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
 
-		AppLog.FH("下载 artifactPath: " + artifactUrl + " \nartifactPath:" + artifactPath);
-
 		File artifactFile = new File(artifactPath);
 		if (artifactFile.exists()) {
 			return true;
@@ -238,8 +234,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
-			Log.d(" Maven Download", "dep", dependencyString);
-			Log.d(" Maven Download", Log.getStackTraceString(unused));
+			Log.d(" Maven Download", dependencyString, unused);
 			return false;
 		}
 

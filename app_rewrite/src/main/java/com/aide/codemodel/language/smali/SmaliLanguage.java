@@ -1,84 +1,97 @@
 package com.aide.codemodel.language.smali;
 
-import com.aide.codemodel.api.abstraction.Language;
-import com.aide.codemodel.api.abstraction.CodeAnalyzer;
-import com.aide.codemodel.api.abstraction.CodeRenderer;
-import com.aide.codemodel.api.abstraction.SignatureAnalyzer;
-import java.util.Set;
+import abcd.ga;
+import abcd.ia;
+import abcd.ra;
+import com.aide.codemodel.HighlighterSyntax;
 import com.aide.codemodel.api.abstraction.FormatOption;
-import com.aide.codemodel.api.abstraction.Tools;
-import com.aide.codemodel.api.abstraction.TypeSystem;
+import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Syntax;
-import com.aide.codemodel.api.Model;
-import com.aide.codemodel.language.java.JavaSyntax;
+import com.aide.codemodel.api.abstraction.Tools;
+import com.google.android.gms.internal.ads.oa;
+import java.util.Set;
+import com.aide.codemodel.api.abstraction.CodeRenderer;
+import com.aide.codemodel.api.abstraction.CodeAnalyzer;
+import com.aide.codemodel.api.abstraction.SignatureAnalyzer;
+import com.aide.codemodel.api.abstraction.TypeSystem;
 
 public class SmaliLanguage implements Language {
+
 	
-	Model model;
-	
-	private JavaSyntax javaSyntax;
-	public SmaliLanguage(Model model) {
-		this.model = model;
-		if (model != null) {
-			this.javaSyntax = new JavaSyntax(model.identifierSpace);
-		}
-		
-	}
-	
-	@Override
-	public CodeAnalyzer getCodeAnalyzer() {
-		// TODO: Implement this method
-		return null;
+	// na -> Model
+    // DW() -> shrink
+	//public class SmaliLanguage implements na{
+
+	private final SmaliCodeModel myCodeModel;
+
+	public SmaliLanguage(SmaliCodeModel codeModel) {
+		myCodeModel = codeModel;
 	}
 
 	@Override
-	public CodeRenderer getCodeRenderer() {
-		// TODO: Implement this method
-		return null;
+	public void shrink() {
+
 	}
 
-	@Override
-	public Set<? extends FormatOption> getFormatOptionSet() {
-		// TODO: Implement this method
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return "Smali";
-	}
-
-	@Override
-	public SignatureAnalyzer getSignatureAnalyzer() {
-		// TODO: Implement this method
-		return null;
-	}
-
-	@Override
-	public JavaSyntax getSyntax() {
-		return this.javaSyntax;
-	}
-
-	@Override
-	public Tools getTools() {
-		return null;
-	}
-
+	// ra -> TypeSystem
+	// FH() -> getTypeSystem
 	@Override
 	public TypeSystem getTypeSystem() {
 		// TODO: Implement this method
 		return null;
 	}
-
+	// Hw() -> getCodeAnalyzer
+	// ga -> CodeAnalyzer
 	@Override
-	public boolean isParenChar(char p) {
-		// TODO: Implement this method
+	public CodeAnalyzer getCodeAnalyzer() {
+		return null;
+	}
+	
+	// oa -> SignatureAnalyzer
+	// VH()-> getSignatureAnalyzer
+	@Override
+	public SignatureAnalyzer getSignatureAnalyzer() {
+		return null;
+	}
+	
+	// Zo() -> getFormatOptionSet
+	// ha -> FormatOption
+	@Override
+	public Set<? extends FormatOption> getFormatOptionSet() {
+		return null;
+	}
+	
+	// gn() -> getCodeRenderer
+	// ia -> CodeRenderer
+	@Override
+	public CodeRenderer getCodeRenderer() {
+		return null;
+	}
+	
+	// j6() -> getName
+	
+	@Override
+	public String getName() {
+		return "Smali";
+	}
+	
+	// j6() -> isParenChar
+	
+	@Override
+	public boolean isParenChar(char c) {
 		return false;
 	}
 
+	// qa -> Tools
 	@Override
-	public void shrink() {
-		// TODO: Implement this method
+	public Tools getTools() {
+		return null;
 	}
 	
+	// pa -> Syntax
+	// v5() -> getSyntax
+	@Override
+	public Syntax getSyntax() {
+		return new HighlighterSyntax();
+	}
 }

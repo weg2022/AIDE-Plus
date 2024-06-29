@@ -20,10 +20,11 @@ import java.lang.reflect.Field;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.ContextUtil;
 
+/**
+ * 开启异常打印开关
+ */
 public class iy {
-	private static Application DW2;
-    
-    private static Application DW;
+	private static Application DW;
     private static String FH;
     private static Object Hw = new Object();
     private static Application j6;

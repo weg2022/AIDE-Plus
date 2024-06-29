@@ -321,10 +321,13 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
     private void parserProductFlavor(AST ast, String attributeName, ProductFlavor productFlavor) {
 		switch (attributeName) {
+			
+			case "minSdk":
 			case "minSdkVersion":
 			case "minSdkVersion.apiLevel":
 				productFlavor.minSdkVersion = getAstValue(ast);
 				break;
+			case "targetSdk":
 			case "targetSdkVersion":
 			case "targetSdkVersion.apiLevel":
 				productFlavor.targetSdkVersion = getAstValue(ast);
@@ -336,6 +339,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				productFlavor.versionName = getAstValue(ast);
 				break;
 			case "packageName":
+			case "namespace":
 			case "applicationId":
 				productFlavor.applicationId = getAstValue(ast);
 				break;

@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import android.app.Activity;
 import java.util.concurrent.ExecutorService;
+import com.aide.codemodel.language.smali.SmaliCodeModel;
+import com.aide.codemodel.language.kotlin.KotlinCodeModel;
 
 /**
  * 1.aapt2
@@ -38,12 +40,14 @@ import java.util.concurrent.ExecutorService;
  * 优点是可以随时更换实现
  */
 public class ZeroAicyExtensionInterface {
-	// 预扩展
+	// 预扩展 由CodeModelFactory调用 采用[源码覆盖模式]
 	public static void createCodeModels(Model model, List<String> codeModelNames, List<CodeModel> codeModels) {
 		// AIDE是根据 codeModelNames来选择是否添加 CodeModel
 		// codeModelNames来源之一 ServiceContainer.Hw()
 		// 但我不遵守😕😕😕，即表示所有项目都会支持添加的CodeModel
-		//codeModels.add(new SmaliCodeModel(model))
+		codeModels.add(new SmaliCodeModel(model));
+		codeModels.add(new KotlinCodeModel(model));
+		
 	}
 
 	//扩展接口

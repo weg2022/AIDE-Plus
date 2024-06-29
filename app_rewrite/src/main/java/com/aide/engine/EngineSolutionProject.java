@@ -64,6 +64,9 @@ public class EngineSolutionProject implements Parcelable {
 		// 和projectNamespace一样
         this.jw = str3;
         this.fY = sourceSolutionFiles;
+		
+		addKotlinSrcDir(sourceSolutionFiles);
+		
         this.qp = depProjectNamespaces;
         this.k2 = z;
         this.zh = str4;
@@ -79,6 +82,24 @@ public class EngineSolutionProject implements Parcelable {
         this.Jl = list4;
         this.iW = list5;
     }
+
+	private void addKotlinSrcDir(List<EngineSolution.File> sourceSolutionFiles) {
+		String javaSrcDir = null;
+		for (EngineSolution.File file : sourceSolutionFiles) {
+			// EngineSolution.File -> mb
+			if ("Java".equals(EngineSolution.File.DW(file))) {
+				// EngineSolution.File j6 -> WB
+				javaSrcDir = EngineSolution.File.j6(file);
+				break;
+			}
+		}
+		if (javaSrcDir != null) {
+			AppLog.d(this.projectName, "添加 " + javaSrcDir);
+			sourceSolutionFiles.add(new EngineSolution.File(javaSrcDir, "Kotlin", null, false, false));
+		}else{
+			AppLog.d(this.projectName, "没有添加 " + "Kotlin Src");
+		}
+	}
 
 
 

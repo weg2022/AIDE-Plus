@@ -209,7 +209,9 @@ public class Aapt2TaskFromZeroAicy {
 		//主项目R.txt Symbols
 		Symbols mainSymbols = symbolParser.parse(aaptServiceArgs.buildBin + "/intermediates/R.txt");
 		String mainPackageName = aaptServiceArgs.mainPackageName;
-
+		if( mainPackageName == null){
+			return new AaptService$b(String.format("找不到主项目包名, 请设置主项目包名，重新生成" ));
+		}
 		//主项目R.java相对gen路径
 		String mainRJavaChildPath = mainPackageName.replace('.', '/') + "/R.java";
 

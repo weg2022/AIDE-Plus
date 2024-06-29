@@ -13,12 +13,15 @@ import com.aide.codemodel.api.abstraction.FormatOption;
 import com.aide.codemodel.language.java.JavaTypeSystem;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
 import com.aide.codemodel.language.java.JavaSignatureAnalyzer;
+import com.aide.codemodel.language.java.JavaFormatOption;
+import com.aide.codemodel.HighlighterSyntax;
 
-public class AidlLanguage extends JavaBinaryLanguage {
+public class AidlLanguage implements Language {
+
 
 	@Override
 	public Set<? extends FormatOption> getFormatOptionSet() {
-		return super.getFormatOptionSet();
+		return JavaFormatOption.j6();
 	}
 
 	@Override
@@ -28,12 +31,12 @@ public class AidlLanguage extends JavaBinaryLanguage {
 
 	@Override
 	public Syntax getSyntax() {
-		return super.getSyntax();
+		return new HighlighterSyntax();
 	}
 
 	@Override
 	public Tools getTools() {
-		return super.getTools();
+		return this.aidlTools;
 	}
 
 	@Override
@@ -43,7 +46,7 @@ public class AidlLanguage extends JavaBinaryLanguage {
 
 	@Override
 	public void shrink() {}
-	
+
 
 	@Override
 	public JavaCodeAnalyzer getCodeAnalyzer() {
@@ -64,11 +67,14 @@ public class AidlLanguage extends JavaBinaryLanguage {
 	public JavaTypeSystem getTypeSystem() {
 		return null;
 	}
-	
+
 	private final Model model;
+	private AidlTools aidlTools;
+
 	public AidlLanguage(Model model) {
-		super(model);
 		this.model = model;
+		if (model != null)
+            this.aidlTools = new AidlTools(model);
 	}
-	
+
 }
