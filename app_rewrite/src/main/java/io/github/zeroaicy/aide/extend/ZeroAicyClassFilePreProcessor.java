@@ -30,7 +30,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 	private static ZeroAicyClassFilePreProcessor singleton;
 
 	public static boolean isDefaultMethod(String methodSignature) {
-		return ClassReader.hasDefaultMethod(methodSignature);
+		return false;//ClassReader.hasDefaultMethod(methodSignature);
 	}
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {

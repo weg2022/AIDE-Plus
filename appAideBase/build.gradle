@@ -5,8 +5,8 @@ android {
     buildToolsVersion "21.1.0"
 
     defaultConfig {
-        applicationId "com.aide.ui.rewrite"
-        minSdkVersion 16
+        applicationId "com.aide.ui.base"
+        minSdkVersion 24
         targetSdkVersion 28
         versionCode 2008210017
         versionName "3.2.210316"
@@ -29,6 +29,7 @@ dependencies {
 	
 	//api "com.google.android.material:material:+"
 	//api project(':material+')
+	//compile "com.android.tools:r8:+"
 	
 	//* shizuku.
 	api "dev.rikka.shizuku:provider:13+"

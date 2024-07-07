@@ -268,10 +268,10 @@ public class AssetInstallationService {
     }
 	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
     public void we() {
-		AssetInstallationService.this.DW = getOutputPath("android.jar", true);
+		//AssetInstallationService.this.DW = getOutputPath("android.jar", true);
 
-		AssetInstallationService.this.j6 = getOutputPath("JavaScriptAPI.js", true);
-		AssetInstallationService.this.FH = getOutputPath("annotations.jar", true);
+		//AssetInstallationService.this.j6 = getOutputPath("JavaScriptAPI.js", true);
+		//AssetInstallationService.this.FH = getOutputPath("annotations.jar", true);
 		
 		// [可能不是这原因], 不同步，首次运行会导致 卡[Running aidl...]
 		//AssetInstallationService.this.Hw = DW("framework.aidl", true);

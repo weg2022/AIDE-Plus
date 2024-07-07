@@ -34,7 +34,7 @@ public class SigningService {
 	@Keep
     public interface SigningRunnable {
 		@Keep
-		public void j6(String storePath, String storePassword, String aliasName, String aliasPassword);
+		public abstract void j6(String storePath, String storePassword, String aliasName, String aliasPassword);
     }
 
     private static class a implements Runnable {
@@ -47,7 +47,7 @@ public class SigningService {
             this.keyStoreFilePath = str;
             this.signingRunnable = signingRunnable;
         }
-
+		
         @Override
         public void run() {
             try {

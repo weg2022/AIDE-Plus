@@ -11,7 +11,7 @@ import java.util.zip.ZipFile;
 
 import com.sdklite.dex.ClassDef;
 import com.sdklite.dex.Dex;
-import com.sdklite.io.IOUtil;
+import com.sdklite.sed.IOUtil;
 
 /**
  * Represents an APK file

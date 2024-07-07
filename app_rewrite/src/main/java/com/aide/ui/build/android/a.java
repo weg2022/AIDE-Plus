@@ -37,7 +37,7 @@ public class a {
     private static boolean v5;
 
     @dy(field = -1439319343464242515L)
-    private a$c DW;
+    private a$c lastTask;
 
     @dy(field = 2429444071915123500L)
     private f FH;
@@ -66,7 +66,7 @@ public class a {
     }
 
     @ey(method = -7598314424750600748L)
-    static void DW(a aVar, Map map) {
+    static void DW(a aVar, Map<String, List<SyntaxError>> map) {
         aVar.Ws(map);
     }
 
@@ -77,7 +77,7 @@ public class a {
             if (v5) {
                 iy.EQ(1447649034253373063L, this, str, str2);
             }
-            HashMap hashMap = new HashMap();
+            HashMap<String, List<SyntaxError>> syntaxErrorMap = new HashMap<>();
             for (String str3 : str2.split("\n")) {
                 String trim = str3.trim();
                 if (trim.length() > 0) {
@@ -101,24 +101,24 @@ public class a {
                                     while (trim2.toLowerCase().startsWith("error:")) {
                                         trim2 = trim2.substring(6, trim2.length()).trim();
                                     }
-                                    SyntaxError gn = gn("aapt", i, trim2);
-                                    if (!hashMap.containsKey(substring)) {
-                                        hashMap.put(substring, new ArrayList());
+                                    SyntaxError syntaxError = gn("aapt", i, trim2);
+                                    if (!syntaxErrorMap.containsKey(substring)) {
+                                        syntaxErrorMap.put(substring, new ArrayList<SyntaxError>());
                                     }
-                                    ((List) hashMap.get(substring)).add(gn);
+									syntaxErrorMap.get(substring).add(syntaxError);
                                 }
                             }
                         }
                     } catch (Exception e) {
                         AppLog.v5(e);
                     }
-                    if (!hashMap.containsKey(str)) {
-                        hashMap.put(str, new ArrayList());
+                    if (!syntaxErrorMap.containsKey(str)) {
+                        syntaxErrorMap.put(str, new ArrayList<SyntaxError>());
                     }
-                    ((List) hashMap.get(str)).add(gn("aapt", 1, trim));
+					syntaxErrorMap.get(str).add(gn("aapt", 1, trim));
                 }
             }
-            return hashMap;
+            return syntaxErrorMap;
         } catch (Throwable th) {
             if (Zo) {
                 iy.Mr(th, 1447649034253373063L, this, str, str2);
@@ -251,7 +251,7 @@ public class a {
     }
 
     @ey(method = -2638105283236111335L)
-    private a$b u7(String str, List<String> list, boolean z, String str2) {
+    private a$b getTaskInfo(String str, List<String> list, boolean z, String str2) {
         try {
             if (v5) {
                 iy.J0(956057466586821503L, this, str, list, new Boolean(z), str2);
@@ -312,9 +312,9 @@ public class a {
                 iy.we(2748627575776940733L, this, str, new Boolean(z), new Boolean(z2));
             }
             final String tp = tp();
-            if (this.DW != null) {
-                this.DW.cancel(true);
-                this.DW = null;
+            if (this.lastTask != null) {
+                this.lastTask.cancel(true);
+                this.lastTask = null;
             }
 			a$a.TaskFactory taskFactory = new a$a.TaskFactory(){
 				@Override
@@ -323,18 +323,18 @@ public class a {
 					if (z2) {
 						for (String str2 : ServiceContainer.getProjectService().yS()) {
 							if (!str.equals(str2)) {
-								arrayList.add(u7(str2, null, false, tp));
+								arrayList.add(getTaskInfo(str2, null, false, tp));
 							}
 						}
 					}
-					arrayList.add(u7(str, null, z, tp));
+					arrayList.add(getTaskInfo(str, null, z, tp));
 					return arrayList;
 				}
 			};
             
-            a$c cVar = new a$c(this, new a$a(this, taskFactory));
-            this.DW = cVar;
-            this.executorService.execute(cVar);
+            a$c task = new a$c(this, new a$a(this, taskFactory));
+            this.lastTask = task;
+            this.executorService.execute(task);
         } catch (Throwable th) {
             if (Zo) {
                 iy.U2(th, 2748627575776940733L, this, str, new Boolean(z), new Boolean(z2));
@@ -351,9 +351,9 @@ public class a {
                 iy.tp(-7522701461290010201L, this, list);
             }
             final String tp = tp();
-            if (this.DW != null) {
-                this.DW.cancel(true);
-                this.DW = null;
+            if (this.lastTask != null) {
+                this.lastTask.cancel(true);
+                this.lastTask = null;
             }
 			// 异步，如果在主线程则非常耗时
 			a$a.TaskFactory taskFactory = new a$a.TaskFactory(){
@@ -362,14 +362,14 @@ public class a {
 					// 比较耗时，当在线程池运行
 					ArrayList<a$b> arrayList = new ArrayList<>();
 					for(String next : ServiceContainer.getProjectService().yS()){
-						arrayList.add(u7(next, list, false, tp));
+						arrayList.add(getTaskInfo(next, list, false, tp));
 					}
 					return arrayList;
 				}
 			};
-            a$c cVar = new a$c(this, new a$a(this, taskFactory));
-            this.DW = cVar;
-            this.executorService.execute(cVar);
+            a$c task = new a$c(this, new a$a(this, taskFactory));
+            this.lastTask = task;
+            this.executorService.execute(task);
         } catch (Throwable th) {
             if (Zo) {
                 iy.j3(th, -7522701461290010201L, this, list);

@@ -19,10 +19,16 @@ public class KotlinCodeModel implements CodeModel {
     private final KotlinLexer kotlinLexer = new KotlinLexer();
     private final KotlinLanguage myLanguage;
     private final Highlighter myHighlighter;
+	
+	private KotlinCodeCompiler kotlinCodeCompiler;
     public KotlinCodeModel(Model model) {
         this.model = model;
         myLanguage = new KotlinLanguage(this);
         myHighlighter = new Highlighter(kotlinLexer);
+		
+		if( model != null ){
+			kotlinCodeCompiler = new KotlinCodeCompiler(model, myLanguage);
+		}
     }
     @Override
     public long getArchiveVersion(String s) {
@@ -85,7 +91,7 @@ public class KotlinCodeModel implements CodeModel {
     }
 
     @Override
-    public void fillSyntaxTree(FileEntry da, Reader reader, Map<Language, SyntaxTree> map, boolean b) {
+    public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean b) {
         if (map.containsKey(myLanguage)) {
             SyntaxTree syntaxTree = map.get(myLanguage);
             if (syntaxTree != null)
@@ -106,7 +112,7 @@ public class KotlinCodeModel implements CodeModel {
 
 	@Override
     public com.aide.codemodel.api.abstraction.Compiler getCompiler() {
-        return null;
+        return this.kotlinCodeCompiler;
     }
 
     @Override

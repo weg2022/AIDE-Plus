@@ -94,10 +94,10 @@ public class EngineSolutionProject implements Parcelable {
 			}
 		}
 		if (javaSrcDir != null) {
-			AppLog.d(this.projectName, "添加 " + javaSrcDir);
+			//AppLog.d(this.projectName, "添加 " + javaSrcDir);
 			sourceSolutionFiles.add(new EngineSolution.File(javaSrcDir, "Kotlin", null, false, false));
 		}else{
-			AppLog.d(this.projectName, "没有添加 " + "Kotlin Src");
+			//AppLog.d(this.projectName, "没有添加 " + "Kotlin Src");
 		}
 	}
 
@@ -263,7 +263,7 @@ public class EngineSolutionProject implements Parcelable {
 			byte[] buf = dest.createByteArray();
 			gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(buf));
 			
-			byte[] unzipParcelData = IOUtil.toByteArray(gzipInputStream);
+			byte[] unzipParcelData = IOUtils.readAllBytes(gzipInputStream);
 			Parcel obtain = Parcel.obtain();
 			obtain.unmarshall(unzipParcelData, 0, unzipParcelData.length);
 			obtain.setDataPosition(0);

@@ -40,7 +40,14 @@ public enum SyntaxStyleType{
     
 	SCRIPT_BACKGROUND("Script Background", R.color.editor_syntax_plain, R.color.editor_syntax_plain, Typeface.NORMAL),
     
-	SCRIPT("Script", R.color.editor_syntax_plain_light, R.color.editor_syntax_plain, Typeface.NORMAL);
+	SCRIPT("Script", R.color.editor_syntax_plain_light, R.color.editor_syntax_plain, Typeface.NORMAL),
+	
+	
+	//扩展的
+	//PARAMETER("Parameter", R.color.material_grey_100, R.color.material_grey_100, Typeface.ITALIC)
+	;
+	
+	
 
     private final int darkResId;
     private final int lightResId;
@@ -49,6 +56,7 @@ public enum SyntaxStyleType{
     private SyntaxStyleType(String enumName, int lightResId, int darkResId, int typefaceStyle) {
 		this.lightResId = lightResId;
 		this.darkResId = darkResId;
+		// 粗体 斜体 
 		this.typefaceStyle = typefaceStyle;
     }
 

@@ -19,6 +19,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import com.aide.ui.util.BuildGradle.MavenDependency;
+import com.aide.common.AppLog;
 
 /**
  * 同名覆盖底包中的类
@@ -160,6 +161,13 @@ public class PomXml extends Configuration<PomXml> {
 			}
 			deps.add(dependency);
 		}
+		/*
+		AppLog.d( toString(), "depManages", this.depManages);
+		AppLog.d( toString(), "deps", this.deps);
+		System.out.println();
+		*/
+		
+		
 	}
 
 	public ArtifactNode make(Model model, Dependency dep) {

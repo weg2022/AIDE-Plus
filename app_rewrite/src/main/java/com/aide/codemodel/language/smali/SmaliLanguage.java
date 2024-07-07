@@ -23,7 +23,8 @@ public class SmaliLanguage implements Language {
 	//public class SmaliLanguage implements na{
 
 	private final SmaliCodeModel myCodeModel;
-
+	HighlighterSyntax highlighterSyntax = new HighlighterSyntax();
+	
 	public SmaliLanguage(SmaliCodeModel codeModel) {
 		myCodeModel = codeModel;
 	}
@@ -92,6 +93,6 @@ public class SmaliLanguage implements Language {
 	// v5() -> getSyntax
 	@Override
 	public Syntax getSyntax() {
-		return new HighlighterSyntax();
+		return highlighterSyntax;
 	}
 }

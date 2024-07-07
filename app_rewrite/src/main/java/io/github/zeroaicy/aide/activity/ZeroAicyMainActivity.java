@@ -63,6 +63,7 @@ import android.text.TextUtils;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
+
 	private static final String TAG = "ZeroAicyMainActivity";
 
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;

@@ -202,9 +202,9 @@ class a$b {
             if (!Thread.interrupted()) {
                 if (Build.VERSION.SDK_INT < 29 && !a.Zo()) {
                     try {
-                        j6 = xf.j6(Arrays.asList("/system/bin/chmod", "777", this.DW), (String) null, (Map) null, true, (OutputStream) null, (byte[]) null);
+                        j6 = xf.j6(Arrays.asList("/system/bin/chmod", "777", this.DW), null, null, true, (OutputStream) null, (byte[]) null);
                     } catch (Exception unused) {
-                        wf j62 = xf.j6(Arrays.asList("/system/xbin/chmod", "777", this.DW), (String) null, (Map) null, true, (OutputStream) null, (byte[]) null);
+                        wf j62 = xf.j6(Arrays.asList("/system/xbin/chmod", "777", this.DW), (String) null, null, true, (OutputStream) null, (byte[]) null);
                         if (j62.DW() != 0) {
                             throw new IOException("Could not make " + this.DW + " executable - exit code " + j62.DW());
                         }

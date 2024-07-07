@@ -19,6 +19,7 @@ import com.aide.ui.util.FileSpan;
 import com.aide.ui.views.editor.OEditor;
 import java.io.StringReader;
 import com.aide.ui.views.editor.Model;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 
 
@@ -40,7 +41,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 
 	//只有自己引用，可以改名(j6)
     final KeyStrokeDetector.KeyStrokeHandler KeyStrokeHandler;
-
+	private final boolean isWatch = ZeroAicySetting.isWatch();
 	public KeyStrokeDetector$a(KeyStrokeDetector keyStrokeDetector, View view, boolean fullEditor, KeyStrokeDetector.KeyStrokeHandler keyStrokeHandler, View editorTextView) {
         super(view, fullEditor);
         this.keyStrokeDetector = keyStrokeDetector;
@@ -75,42 +76,54 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 		}
 		return null;
 	}
-	
+	/**
+	 * 用于判断是否全选
+	 */
 	private int extractedTextEnd;
 	private boolean extractTextInternal(ExtractedTextRequest request, ExtractedText outText) {
         if (outText == null) {
             return false;
         }
 		outText.text = "1234";
+		outText.startOffset = 0;
 		// 如果返回当前所在行，适合Watch
 		// 也能增强依赖getExtractedText输入法的兼容性
-		if( this.oEditor !=  null){
-			Model model = this.oEditor.getModel();
-			int caretLine = this.oEditor.getCaretLine();
-			
-			// 修复 下一行只有一个\n的情况复制不了的问题
-			int nextLine = 0;
-			if( caretLine != model.getLineCount()){
-				nextLine = 1;
+		
+		// 感觉变卡了 仅在isWatch启用试试
+		if (this.oEditor !=  null) {
+
+			if (isWatch) {
+				Model model = this.oEditor.getModel();
+				// 光标所在行
+				int caretLine = this.oEditor.getCaretLine();
+				int nextLine = 0;
+				// 修复 下一行只有一个\n的情况复制不了的问题
+				if (caretLine != model.getLineCount()) {
+					nextLine = 1;
+				}
+				this.extractedTextEnd = model.getColumnCount(caretLine) + nextLine;
+				
+				char[] readLineText = new char[extractedTextEnd];
+				model.readLineText(caretLine, readLineText);
+				if (nextLine == 1) {
+					readLineText[readLineText.length - 1] = '\n';
+				}
+				outText.text = new String(readLineText);
+			}else{
+				this.extractedTextEnd = outText.text.length();
 			}
-			this.extractedTextEnd = model.getColumnCount(caretLine) + nextLine;
-			char[] readLineText = new char[extractedTextEnd];
-			model.readLineText(caretLine, readLineText);
-			if( nextLine == 1){
-				readLineText[readLineText.length -1] = '\n';
-			}
-			outText.text = new String(readLineText);
 			
-			if( this.oEditor.getSelectionVisibility()) {
+			if (this.oEditor.getSelectionVisibility()) {
 				outText.flags = ExtractedText.FLAG_SELECTING;
 				outText.selectionStart = 0; 
 				outText.selectionEnd = outText.text.length();
 			}
-		}else{
-			this.extractedTextEnd = 0;
+		} else {
+			//this.extractedTextEnd = 0;
+			this.extractedTextEnd = outText.text.length();
+			
 		}
-		
-		outText.startOffset = 0;
+
         return true;
     }
 

@@ -206,7 +206,7 @@ public class HighlighterSyntax implements Syntax {
 
 	@Override
 	public boolean isBooleanLiteral(int i) {
-        return i == Styles.LiteralStyle;
+        return i == Styles.LiteralStyle || isLiteral(i);
 	}
 
 	@Override
@@ -257,7 +257,8 @@ public class HighlighterSyntax implements Syntax {
 	@Override
 	public boolean isLiteral(int i) {
 		return i == Styles.StringStyle 
-			|| i == Styles.NumberStyle;
+			|| i == Styles.NumberStyle
+			|| i == Styles.LiteralStyle;
 	}
 
 	@Override
@@ -279,7 +280,6 @@ public class HighlighterSyntax implements Syntax {
 
 	@Override
 	public boolean isParameters(int i) {
-		// TODO: Implement this method
 		return false;
 	}
 

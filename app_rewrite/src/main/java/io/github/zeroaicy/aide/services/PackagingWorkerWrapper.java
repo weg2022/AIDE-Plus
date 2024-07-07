@@ -274,7 +274,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 					String message = e.getMessage();
 					Log.d("日志", message);
 					int index;
-					if ((index = message.indexOf(" is defined multiple times:")) > 0) {
+					if (message != null && (index = message.indexOf(" is defined multiple times:")) > 0) {
 						//合并错误
 						String type = message.substring(0, index);
 						String[] files = message.substring(index + "is defined multiple times: ".length()).split(", ");

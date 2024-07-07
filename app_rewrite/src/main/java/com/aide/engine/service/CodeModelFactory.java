@@ -26,8 +26,18 @@ public class CodeModelFactory {
     public CodeModelFactory() {}
 
     public static CodeModel[] create(Model model, List<String> codeModelNames) {
-        CodeModel[] codeModelArr = {new JavaCodeModel(model), new JavaBinaryCodeModel(model), new XmlCodeModel(model), new HtmlCodeModel(model), new CssCodeModel(model), new JavaScriptCodeModel(model), new DtdCodeModel(model), new CppCodeModel(model), new AidlCodeModel(model)};
+        CodeModel[] codeModelArr = new CodeModel[]{
+			new JavaCodeModel(model), 
+			new JavaBinaryCodeModel(model), 
+			new XmlCodeModel(model), 
+			new HtmlCodeModel(model), 
+			new CssCodeModel(model), 
+			new JavaScriptCodeModel(model), 
+			new DtdCodeModel(model), 
+			new CppCodeModel(model), 
+			new AidlCodeModel(model)};
 		ArrayList<CodeModel> codeModels = new ArrayList<>();
+		
 		for (int i = 0; i < 9; i++) {
 			CodeModel codeModel = codeModelArr[i];
 			if (codeModelNames.contains(codeModel.getName())) {
@@ -51,7 +61,7 @@ public class CodeModelFactory {
 				}
 			}
 		}
-		
+
 		return null;
 
     }

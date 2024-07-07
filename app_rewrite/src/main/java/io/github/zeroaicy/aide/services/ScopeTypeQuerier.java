@@ -34,7 +34,6 @@ public class ScopeTypeQuerier {
 	private static final BuildGradleExt buildGradleExt = new BuildGradleExt();
 	private static final ZeroAicyBuildGradle singleton = ZeroAicyBuildGradle.getSingleton();
 
-
 	public enum ScopeType {
 		compileOnly,
 		runtimeOnly,
@@ -340,7 +339,27 @@ public class ScopeTypeQuerier {
 				// 递归解析子项目
 				resolvingProjectDependency(projectDependencyPath, childProjectPathSet);
 			}
+			new Comparator<Map<String, String>>(){
+				@Override
+				public int compare(Map<String, String> o1, Map<String, String> o2) {
 
+					int n1;
+					try {
+						n1 = Integer.parseInt(o1.get("number"));
+					}
+					catch (NumberFormatException e) {
+						n1 = 0;
+					}
+					int n2;
+					try {
+						n2 = Integer.parseInt(o2.get("number"));
+					}
+					catch (NumberFormatException e) {
+						n2 = 0;
+					}
+					return n1 - n2;
+				}
+			};
 		}
 	}
 

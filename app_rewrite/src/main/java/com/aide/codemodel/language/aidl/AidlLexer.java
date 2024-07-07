@@ -1305,57 +1305,68 @@ public class AidlLexer implements JFlexLexer{
 						{ return PlainStyle;
 						}
 						// fall through
-					case 14: break;
+					case 14: 
+						break;
 					case 2:
 						{ return OperatorStyle;
 						}
 						// fall through
-					case 15: break;
+					case 15: 
+						break;
 					case 3:
 						{ return StringStyle;
 						}
 						// fall through
-					case 16: break;
+					case 16: 
+						break;
 					case 4:
 						{ return IdentifierStyle;
 						}
 						// fall through
-					case 17: break;
+					case 17: 
+						break;
 					case 5:
 						{ return SeparatorStyle;
 						}
 						// fall through
-					case 18: break;
+					case 18: 
+						break;
 					case 6:
 						{ return NumberStyle;
 						}
 						// fall through
-					case 19: break;
+					case 19: 
+						break;
 					case 7:
 						{ return TypeStyle;
 						}
 						// fall through
-					case 20: break;
+					case 20: 
+						break;
 					case 8:
 						{ return CommentStyle;
 						}
 						// fall through
-					case 21: break;
+					case 21: 
+						break;
 					case 9:
 						{ return KeywordStyle;
 						}
 						// fall through
-					case 22: break;
+					case 22: 
+						break;
 					case 10:
 						{ return DocCommentStyle;
 						}
 						// fall through
-					case 23: break;
+					case 23: 
+						break;
 					case 11:
 						{ return myVarKeyword ? KeywordStyle : PlainStyle;
 						}
 						// fall through
-					case 24: break;
+					case 24: 
+						break;
 					case 12:
 						{ return myEnumKeyword ? KeywordStyle : PlainStyle;
 						}

@@ -121,12 +121,6 @@
         android:summary="不稳定的功能">
 		
 		<SwitchPreference
-            android:title="启用R8混淆"
-            android:key="test_zero_aicy_enable_minify"
-            android:summary="规则主项目proguard-rules.pro文件配置，若报缺少类可加 '-dontwarn *' 规则"
-            android:defaultValue="false" />
-		
-		<SwitchPreference
             android:title="启用aapt2"
             android:key="test_zero_aicy_enable_aapt2"
             android:summary="不支持apktool反编译项目，需要特殊aapt2"

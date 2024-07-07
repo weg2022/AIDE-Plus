@@ -2,7 +2,9 @@ package io.github.zeroaicy.aide.aapt2;
 
 
 import android.text.TextUtils;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.android.AaptService$b;
+import com.aide.ui.services.EngineService;
 import com.aide.ui.util.FileSystem;
 import com.sdklite.aapt.Aapt;
 import com.sdklite.aapt.SymbolParser;
@@ -29,9 +31,6 @@ import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import com.aide.common.AppLog;
-import com.aide.ui.ServiceContainer;
-import com.aide.ui.services.EngineService;
 
 public class Aapt2TaskFromZeroAicy {
 

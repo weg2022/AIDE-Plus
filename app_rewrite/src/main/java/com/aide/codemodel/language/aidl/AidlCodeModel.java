@@ -8,6 +8,7 @@ import abcd.ey;
 import abcd.fy;
 import abcd.gy;
 import abcd.iy;
+import com.aide.codemodel.Highlighter;
 import com.aide.codemodel.api.FileEntry;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
@@ -21,7 +22,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.aide.codemodel.Highlighter;
 
 @cy(clazz = 6949712858441021368L, container = 6949712858441021368L, user = true)
 public class AidlCodeModel implements CodeModel {
@@ -99,9 +99,10 @@ public class AidlCodeModel implements CodeModel {
             }
 			if (map.containsKey(myLanguage)) {
 				SyntaxTree syntaxTree = map.get(myLanguage);
-				if (syntaxTree != null)
-					syntaxTree.U2(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
-			    //sa.DW(sa.j6(0, true, new int[0], 0, 0, 1, 1));
+				if (syntaxTree != null){
+					// declareContent [声明内容]
+					syntaxTree.U2(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));					
+				}
 			}
         } catch (Throwable th) {
             if (DW) {

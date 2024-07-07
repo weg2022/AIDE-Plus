@@ -52,6 +52,7 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 		this.version = pom.curVersion;
 		// 从pom解析出来的
 		this.packaging = pom.getPackaging();
+		
 	}
 
 	@Override

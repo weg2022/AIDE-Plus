@@ -1,6 +1,7 @@
 package io.github.zeroaicy;
 
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.StrictMode;
 import com.aide.ui.AIDEApplication;
 import com.aide.ui.ServiceContainer;
@@ -14,8 +15,12 @@ import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -59,11 +64,19 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		// 防止App的context为null
 		ServiceContainer.sh(this);
+	
+		// 判断是否显示AIDE-WhatsNewDialog
+		if( ZeroAicySetting.isReinstall()){
+			SharedPreferences sharedPreferences = getSharedPreferences("WhatsNew", 0);
+			SharedPreferences.Editor edit = sharedPreferences.edit();
+			// 重置
+			edit.putInt("ShownVersion", 0).apply();
+		}
 
 		// Return if this application is not in debug mode 
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
-
 	}
+		
 
 	// 共存版发送logcat log
 	private void method2() {

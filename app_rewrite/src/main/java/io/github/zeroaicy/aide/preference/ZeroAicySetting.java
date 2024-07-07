@@ -7,6 +7,8 @@ import android.preference.PreferenceManager;
 import com.aide.ui.rewrite.R;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import android.content.pm.PackageManager;
+import java.io.File;
 
 public class ZeroAicySetting {
 
@@ -22,6 +24,7 @@ public class ZeroAicySetting {
 	}
 	
 	private static boolean isWatch;
+	
 	public static void init(Context context) {
 		if (ZeroAicySetting.defaultSp != null) return;
 		
@@ -31,7 +34,33 @@ public class ZeroAicySetting {
 		//主题跟随系统实现
 		initFollowSystem(context);
 		isWatch = context.getResources().getBoolean(R.bool.watch);
+		
+		updateApkInstallTimes(context);
 	}
+	
+	private static boolean isReinstall;
+	public static boolean isReinstall() {
+		return isReinstall;
+	}
+	
+	private static void updateApkInstallTimes(Context context) {
+		long lastInstallTime = ZeroAicySetting.defaultSp.getLong("apkInstallationTime", 0);
+		long apkInstallationTime = getApkInstallationTime(context);
+		if (lastInstallTime !=  apkInstallationTime) {
+			isReinstall = true;
+			ZeroAicySetting.defaultSp.edit().putLong("apkInstallationTime", apkInstallationTime).apply();
+		}
+	}
+
+	private static long getApkInstallationTime(Context context) {
+        try {
+			String sourceDir = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.sourceDir;
+			return new File(sourceDir).lastModified();
+		}
+		catch (PackageManager.NameNotFoundException unused) {
+			return -1L;
+		}
+    }
 	public static boolean isWatch(){
 		return isWatch;
 	}

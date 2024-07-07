@@ -136,6 +136,7 @@ public class ZeroAicyMavenService {
 			//从缓存仓库计算MavenDependency依赖路径[pom|jar|aar]
 			// 从依赖管理器中获取ArtifactNode
 			curArtifactNode = makeUpdateDep(curArtifactNode);
+			// 解算路径
 			String curArtifactNodePath = resolveMavenDepPath(flatRepoPathMap, curArtifactNode);
 
 			if (curArtifactNodePath == null) {
@@ -152,8 +153,9 @@ public class ZeroAicyMavenService {
 			for (ArtifactNode subArtifactNode : depPomXml.depManages) {
 				// dependencyManagement只做版本控制
 				makeUpdateDep(subArtifactNode);
+				
 			}
-
+			curArtifactNode = makeUpdateDep(curArtifactNode);
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
 			for (ArtifactNode subArtifactNode : depPomXml.deps) {
 				// 过滤排除依赖
@@ -266,6 +268,7 @@ public class ZeroAicyMavenService {
 			{
 				// 获取此依赖的缓存版本
 				String version = getVersion(depPath);
+				
 				// 检查是否更新依赖版本
 				makeUpdateDep(new ArtifactNode(dep, version));
 
@@ -408,6 +411,13 @@ public class ZeroAicyMavenService {
 		if (searchVersion == null) {
             return null;
         }
+		// 版本没有通配符且本地版本与解算的版本不一样
+		if( !version.endsWith("+")
+		   && !version.equals(searchVersion)){
+			   // 强制使非使用通配符的版本与实际版本统一
+			   // 否则将会导致需要的版本与实际版本不符
+			return null;
+		}
 		// 使用本地已有版本或者清单
 		// 按道理不应该这样，这会导致...
         version = searchVersion;
@@ -520,6 +530,9 @@ public class ZeroAicyMavenService {
 				// 没有版本，最差的情况是依赖管理里存的也是
 				return;
 			}
+			if( artifactNode.version.equals(cache.version)){
+				this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
+			}
 			//控制版本里的更新
 			// 依赖管理里存的没有版本信息或者版本低
 			if (cache.version == null 
@@ -575,6 +588,7 @@ public class ZeroAicyMavenService {
 				// dependencyManagement只做版本控制
 				makeUpdateDep(artifactNode);
 			}
+			
 			ArtifactNode curArtifactNode = makeUpdateDep(new ArtifactNode(curPomXml));
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
 

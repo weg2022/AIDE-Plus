@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.codehaus.plexus.util.IOUtil;
+import io.github.zeroaicy.util.IOUtils;
 
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
@@ -688,9 +690,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			logDebug("开始添加AIDE输出的类");
 			for ( String inputClassPath : mainClassFilePaths ){
 
-				DataInputStream dataInputStream = new DataInputStream(new FileInputStream(inputClassPath));
-				byte[] readAllBytes = dataInputStream.readAllBytes();
-				dataInputStream.close();
+				FileInputStream fileInputStream = new FileInputStream(inputClassPath);
+				byte[] readAllBytes = IOUtils.readAllBytes(fileInputStream);
+				fileInputStream.close();
+				
 				builder.addClassProgramData(readAllBytes, Origin.root());
 			}
 			
