@@ -26,7 +26,7 @@ public class be {
     public be() {
 
     }
-	
+
 	@Keep
     public static void DW(final String dirPath, final ValueRunnable<String> valueRunnable) {
 		if (Zo(dirPath)) {
@@ -57,13 +57,13 @@ public class be {
 						String content;
 						String parent = FileSystem.getParent(xmlPath);
 						String parentName = FileSystem.getName(parent);
-						
+
 						if (parentName.startsWith("layout")) {
 							content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    android:layout_width=\"fill_parent\"\n    android:layout_height=\"fill_parent\"\n    android:orientation=\"vertical\">\n    \n</LinearLayout>\n";
 						} else {
-							if( parentName.startsWith("menu")){
+							if (parentName.startsWith("menu")) {
 								content = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\">\n    \n    <item\n        android:id=\"@+id/item\"\n        android:title=\"Item\"/>\n    \n</menu>\n";
-							}else{
+							} else {
 								content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 							}
 						}
@@ -81,39 +81,63 @@ public class be {
     public static int FH(String str) {
 		return R.drawable.file_new;
     }
-	
+
 	/**
 	 * 返回 command_files_add具体名称
 	 */
 	@Keep
-	public static int Hw(String dirPath) {
+	public static int Hw2(String dirPath) {
 		// Java源码目录
+		// class
 		if (dirPath.contains("/java")) {
 			return R.string.command_files_add_new_class;				
 		}
-		if (dirPath.contains("/res") ) {
+		// xml
+		if (v5(dirPath)) {
 			// 是layout目录
 			return R.string.command_files_add_new_xml;
 		}
-		/*
-		if (Zo(dirPath)) {
-			return R.string.command_files_add_new_class;
-		}
-		// 是否是res资源
-		if (v5(dirPath)) {
-			return R.string.command_files_add_new_xml;
-		}*/
-		
 		return 0;
     }
-	
-	// old method
-    public static int Hw2(String dirPath) {
+
+	// old method 
+    public static int Hw(String dirPath) {
 		if (Zo(dirPath)) {
 			return R.string.command_files_add_new_class;
 		}
-		return v5(dirPath) ? R.string.command_files_add_new_xml : 0;
+		if (v5(dirPath)) {
+			return R.string.command_files_add_new_xml;
+		}
+		return 0;
     }
+
+	/**
+	 * 是否显示 command_files_add按钮
+	 */
+	@Keep
+    public static boolean j6(String dirPath) {
+		return Zo(dirPath) || v5(dirPath);
+	}
+
+	private static boolean Zo(String dirPath) {
+		// return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
+		
+		return isJavaSourceDir(dirPath) || AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
+    }
+	/**
+	 * 是否是xml路径[layout，menu]等
+	 */
+	private static boolean v5(String dirPath) {
+		return isXmlSourceDir(dirPath) || ((FileSystem.Ws(dirPath, "res") != null && FileSystem.nw(ServiceContainer.getProjectService().getCurrentAppHome(), dirPath)));
+    }
+
+
+	private static boolean isJavaSourceDir(String dirPath) {
+		return !TextUtils.isEmpty(dirPath) && dirPath.lastIndexOf("java/") > 0;
+	}
+	private static boolean isXmlSourceDir(String dirPath) {
+		return !TextUtils.isEmpty(dirPath) && dirPath.lastIndexOf("res/") > 0;
+	}
 
 	/**
 	 * 是否是源码路径
@@ -121,66 +145,4 @@ public class be {
     private static boolean ZoOld(String dirPath) {
 		return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
     }
-	
-	/**
-	 * 是否显示 command_files_add按钮
-	 */
-	@Keep
-    public static boolean j6(String dirPath) {
-
-		if (!ZeroAicy(dirPath)){
-			return false;
-		}
-		if (Zo(dirPath) 
-			|| v5(dirPath)) {
-			return true;
-		}		
-		return false;
-	}
-	
-	private static boolean Zo(String dirPath) {
-		if( TextUtils.isEmpty(dirPath)
-		   || !dirPath.contains("/java")){
-			return false;
-		}
-		/*if( !dirPath.startsWith( ServiceContainer.getProjectService().getCurrentAppHome())){
-			return false;			
-		}*/
-		return true;
-    }
-	
-	/**
-	 * 是否是xml路径[layout，menu]等
-	 */
-	private static boolean v5(String dirPath) {
-		if( TextUtils.isEmpty(dirPath)
-		   || !dirPath.contains("/res")){
-			return false;
-		}
-		
-		if (FileSystem.Ws(dirPath, "res") != null) {
-			if (FileSystem.nw(ServiceContainer.getProjectService().getCurrentAppHome(), dirPath)) {
-				return true;
-			}
-		}
-		return false;
-    }
-
-
-	/**
-	 * 异步导致的向getProjectService 获取项目信息时[数据正在异步]
-	 * 并用AndroidProjectSupport判断是否启用时出现数据不同步
-	 * 符合返回true
-	 */
-	private static boolean ZeroAicy(String dirPath) {
-		// 是Java目录
-		if (dirPath.contains("/java")) {
-			return true;
-		}
-		// 是layout目录
-		if (dirPath.contains("/res") ) {
-			return true;
-		}
-		return false;
-	}	
 }

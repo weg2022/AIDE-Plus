@@ -36,22 +36,22 @@
         android:icon="?icon_expand"
         android:id="@id/editorMenuExpandSelection"
         android:title="@string/command_select"
-        android:showAsAction="ifRoom|withText" />
+        android:showAsAction="always" />
     <item
         android:icon="?icon_cut"
         android:id="@id/editorMenuCut"
         android:title="@string/command_cut"
-        android:showAsAction="ifRoom" />
+        android:showAsAction="always" />
     <item
         android:icon="?icon_copy"
         android:id="@id/editorMenuCopy"
         android:title="@string/command_copy"
-        android:showAsAction="ifRoom" />
+        android:showAsAction="always" />
     <item
         android:icon="?icon_paste"
         android:id="@id/editorMenuPaste"
         android:title="@string/command_paste"
-        android:showAsAction="ifRoom" />
+        android:showAsAction="always" />
     <item
         android:icon="?icon_goto"
         android:id="@id/editorMenuGotoDefinition"
