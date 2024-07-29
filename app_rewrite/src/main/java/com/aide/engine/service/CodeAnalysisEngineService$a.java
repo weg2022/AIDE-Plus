@@ -3,21 +3,11 @@
 //
 package com.aide.engine.service;
 
-import abcd.cy;
-import abcd.dy;
-import abcd.ey;
-import abcd.fy;
-import abcd.gy;
-import abcd.hy;
-import abcd.iy;
-import abcd.th;
 import android.content.res.AssetManager;
-import com.aide.engine.service.CodeAnalysisEngineService$a;
+import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
 import io.github.zeroaicy.aide.ClassReader;
 import io.github.zeroaicy.util.Log;
-import java.io.IOException;
 import java.io.InputStream;
-import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
 
 public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
     final CodeAnalysisEngineService codeAnalysisEngineService;
@@ -40,7 +30,7 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 			}
 			return open;
 		}
-		catch (IOException e){
+		catch (Exception e){
 			Log.println(e);
 			throw new Error(e);
 		}

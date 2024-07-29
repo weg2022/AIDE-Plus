@@ -6,11 +6,32 @@
         android:id="@id/editorMenuChooseColor"
         android:title="@string/command_color"
         android:showAsAction="ifRoom|withText" />
+    
     <item
+        android:icon="?icon_expand"
+        android:id="@id/editorMenuExpandSelection"
+        android:title="@string/command_select"
+        android:showAsAction="always" />
+    <item
+        android:icon="?icon_cut"
+        android:id="@id/editorMenuCut"
+        android:title="@string/command_cut"
+        android:showAsAction="always" />
+    <item
+        android:icon="?icon_copy"
+        android:id="@id/editorMenuCopy"
+        android:title="@string/command_copy"
+        android:showAsAction="always" />
+    <item
+        android:icon="?icon_paste"
+        android:id="@id/editorMenuPaste"
+        android:title="@string/command_paste"
+        android:showAsAction="always" />
+	<item
         android:icon="?icon_fix"
         android:id="@id/editorMenuFix"
         android:title="@string/command_fix"
-        android:showAsAction="ifRoom|withText">
+        android:showAsAction="always">
         <menu>
             <item
                 android:id="@id/editorMenuFix0"
@@ -32,26 +53,6 @@
                 android:title="@string/command_fix" />
         </menu>
     </item>
-    <item
-        android:icon="?icon_expand"
-        android:id="@id/editorMenuExpandSelection"
-        android:title="@string/command_select"
-        android:showAsAction="always" />
-    <item
-        android:icon="?icon_cut"
-        android:id="@id/editorMenuCut"
-        android:title="@string/command_cut"
-        android:showAsAction="always" />
-    <item
-        android:icon="?icon_copy"
-        android:id="@id/editorMenuCopy"
-        android:title="@string/command_copy"
-        android:showAsAction="always" />
-    <item
-        android:icon="?icon_paste"
-        android:id="@id/editorMenuPaste"
-        android:title="@string/command_paste"
-        android:showAsAction="always" />
     <item
         android:icon="?icon_goto"
         android:id="@id/editorMenuGotoDefinition"

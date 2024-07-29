@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import com.aide.ui.build.android.AndroidProjectBuildServiceKt;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -406,8 +407,8 @@ public class Aapt2TaskFromZeroAicy {
 		if (linkError != null) {
 			return linkError;
 		}
-		//优化
-
+		// link没出错，启用构建服务
+		AndroidProjectBuildServiceKt.setDisablePackaging(false);
 		return null;
 	}
 	
@@ -713,12 +714,20 @@ public class Aapt2TaskFromZeroAicy {
 
 		//执行aapt2 compile命令
 		//log.println(to(args));
-		abcd.wf j62 = abcd.xf.j6(args, null, null, true, null, null);
-		if (j62.DW() != 0) {
-			String compileError = aaptServiceArgs.getAapt2Error(j62);
-			if (compileError != null) {
-				return new AaptService$b(compileError);
-			}
+		try{
+			abcd.wf j62 = abcd.xf.j6(args, null, null, true, null, null);
+
+			if (j62.DW() != 0) {
+				String compileError = aaptServiceArgs.getAapt2Error(j62);
+				if (compileError != null) {
+					return new AaptService$b(compileError);
+				}
+			}			
+		}catch(Throwable e){
+			String stackTraceString = Log.getStackTraceString(e);
+			String errorInfo = "命令: " + aaptServiceArgs.getAapt2Path();
+			aaptServiceArgs.log.println(errorInfo);
+			return new AaptService$b(errorInfo + "\n" + stackTraceString);
 		}
 
 		return null;

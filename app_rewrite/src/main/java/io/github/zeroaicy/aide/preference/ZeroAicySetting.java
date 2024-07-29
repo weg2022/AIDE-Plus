@@ -1,14 +1,15 @@
 package io.github.zeroaicy.aide.preference;
+
 import android.annotation.Nullable;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import com.aide.ui.rewrite.R;
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import android.content.pm.PackageManager;
-import java.io.File;
 
 public class ZeroAicySetting {
 
@@ -148,13 +149,14 @@ public class ZeroAicySetting {
 	public static boolean isEnableAndroidApi() {
 		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_remove_javaproject_api_limitations", true);
 	}
-
+	/*重定义Apk构建路径*/
+	public static boolean isEnableAdjustApkBuildPath() {
+		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_adjust_apk_build_path", true);
+	}
+	
 	/**
 	 * 实验室
 	 */
-	public static boolean isEnableMinify(){
-		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_minify", false);
-	}
 	
 	public static boolean isEnableAapt2() {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", true);

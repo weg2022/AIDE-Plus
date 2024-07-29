@@ -64,6 +64,11 @@
 
 
 		<!-- 新增 -->
+		<!-- 自定义主题颜色 -->
+		<activity
+			android:name="io.github.zeroaicy.aide.highlight.HighlightActivity">
+		</activity>
+		
 		<!-- Show Crash Log -->
 		<activity
 			android:process=":crash"

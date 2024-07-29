@@ -120,9 +120,7 @@ public class be {
 	}
 
 	private static boolean Zo(String dirPath) {
-		// return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
-		
-		return isJavaSourceDir(dirPath) || AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
+		return isJavaSourceDir(dirPath); // || AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getBuildVariant(), dirPath) != null;
     }
 	/**
 	 * 是否是xml路径[layout，menu]等
@@ -133,7 +131,14 @@ public class be {
 
 
 	private static boolean isJavaSourceDir(String dirPath) {
-		return !TextUtils.isEmpty(dirPath) && dirPath.lastIndexOf("java/") > 0;
+		if( TextUtils.isEmpty(dirPath) ){
+			return false;
+		}
+		if( dirPath.contains("java/")
+			|| dirPath.contains("aidl/")){
+			return true;
+		}
+		return false;
 	}
 	private static boolean isXmlSourceDir(String dirPath) {
 		return !TextUtils.isEmpty(dirPath) && dirPath.lastIndexOf("res/") > 0;

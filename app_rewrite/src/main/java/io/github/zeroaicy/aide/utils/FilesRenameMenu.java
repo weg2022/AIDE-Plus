@@ -1,16 +1,14 @@
 package io.github.zeroaicy.aide.utils;
 
-import abcd.*;
-
+import abcd.zb;
+import android.text.TextUtils;
 import com.aide.common.KeyStroke;
 import com.aide.common.MessageBox;
-import com.aide.ui.util.FileSystem;
-import com.aide.ui.rewrite.R;
 import com.aide.common.ValueRunnable;
-import java.io.File;
 import com.aide.ui.ServiceContainer;
-import android.text.TextUtils;
 import com.aide.ui.rewrite.R;
+import com.aide.ui.util.FileSystem;
+import java.io.File;
 
 public class FilesRenameMenu extends zb {
 

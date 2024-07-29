@@ -39,6 +39,18 @@ import com.aide.codemodel.language.java.JavaLanguage;
 import com.aide.codemodel.api.EntitySpace;
 import com.aide.codemodel.api.Member;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
+import com.aide.ui.util.FileSystem;
+import com.aide.ui.project.internal.GradleTools;
+import com.aide.codemodel.api.ErrorTable;
+import abcd.e4;
+import com.aide.codemodel.api.Entity;
+import com.aide.codemodel.api.Type;
+import java.util.Arrays;
+import io.github.zeroaicy.util.Log;
+import com.aide.codemodel.api.ParameterizedType;
+import com.aide.codemodel.api.ParameterizedTypeProxy;
+import com.aide.codemodel.api.util.SyntaxTreeUtils;
+import com.aide.codemodel.api.ClassType;
 
 /**
  * 1.aapt2
@@ -66,7 +78,146 @@ public class ZeroAicyExtensionInterface {
 		 }
 		 //*/
 	}
-	
+	/**
+	 * 测试 仅在共存版会被调用 SyntaxTree::declareAttrType()
+	 */
+	@Keep
+	public static void declareAttrType(SyntaxTree syntaxTree, int node, Type type) {
+
+		if (type == null) return;
+		// 禁用
+		if (type != null) return;
+		
+		
+		if (! (type instanceof Type)) {
+			return;
+		}
+		if (syntaxTree.hasAttrType(node) && syntaxTree.getAttrType(node) instanceof ParameterizedTypeProxy) {
+			System.out.println("declareAttrType NodeId: " + node + " Type: " + type.getClass().getName());
+			System.out.println("ParameterizedTypeProxy 被覆盖为 -> " + (type == null ? null : type.getClass().getSimpleName()));
+			Log.printlnStack();
+
+		} else {
+			System.out.println("declareAttrType NodeId: " + node + " Type: " + type.getClass().getName());
+		}
+		System.out.println();
+	}
+
+	/**
+	 * 过滤JavaCodeAnalyzer$a::Od(I)的返回值为
+	 * 防止ParameterizedType被踢出泛型
+	 */
+	@Keep
+	public static Type getVarNodeAttrType(SyntaxTree syntaxTree, int varParentNode) {
+		// varParentNode[TYPE_NAME]
+		if (isVarNode(syntaxTree, varParentNode) 
+			&& syntaxTree.hasAttrType(varParentNode)) {
+			return syntaxTree.getAttrType(varParentNode);
+		}
+		return null;
+	}
+
+	public static boolean isVarNode(SyntaxTree syntaxTree, int varParentNode) {
+		// varParentNode[TYPE_NAME]
+		if (syntaxTree.getChildCount(varParentNode) < 1) {
+			return false;
+		}
+		int varNode = syntaxTree.getChildNode(varParentNode, 0);
+		if (!syntaxTree.isIdentifierNode(varNode)) {
+			return false;
+		}
+		// 是var Node
+		String varNodeIdentifierString = syntaxTree.getIdentifierString(varNode);
+		if ("var".equals(varNodeIdentifierString)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 尝试支持 var [Java]
+	 */
+	@Keep
+	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws e4 {
+		SyntaxTree syntaxTree = JavaCodeAnalyzer$a.er(JavaCodeAnalyzer$a);
+		// 不是var
+		String varNodeIdentifierString = syntaxTree.getIdentifierString(varNode);
+		if (!"var".equals(varNodeIdentifierString)) {
+			return null;
+		}
+
+		// varNode必须getParentNode两次才是[JavaCodeAnalyzer$a::d8]中的node
+		// 获得var节点的父节点
+
+		// [IDENTIFIER]
+		// varNode
+		// [TYPE_NAME]
+		int varParentNode = syntaxTree.getParentNode(varNode);
+		// [VARIABLE_DECLARATION]
+		int varRootNode = syntaxTree.getParentNode(varParentNode);
+
+		//System.out.println("varRootNode[解析右侧表达式前]");
+		//SyntaxTreeUtils.printNode(syntaxTree, varRootNode, 0);
+
+		// [JavaCodeAnalyzer$a::d8]先计算 变量的类型
+		// 也即会调用此方法，无论是否解析出来
+		// 都会遍历子节点，解析右侧计算表达式类型
+		int parentNodeCount = syntaxTree.getChildCount(varRootNode);
+		int expressionNode = -1;
+
+		// 计算右侧表达式类型
+		for (int i6 = 3; i6 < parentNodeCount; i6 += 2) {
+			int childNode = syntaxTree.getChildNode(varRootNode, i6);
+
+			if (syntaxTree.getChildCount(childNode) > 2) {
+				// JavaCodeAnalyzer$a::fY()
+				expressionNode = syntaxTree.getChildNode(childNode, 3);
+				JavaCodeAnalyzer.a.Zo(JavaCodeAnalyzer$a, expressionNode, null);
+			}
+		}
+
+		//System.out.println("varRootNode[解析右侧表达式后]");
+		//SyntaxTreeUtils.printNode(syntaxTree, varRootNode, 0);
+
+		// 打印 expressionNode
+		if (expressionNode != -1) {
+			// 没有找到 expressionNode
+			final Type expressionNodeType = syntaxTree.getAttrType(expressionNode);
+			if (expressionNodeType != null && !"null".equals(expressionNodeType.getFullyQualifiedNameString())) {
+				if (!expressionNodeType.isNamespace()) {
+					// 解析后的 attrType带泛型
+					// 但从 JavaCodeAnalyzer$a::Ej或者Od 之后被剔除泛型了
+					// 此处会被覆盖所以 无用
+					// 拦截覆盖了，所以必须declareAttrType
+					// 由getVarAttrType处理被替换的问题
+					syntaxTree.declareAttrType(varParentNode, expressionNodeType);
+				}
+
+				return expressionNodeType;
+			}
+		}
+		
+		// 变量名称节点
+		// [VARIABLE]
+		int varNameNode = syntaxTree.getChildNode(varRootNode, 3);
+		// [VARIABLE]子节点[IDENTIFIER]
+		int errorNode = syntaxTree.getChildNode(varNameNode, 0);
+
+		ErrorTable errorTable = syntaxTree.getModel().errorTable;
+
+		errorTable.Hw(syntaxTree.getFile(), 
+					  syntaxTree.getLanguage(), 
+					  syntaxTree.getStartLine(errorNode), 
+					  syntaxTree.getStartColumn(errorNode), 
+					  syntaxTree.getEndLine(errorNode), 
+					  syntaxTree.getEndColumn(errorNode), 
+					  "Variable </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C> might not have been initialized", 12);
+		// UnknownEntityException
+		throw new abcd.e4();
+	}
+
+
+
 	/**
 	 * 修正接口方法是否自动附加abstract
 	 * 除default | static 方法除外
@@ -88,7 +239,7 @@ public class ZeroAicyExtensionInterface {
 		}
 		return flags |= 0x1;
 	}
-	
+
 	/**
 	 * is abstract method 是不是接口不重要
 	 * 代替 y1.j6 [Modifiers::isAbstract(int)boolean]
@@ -103,7 +254,7 @@ public class ZeroAicyExtensionInterface {
 		// 此方法没有 abstract
 		return method != null && method.isAbstract();
 	}
-	
+
 	/**
 	 * 非abstract方法[接口]
 	 */
@@ -190,12 +341,24 @@ public class ZeroAicyExtensionInterface {
 				break;
 		}
 		// 如果需要，可以在这里将 newValue 赋值给 syntaxTag 或者其他变量  
-		 syntaxTag = newValue;
+		syntaxTag = newValue;
 
         return syntaxTag;
     }
 	//扩展接口
-
+	/**
+	 * 重定义Apk构建路径
+	 *
+	 */
+	public static String getApkBuildPath(String projectPath) {
+		if (ZeroAicySetting.isEnableAdjustApkBuildPath()) {
+			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
+			if (currentAppHome != null) {
+				return GradleTools.Hw(currentAppHome) + "/" + FileSystem.getName(projectPath) + ".apk";
+			}
+		}
+		return FileSystem.aM() + "/apk/" + FileSystem.getName(projectPath) + ".apk";
+	}
 	/**
 	 * 返回入口Activity类
 	 * 主要是替换点击通知后的启动

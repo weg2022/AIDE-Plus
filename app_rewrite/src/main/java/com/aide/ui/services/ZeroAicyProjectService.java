@@ -24,6 +24,8 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Iterator;
+import com.aide.ui.util.BuildGradle;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -666,4 +668,30 @@ public class ZeroAicyProjectService extends ProjectService {
 				}
 			});
 	}
+	/*****************************************************************/
+	
+	// 好像是 判断当前目录是否在项目目录中
+	@Override
+	public boolean Sf(String filePath) {
+		if( this.pojectSupport instanceof AndroidProjectSupport){
+			return aM(filePath);
+		}
+		return super.Sf(filePath);
+	}
+	public boolean aM(String filePath) {
+		
+		if( filePath.startsWith(getCurrentAppHome())){
+			return true;
+		}
+		
+		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().getLibraryMapping();
+		for(String key : libraryMapping.keySet()){
+			if( filePath.startsWith(key)){
+				return true;
+			}
+		}
+		return false;
+    }
+	/*****************************************************************/
+	
 }

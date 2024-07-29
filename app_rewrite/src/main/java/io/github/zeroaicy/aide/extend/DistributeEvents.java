@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import com.aide.ui.ServiceContainer;
 
 public class DistributeEvents {
 	
@@ -83,8 +82,8 @@ public class DistributeEvents {
 				context.startActivity(intent);
 				
 				Log.d("HandleEventInstalApp", intent.toString());
-				iy.BT(context, intent);
-				FireBaseLogEvent.tp("Run app without root");
+				//iy.BT(context, intent);
+				//FireBaseLogEvent.tp("Run app without root");
 				return true;
             }
         } catch (Throwable th) {

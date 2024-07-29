@@ -32,13 +32,17 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		public static final int CompileOnly = 0x1;
 		public static final int RuntimeOnly = 0x2;
 		public static final int LibgdxNatives = 0x3;
-
+		
 		public final int type;
 		public final Dependency dependency;
 		public DependencyExt(int type, Dependency dependency) {
 			super(dependency.line);
 			this.type = type;
 			this.dependency = dependency;
+			
+			
+			//final var LibgdxNatives2 = 0x3;
+		
 		}
 		public boolean isCompileOnly() {
 			return this.type == CompileOnly;
@@ -74,8 +78,6 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 	}
 	public class ZeroAicyProductFlavor extends ProductFlavor {
 		public final List<BuildGradle.Dependency> productFlavorDependencies = new ArrayList<>();
-
-
 	}
 
 	private static ZeroAicyBuildGradle singleton;
@@ -540,6 +542,11 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 							if (coordsArray.length > 1) {
 								mavenDependency.artifactId = coordsArray[1];
 							}
+							// 正确处理没有version的依赖
+							if (coordsArray.length == 2) {
+								return;
+							}
+							
 							if (coordsArray.length > 2) {
 								// groupId:artifactId:version@extension
 								// {group}:{name}:{version}[{:classifier}@{extension}]

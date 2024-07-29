@@ -21,10 +21,11 @@ import java.io.PrintStream;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import io.github.zeroaicy.aide.highlight.CodeTheme;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
-	private static final String TAG = "ZeroAicyAIDEApplication";
+	private static final String TAG = "ZeroAicyAIDEApplication ";
 
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();
@@ -43,6 +44,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		String crashProcessName = getPackageName() + ":crash";
 		String curProcessName = ContextUtil.getProcessName();
+		
 		if (crashProcessName.equals(curProcessName) 
 			|| curProcessName.contains("crash")) {
 			Log.d(TAG, "crash进程: ", curProcessName);
@@ -56,6 +58,8 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
+		// 自定义CodeTheme初始化
+		CodeTheme.init(this);
 		//初始化Shizuku库
 		ShizukuUtil.initialized(this);
 

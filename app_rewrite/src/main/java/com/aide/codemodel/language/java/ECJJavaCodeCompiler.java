@@ -28,6 +28,9 @@ import static javax.tools.StandardLocation.CLASS_OUTPUT;
 import static javax.tools.StandardLocation.CLASS_PATH;
 import static javax.tools.StandardLocation.PLATFORM_CLASS_PATH;
 
+/**
+ * javax tools
+ */
 public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.Compiler {
 
 	private Language language;

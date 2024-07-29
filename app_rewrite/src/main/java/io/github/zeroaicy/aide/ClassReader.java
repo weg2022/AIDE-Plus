@@ -2,22 +2,20 @@ package io.github.zeroaicy.aide;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import dalvik.system.DexClassLoader;
 import io.github.zeroaicy.readclass.classInfo.ClassInfoTest3;
+import io.github.zeroaicy.readclass.classInfo.DefaultMethodAllowedList;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Method;
-import io.github.zeroaicy.readclass.classInfo.DefaultMethodAllowedList;
 
 public class ClassReader {
-	private static final String TAG23 = "ZeroAicyClassReader";
+	private static final String TAG2 = "ZeroAicyClassReader";
 
 	private static final String TAG = "ZeroAicyClassReader";
 

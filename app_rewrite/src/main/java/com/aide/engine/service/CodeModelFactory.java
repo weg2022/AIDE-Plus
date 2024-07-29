@@ -26,6 +26,7 @@ public class CodeModelFactory {
     public CodeModelFactory() {}
 
     public static CodeModel[] create(Model model, List<String> codeModelNames) {
+		
         CodeModel[] codeModelArr = new CodeModel[]{
 			new JavaCodeModel(model), 
 			new JavaBinaryCodeModel(model), 
@@ -36,22 +37,29 @@ public class CodeModelFactory {
 			new DtdCodeModel(model), 
 			new CppCodeModel(model), 
 			new AidlCodeModel(model)};
-		ArrayList<CodeModel> codeModels = new ArrayList<>();
 		
+		ArrayList<CodeModel> codeModels = new ArrayList<>();
+
 		for (int i = 0; i < 9; i++) {
 			CodeModel codeModel = codeModelArr[i];
 			if (codeModelNames.contains(codeModel.getName())) {
 				codeModels.add(codeModel);
 			}
 		}
+		
+		// 扩展 添加自定义CodeModel
 		ZeroAicyExtensionInterface.createCodeModels(model, codeModelNames, codeModels);
+		
 		return codeModels.toArray(new CodeModel[codeModels.size()]);
     }
 
     private static CodeModel[] create(List<String> list) {
 		return create(null, list);
 	}
-
+	
+	/**
+	 * 根据
+	 */
     public static CodeModel findCodeModel(String str, List<String> list) {
 		String name = FileSystem.getName(str);
 		for (CodeModel codeModel : create(list)) {

@@ -96,7 +96,6 @@ public class ContextUtil{
 	
 	public static final boolean isMainProcess = ContextUtil.getPackageName().equals(ContextUtil.getProcessName());
 	public static boolean isMainProcess(){
-		
 		return isMainProcess;
 	}
 	

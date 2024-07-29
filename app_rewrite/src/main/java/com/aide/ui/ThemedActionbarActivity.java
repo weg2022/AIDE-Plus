@@ -33,7 +33,6 @@ public class ThemedActionbarActivity extends Activity {
 		
 		super.onCreate(bundle);
 		
-		
 		if (ZeroAicySetting.isLightTheme()) {
 			setTheme(R.style.ActivityActionbarThemeLight);
 		}
@@ -55,7 +54,9 @@ public class ThemedActionbarActivity extends Activity {
 	}
 
 	private void enableFollowSystem(boolean recreate) {
+		
 		if (ZeroAicySetting.enableFollowSystem()) {
+			
 			if (ZeroAicySetting.isNightMode(this)) {
 				if (ZeroAicySetting.isLightTheme()) {
 					//修改主题为暗主题

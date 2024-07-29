@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,12 +60,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import android.text.TextUtils;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
 
-	private static final String TAG = "ZeroAicyMainActivity";
+	private static final String TAG_15255570984065567 = "ZeroAicyMainActivity";
 
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
@@ -76,12 +76,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (enableActionDrawerLayout()) {
 			setUpDrawerLayout();
 		}
-		if (ZeroAicySetting.isWatch()) {
-			return;
-		}
 		
-		// 检查并申请管理外部储存权限
-		showRequestManageExternalStorage();
+		if (!ZeroAicySetting.isWatch()) {
+			// 检查并申请管理外部储存权限
+			showRequestManageExternalStorage();
+		}
 	}
 
 	/**
@@ -192,8 +191,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 									  R.drawable.ic_drawer,
 									  R.string.app_name,
 									  R.string.app_name);
-
-        this.mDrawerLayout.addDrawerListener(mDrawerToggle);
+		this.mDrawerLayout.addDrawerListener(mDrawerToggle);
         this.mDrawerToggle.syncState();
 
 		this.mDrawerLayout.setOnTouchListener(new View.OnTouchListener(){

@@ -75,7 +75,8 @@ public class iy {
     public static void QX(long j, Object obj, Object[] objArr) {
         
     }
-
+	
+	// if(th instanceof Error) throw (Error)th; else throw new Error(th);
     public static void U2(Throwable th, long j, Object obj, Object obj2, Object obj3, Object obj4) {
         
     }
@@ -93,6 +94,7 @@ public class iy {
             b00.VH("Runtime Error", th);
         }
     }
+	
     public static void VH(Object obj, long j, String str, String str2, boolean z, boolean z2, String str3, String str4, String str5) {
         Application application;
         try {
@@ -145,6 +147,8 @@ public class iy {
 	/**
 	 * AIDE被注入的探针 catch(){}的错误
 	 */
+	// if(th instanceof Error) throw (Error)th; else throw new Error(th);
+	
     public static void aM(Throwable th, long j, Object obj) {
         try {
 			if( ContextUtil.isMainProcess()){

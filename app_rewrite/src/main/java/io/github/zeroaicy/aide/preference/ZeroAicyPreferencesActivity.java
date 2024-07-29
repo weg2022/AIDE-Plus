@@ -20,32 +20,28 @@ import java.util.List;
 
 public class ZeroAicyPreferencesActivity extends PreferencesActivity implements ActionBar.TabListener {
 
-    private final String TAG = "ZeroAicyPreferencesActivity";
-	
+    private final String TAG9999_5 = "ZeroAicyPreferencesActivity";
+
 	private final String TAG_TAB_SETTING = "tag_tab_settings";
 
     private final String TAG_TAB_ADVANCED_SETTING = "tag_tab_advance_settings";
-
+	
+	
     private final String TAG_FRAGMENT_ADVANCED_SETTING = "tag_fragment_advance_settings";
-    
+
 	private FragmentManager fm;
 
     private ZeroAicySettingsFragment mZeroAicySettingsFragment;
 
     private ListView lv = null;
 
+	
 
     private boolean from_main;
 
 	private Fragment lastVisibleFragment;
-	
-    @Override
-    public void onHeaderClick(PreferenceActivity.Header header, int position) {
-        super.onHeaderClick(header, position);
-    }
 
     private Menu mOptionMenu;
-
     public Menu getOptionMenu() {
         return mOptionMenu;
     }
@@ -57,48 +53,53 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
         lv = getListView();
 
         from_main = getIntent().getBooleanExtra("from_main", false);
-        if (from_main) {
+		if (!from_main) {
+			return;
+		}
+		ActionBar actionBar = getActionBar();
+		if (actionBar == null) {
+			return;
+		}
+		actionBar.setTitle(com.aide.ui.rewrite.R.string.app_name);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 
-            getActionBar().setTitle(com.aide.ui.rewrite.R.string.app_name);
-            getActionBar().setDisplayHomeAsUpEnabled(true);
+		fm = getFragmentManager();
 
-            fm = getFragmentManager();
+		if (fm.findFragmentByTag(TAG_FRAGMENT_ADVANCED_SETTING) == null) {
 
-            if (fm.findFragmentByTag(TAG_FRAGMENT_ADVANCED_SETTING) == null) {
+			mZeroAicySettingsFragment = new ZeroAicySettingsFragment();
 
-                mZeroAicySettingsFragment = new ZeroAicySettingsFragment();
+			FragmentTransaction bt = fm.beginTransaction();
+			bt.add(android.R.id.content, mZeroAicySettingsFragment, TAG_FRAGMENT_ADVANCED_SETTING);
+			bt.hide(mZeroAicySettingsFragment);
+			bt.commit();
+			
+		} else {
+			mZeroAicySettingsFragment =
+				(ZeroAicySettingsFragment) fm.findFragmentByTag(TAG_FRAGMENT_ADVANCED_SETTING);
+		}
 
-				FragmentTransaction bt = fm.beginTransaction();
-                bt.add(android.R.id.content, mZeroAicySettingsFragment, TAG_FRAGMENT_ADVANCED_SETTING);
-                bt.hide(mZeroAicySettingsFragment);
-                bt.commit();
-            }
-			else {
-                mZeroAicySettingsFragment =
-                    (ZeroAicySettingsFragment) fm.findFragmentByTag(TAG_FRAGMENT_ADVANCED_SETTING);
-            }
+		ActionBar actionbar = actionBar;
 
-            ActionBar actionbar = getActionBar();
+		actionbar.setNavigationMode(actionbar.NAVIGATION_MODE_TABS);
 
-            actionbar.setNavigationMode(actionbar.NAVIGATION_MODE_TABS);
+		actionbar.addTab(
+			actionbar
+			.newTab()
+			.setTag(TAG_TAB_SETTING)
+			.setText(R.string.command_settings)
+			.setTabListener(this));
 
-            actionbar.addTab(
-				actionbar
-                .newTab()
-                .setTag(TAG_TAB_SETTING)
-                .setText(R.string.command_settings)
-                .setTabListener(this));
+		actionbar.addTab(
+			actionbar
+			.newTab()
+			.setTag(TAG_TAB_ADVANCED_SETTING)
+			.setText(R.string.zeroaicy_settings)
+			.setTabListener(this));
 
-            actionbar.addTab(
-                actionbar
-                .newTab()
-                .setTag(TAG_TAB_ADVANCED_SETTING)
-                .setText(R.string.zeroaicy_settings)
-                .setTabListener(this));
+		actionbar.getTabAt(0).select();
+	}
 
-            actionbar.getTabAt(0).select();
-        }
-    }
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction p2) {
@@ -115,7 +116,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 				}
 				beginTransaction.commit();
                 break;
-				
+
             case TAG_TAB_ADVANCED_SETTING:
                 lv.setVisibility(View.GONE);
 				lastVisibleFragment = getVisibleFragment();
@@ -127,7 +128,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
                 break;
         }
     }
-	
+
 	public Fragment getVisibleFragment() {
 		FragmentManager fragmentManager = fm;
 		List<Fragment> fragments = fragmentManager.getFragments();
@@ -138,10 +139,10 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 		return null;
 	}
     @Override
-    public void onTabUnselected(ActionBar.Tab p1, FragmentTransaction p2) {}
+    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction p2) {}
 
     @Override
-    public void onTabReselected(ActionBar.Tab p1, FragmentTransaction p2) {}
+    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction p2) {}
 
     @Override
     public void onBackPressed() {
@@ -161,8 +162,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
         super.onConfigurationChanged(newConfig);
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             getActionBar().setTitle(R.string.command_settings);
-        }
-		else {
+        } else {
             getActionBar().setTitle(null);
         }
     }
