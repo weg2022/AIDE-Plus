@@ -30,9 +30,14 @@ dependencies {
 	compileOnly fileTree(dir: 'provider', include: ['.jar'])
 	
 	api "androidx.core:core:1.13.0"
+	api "androidx.preference:preference:+"
+	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0"
+	
 	// r8 必须脱糖否则只能安卓13使用
 	api project(':appAideBase')
 	//api project(':kotlin')
 	// ecj依赖这个
-	implementation("io.github.itsaky:nb-javac-android:17.0.0.3")
+	compileOnly "io.github.itsaky:nb-javac-android:17.0.0.3"
+	
+	api 'net.margaritov.preference.colorpicker.ColorPickerPreference:ColorPickerPreference:1.0.0' 
 }
