@@ -6,6 +6,10 @@ import com.aide.codemodel.api.abstraction.Syntax;
 import java.util.Arrays;
 
 public class SyntaxTreeUtils {
+
+	public static boolean isFields(SyntaxTree syntaxTree, int varRootNode) {
+		return syntaxTree.getSyntaxTag(varRootNode) == 126;
+	}
 	/**
 	 * 打印节点起始行列
 	 */

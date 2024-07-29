@@ -125,9 +125,34 @@ public class ZeroAicyExtensionInterface {
 		// [VARIABLE_DECLARATION]
 		int varRootNode = syntaxTree.getParentNode(varParentNode);
 
+		
+		if( SyntaxTreeUtils.isFields(syntaxTree, varRootNode)){
+			// 变量名称节点
+			// [VARIABLE]
+			int varNameNode = syntaxTree.getChildNode(varRootNode, 3);
+			// [VARIABLE]子节点[IDENTIFIER]
+			int errorNode = syntaxTree.getChildNode(varNameNode, 0);
+
+			ErrorTable errorTable = syntaxTree.getModel().errorTable;
+
+			errorTable.Hw(syntaxTree.getFile(), 
+						  syntaxTree.getLanguage(), 
+						  syntaxTree.getStartLine(errorNode), 
+						  syntaxTree.getStartColumn(errorNode), 
+						  syntaxTree.getEndLine(errorNode), 
+						  syntaxTree.getEndColumn(errorNode), 
+						  "Field </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C> cannot use the var keyword", 12);
+			// UnknownEntityException
+			throw new abcd.e4();
+		}
+		
+		
 		//System.out.println("varRootNode[解析右侧表达式前]");
 		//SyntaxTreeUtils.printNode(syntaxTree, varRootNode, 0);
-
+		
+		System.out.println("varRootNode父节点");
+		SyntaxTreeUtils.printNode(syntaxTree, syntaxTree.getParentNode(varRootNode), 0);
+		
 		// [JavaCodeAnalyzer$a::d8]先计算 变量的类型
 		// 也即会调用此方法，无论是否解析出来
 		// 都会遍历子节点，解析右侧计算表达式类型
@@ -162,7 +187,7 @@ public class ZeroAicyExtensionInterface {
 					// 但从 JavaCodeAnalyzer$a::Ej或者Od 之后被剔除泛型了
 					// 此处会被覆盖所以 无用
 					// 拦截覆盖了，所以必须declareAttrType
-					// 由getVarAttrType处理被替换的问题
+					// 由getVarAttrType拦截 varParentNode[TYPE_NAME]的类型
 					syntaxTree.declareAttrType(varParentNode, expressionNodeType);
 					// 不能是 16 17 20 6～10 22～25
 					// 为var添加高亮 高亮为type
