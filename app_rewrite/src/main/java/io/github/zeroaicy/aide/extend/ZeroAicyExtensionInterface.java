@@ -17,6 +17,7 @@ import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.Type;
 import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.Syntax;
+import com.aide.codemodel.api.util.SyntaxTreeUtils;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
 import com.aide.codemodel.language.java.JavaLanguage;
@@ -36,12 +37,10 @@ import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
-import io.github.zeroaicy.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import com.aide.codemodel.api.ParameterizedType;
 
 /**
  * 1.aapt2
@@ -70,7 +69,7 @@ public class ZeroAicyExtensionInterface {
 		 //*/
 	}
 	/**
-	 * 测试 仅在共存版会被调用 SyntaxTree::declareAttrType()
+	 * 测试 仅在共存版会被SyntaxTree::declareAttrType()调用
 	 */
 	@Keep
 	public static void declareAttrType(SyntaxTree syntaxTree, int node, Type type) {
@@ -79,51 +78,25 @@ public class ZeroAicyExtensionInterface {
 		// 禁用
 		if (type != null) return;
 		
-		
-		if (! (type instanceof Type)) {
-			return;
-		}
-		if (syntaxTree.hasAttrType(node) && syntaxTree.getAttrType(node) instanceof ParameterizedType) {
-			System.out.println("declareAttrType NodeId: " + node + " Type: " + type.getClass().getName());
-			System.out.println("ParameterizedTypeProxy 被覆盖为 -> " + (type == null ? null : type.getClass().getSimpleName()));
-			Log.printlnStack();
-
-		} else {
-			System.out.println("declareAttrType NodeId: " + node + " Type: " + type.getClass().getName());
-		}
-		System.out.println();
 	}
 
 	/**
-	 * 过滤JavaCodeAnalyzer$a::Od(I)的返回值为
+	 * 过滤JavaCodeAnalyzer$a::Od(varNode)的返回值为
 	 * 防止ParameterizedType被踢出泛型
 	 */
 	@Keep
 	public static Type getVarNodeAttrType(SyntaxTree syntaxTree, int varParentNode) {
 		// varParentNode[TYPE_NAME]
-		if (isVarNode(syntaxTree, varParentNode) 
+		
+		if (SyntaxTreeUtils.isVarNode(syntaxTree, varParentNode) 
 			&& syntaxTree.hasAttrType(varParentNode)) {
 			return syntaxTree.getAttrType(varParentNode);
 		}
+		
 		return null;
 	}
 
-	public static boolean isVarNode(SyntaxTree syntaxTree, int varParentNode) {
-		// varParentNode[TYPE_NAME]
-		if (syntaxTree.getChildCount(varParentNode) < 1) {
-			return false;
-		}
-		int varNode = syntaxTree.getChildNode(varParentNode, 0);
-		if (!syntaxTree.isIdentifierNode(varNode)) {
-			return false;
-		}
-		// 是var Node
-		String varNodeIdentifierString = syntaxTree.getIdentifierString(varNode);
-		if ("var".equals(varNodeIdentifierString)) {
-			return true;
-		}
-		return false;
-	}
+	
 
 	/**
 	 * 尝试支持 var [Java]
@@ -132,11 +105,16 @@ public class ZeroAicyExtensionInterface {
 	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws e4 {
 		SyntaxTree syntaxTree = JavaCodeAnalyzer$a.er(JavaCodeAnalyzer$a);
 		// 不是var
+		if( !syntaxTree.isIdentifierNode(varNode)){
+			return null;
+		}
+		
 		String varNodeIdentifierString = syntaxTree.getIdentifierString(varNode);
+		
 		if (!"var".equals(varNodeIdentifierString)) {
 			return null;
 		}
-
+		
 		// varNode必须getParentNode两次才是[JavaCodeAnalyzer$a::d8]中的node
 		// 获得var节点的父节点
 
@@ -170,11 +148,15 @@ public class ZeroAicyExtensionInterface {
 		//System.out.println("varRootNode[解析右侧表达式后]");
 		//SyntaxTreeUtils.printNode(syntaxTree, varRootNode, 0);
 
+		//System.out.println("RootNode");
+		//SyntaxTreeUtils.printNode(syntaxTree, syntaxTree.getRootNode(), 0);
+
 		// 打印 expressionNode
 		if (expressionNode != -1) {
 			// 没有找到 expressionNode
 			final Type expressionNodeType = syntaxTree.getAttrType(expressionNode);
 			if (expressionNodeType != null && !"null".equals(expressionNodeType.getFullyQualifiedNameString())) {
+				
 				if (!expressionNodeType.isNamespace()) {
 					// 解析后的 attrType带泛型
 					// 但从 JavaCodeAnalyzer$a::Ej或者Od 之后被剔除泛型了
@@ -182,6 +164,9 @@ public class ZeroAicyExtensionInterface {
 					// 拦截覆盖了，所以必须declareAttrType
 					// 由getVarAttrType处理被替换的问题
 					syntaxTree.declareAttrType(varParentNode, expressionNodeType);
+					// 不能是 16 17 20 6～10 22～25
+					// 为var添加高亮 高亮为type
+					syntaxTree.declareAttrReferenceKind(varNode, 30, expressionNodeType);
 				}
 
 				return expressionNodeType;
@@ -212,6 +197,7 @@ public class ZeroAicyExtensionInterface {
 	/**
 	 * 修正接口方法是否自动附加abstract
 	 * 除default | static 方法除外
+	 * JavaParser::oY()I
 	 */
 	@Keep
 	public static int getModifiers(SyntaxTree syntaxTree, int nodeIndex, int flags) {
@@ -223,7 +209,7 @@ public class ZeroAicyExtensionInterface {
 		if (JavaLanguage.class.equals(syntaxTree.getLanguage().getClass())) {
 			// 源码暂时不支持 default method
 			// 为后来的 default method做准备
-			if (!isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0))) {
+			if (!SyntaxTreeUtils.isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0))) {
 				// 非 default static 才 |= 0x4000
 				return flags |= 0x4001;
 			}
@@ -246,96 +232,6 @@ public class ZeroAicyExtensionInterface {
 		return method != null && method.isAbstract();
 	}
 
-	/**
-	 * 非abstract方法[接口]
-	 */
-	private static boolean isNoInterfaceAbstractMethod(SyntaxTree syntaxTree, int nodeIndex) {
-
-		for (int i = 0, childCount = syntaxTree.getChildCount(nodeIndex); i < childCount; i++) {
-			int syntaxTag = syntaxTree.getSyntaxTag(syntaxTree.getChildNode(nodeIndex, i));
-			// abstract
-			if (syntaxTag == 95) {
-				return false;
-			}
-			// default || static
-			if (syntaxTag == 90
-				|| syntaxTag == 86) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private int EQ(int syntaxTag) {
-		// 5511177 [ 1 4 12 13 19 21 23 ]
-		int newValue;  
-		switch (syntaxTag) {  
-				// final	
-			case 75: 
-				// 896 = 0x380 = 1 << 7 | 1 << 8 | 1 << 9  
-				newValue = 896; // 0x380, 1 << 7 | 1 << 8 | 1 << 9  
-				break;
-				// static
-			case 86: 
-				// 64 = 0x40 = 1 << 6  
-				newValue = 64; // 0x40, 1 << 6  
-				break;
-				// synchronized
-			case 104: 
-				// 2048 = 0x800 = 1 << 11  
-				newValue = 2048; // 0x800, 1 << 11  
-				break;
-				// @
-			case 115: 
-				// 536870912 = 0x20000000 = 1 << 29  
-				newValue = 0x20000000; // 1 << 29  
-				break;
-				// native
-			case 83: 
-				// 524288 = 0x80000 = 1 << 19  
-				newValue = 524288; // 0x80000, 1 << 19  
-				break;
-				// public
-			case 84: 
-				newValue = 1; // 1 << 0  
-				break;
-				// private
-			case 94: 
-				newValue = 4; // 1 << 2  
-				break;
-				// abstract
-			case 95: 
-				// 16384 = 0x4000 = 1 << 14  
-				newValue = 16384; // 0x4000, 1 << 14  
-				break;
-				// strictfp
-			case 97: 
-				// 8192 = 0x2000 = 1 << 13  
-				newValue = 8192; // 0x2000, 1 << 13  
-				break;
-				// volatile
-			case 98: 
-				// 1024 = 0x400 = 1 << 10  
-				newValue = 1024; // 0x400, 1 << 10  
-				break;
-				// protected
-			case 100: 
-				newValue = 8; // 1 << 3  
-				break;
-				// transient
-			case 101: 
-				// 4096 = 0x1000 = 1 << 12  
-				newValue = 4096; // 0x1000, 1 << 12  
-				break;
-			default: 
-				newValue = 0;  
-				break;
-		}
-		// 如果需要，可以在这里将 newValue 赋值给 syntaxTag 或者其他变量  
-		syntaxTag = newValue;
-
-        return syntaxTag;
-    }
 	//扩展接口
 	/**
 	 * 重定义Apk构建路径
