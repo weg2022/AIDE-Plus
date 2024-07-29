@@ -4,53 +4,44 @@
 package io.github.zeroaicy.aide.extend;
 
 
+import abcd.e4;
+import android.app.Activity;
 import android.text.TextUtils;
 import androidx.annotation.Keep;
+import com.aide.codemodel.api.Entity;
+import com.aide.codemodel.api.EntitySpace;
+import com.aide.codemodel.api.ErrorTable;
+import com.aide.codemodel.api.Member;
 import com.aide.codemodel.api.Model;
+import com.aide.codemodel.api.SyntaxTree;
+import com.aide.codemodel.api.Type;
 import com.aide.codemodel.api.abstraction.CodeModel;
+import com.aide.codemodel.api.abstraction.Syntax;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
+import com.aide.codemodel.language.java.JavaCodeAnalyzer;
+import com.aide.codemodel.language.java.JavaLanguage;
+import com.aide.codemodel.language.kotlin.KotlinCodeModel;
+import com.aide.codemodel.language.smali.SmaliCodeModel;
+import com.aide.engine.SyntaxStyleType;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
+import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ZeroAicyProjectService;
 import com.aide.ui.services.ZeroAicyTrainerService;
 import com.aide.ui.util.BuildGradle;
+import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import io.github.zeroaicy.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import android.app.Activity;
 import java.util.concurrent.ExecutorService;
-import com.aide.codemodel.language.smali.SmaliCodeModel;
-import com.aide.codemodel.language.kotlin.KotlinCodeModel;
-import com.aide.engine.SyntaxStyleType;
-import com.aide.codemodel.api.abstraction.Syntax;
-import com.aide.common.AppLog;
-import com.aide.codemodel.language.java.JavaSyntax;
-import com.aide.codemodel.language.java.JavaCodeModel;
-import com.aide.codemodel.language.java.JavaCodeModelPro;
-import com.aide.codemodel.api.SyntaxTree;
-import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
-import com.aide.codemodel.language.java.JavaLanguage;
-import com.aide.codemodel.api.EntitySpace;
-import com.aide.codemodel.api.Member;
-import com.aide.codemodel.language.java.JavaCodeAnalyzer;
-import com.aide.ui.util.FileSystem;
-import com.aide.ui.project.internal.GradleTools;
-import com.aide.codemodel.api.ErrorTable;
-import abcd.e4;
-import com.aide.codemodel.api.Entity;
-import com.aide.codemodel.api.Type;
-import java.util.Arrays;
-import io.github.zeroaicy.util.Log;
 import com.aide.codemodel.api.ParameterizedType;
-import com.aide.codemodel.api.ParameterizedTypeProxy;
-import com.aide.codemodel.api.util.SyntaxTreeUtils;
-import com.aide.codemodel.api.ClassType;
 
 /**
  * 1.aapt2
@@ -92,7 +83,7 @@ public class ZeroAicyExtensionInterface {
 		if (! (type instanceof Type)) {
 			return;
 		}
-		if (syntaxTree.hasAttrType(node) && syntaxTree.getAttrType(node) instanceof ParameterizedTypeProxy) {
+		if (syntaxTree.hasAttrType(node) && syntaxTree.getAttrType(node) instanceof ParameterizedType) {
 			System.out.println("declareAttrType NodeId: " + node + " Type: " + type.getClass().getName());
 			System.out.println("ParameterizedTypeProxy 被覆盖为 -> " + (type == null ? null : type.getClass().getSimpleName()));
 			Log.printlnStack();
