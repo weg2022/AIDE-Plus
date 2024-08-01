@@ -4,12 +4,55 @@ import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.Type;
 import com.aide.codemodel.api.abstraction.Syntax;
 import java.util.Arrays;
+import com.aide.codemodel.api.ErrorTable;
 
 public class SyntaxTreeUtils {
 
+	public static void addSemanticError(SyntaxTree syntaxTree, int errorNode, String errorMsg) {
+		
+		ErrorTable errorTable = syntaxTree.getModel().errorTable;
+		// addSemanticError
+		errorTable.Mr(syntaxTree.getFile(), 
+					  syntaxTree.getLanguage(), 
+					  syntaxTree.getStartLine(errorNode), 
+					  syntaxTree.getStartColumn(errorNode), 
+					  syntaxTree.getEndLine(errorNode), 
+					  syntaxTree.getEndColumn(errorNode), 
+					  errorMsg, 20);
+		
+	}
+	public static void addError(SyntaxTree syntaxTree, int errorNode, String errorMsg) {
+
+		ErrorTable errorTable = syntaxTree.getModel().errorTable;
+		errorTable.Hw(syntaxTree.getFile(), 
+					  syntaxTree.getLanguage(), 
+					  syntaxTree.getStartLine(errorNode), 
+					  syntaxTree.getStartColumn(errorNode), 
+					  syntaxTree.getEndLine(errorNode), 
+					  syntaxTree.getEndColumn(errorNode), 
+					  errorMsg, 12);
+
+	}
+
+	
 	public static boolean isFields(SyntaxTree syntaxTree, int varRootNode) {
 		return syntaxTree.getSyntaxTag(varRootNode) == 126;
 	}
+	public static boolean isVariableDeclaration(SyntaxTree syntaxTree, int varRootNode) {
+		return syntaxTree.getSyntaxTag(varRootNode) == 151;
+	}
+	public static boolean isForeachStatement(SyntaxTree syntaxTree, int varRootNode) {
+		return syntaxTree.getSyntaxTag(varRootNode) == 211;
+	}
+	
+	public static boolean isColon(SyntaxTree syntaxTree, int varRootNode) {
+		return syntaxTree.getSyntaxTag(varRootNode) == 26;
+	}
+
+	public static boolean isAnonymousClassCreation(SyntaxTree syntaxTree, int varRootNode) {
+		return syntaxTree.getSyntaxTag(varRootNode) == 177;
+	}
+	
 	/**
 	 * 打印节点起始行列
 	 */
@@ -31,11 +74,17 @@ public class SyntaxTreeUtils {
 	/**
 	 * 递归打印 AIDE语法树
 	 */
+	public static void printNode(SyntaxTree syntaxTree, int node) {
+		printNode(syntaxTree, node, 0);
+	}
 	public static void printNode(SyntaxTree syntaxTree, int node, int indent) {
+		if( node == -1 ){
+			return;
+		}
+		
 		Syntax syntax = syntaxTree.getLanguage().getSyntax();
 		// 计算缩进
 		String indentString = getIndent(indent);
-
 		int syntaxTag = syntaxTree.getSyntaxTag(node);
 		// 打印缩进
 		System.out.print(indentString);
@@ -46,10 +95,12 @@ public class SyntaxTreeUtils {
 			Type attrType = syntaxTree.getAttrType(node);
 			System.out.printf(" [attr-type: %s]", attrType);	
 		}
-
-		String nodeIdentifierString = syntaxTree.getIdentifierString(node);
-		if (nodeIdentifierString != null && nodeIdentifierString.length() != 0) {
-			System.out.printf(" [Identifier: %s]", nodeIdentifierString);
+		
+		if( syntax.isIdentifier(syntaxTag)){
+			String nodeIdentifierString = syntaxTree.getIdentifierString(node);
+			if (nodeIdentifierString != null && nodeIdentifierString.length() != 0) {
+				System.out.printf(" [Identifier: %s]", nodeIdentifierString);
+			}			
 		}
 		// syntaxTree.sh(node)[getDeclareAttrReferenceKind] declareAttrReferenceKind
 		try {

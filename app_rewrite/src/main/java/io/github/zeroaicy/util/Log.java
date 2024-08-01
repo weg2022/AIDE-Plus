@@ -204,10 +204,22 @@ public final class Log {
 			Log.println();	
 		} 
 	}
+	public static void println(StackTraceElement[] stackTrace, int off, int endOff) {
+		if (isOut && Log.getLog() != null){
+			for (int i = off ; i < stackTrace.length -endOff - 1; i++) {
+				Log.println(stackTrace[i].toString());
+			}
+			Log.println();	
+		} 
+	}
+	public static void printlnStack(int off, int endOff) {
+		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+		println(stackTrace, off + 2, endOff);
+	}
 	
 	public static void printlnStack() {
 		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-		println(stackTrace);
+		println(stackTrace, 2, 2);
 	}
     /**
      * Send a {@link #VERBOSE} log message.
