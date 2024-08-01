@@ -14,6 +14,8 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 
 	private NotificationChannel notificationChannel;
 	private static int id = 0x1010;
+	private static final String TAG = "ZeroAicyCodeAnalysisEngineService";
+	
 	private NotificationManager notificationManager;
 
 	private Notification notification;
@@ -23,7 +25,7 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 	@Override
 	public void onCreate(){
 		super.onCreate();
-		Log.d("ZeroAicyCodeAnalysisEngineService", "onCreate");
+		Log.d(TAG, "onCreate");
 		//setNotificationAndForeground();
 	}
 	
@@ -34,6 +36,14 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 	}
 
 	@Override
+	public boolean onUnbind(Intent intent) {
+		Log.d(TAG, "onUnbind");
+		
+		return super.onUnbind(intent);
+	}
+	
+	
+	@Override
 	public void onDestroy(){
 		super.onDestroy();
 		if ( notificationManager == null ){
@@ -42,13 +52,14 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 		if ( notification != null ){
 			notificationManager.cancel(id);
 		}
+		/*
 		Toast.makeText(this, "代码分析器已关闭", 1).show();
 		
 		android.os.Process.killProcess(android.os.Process.myPid());
 		System.exit(0);
 		System.exit(-1000);
 		System.exit(-2000);
-		
+		*/
 	}
 
 	private void setNotificationAndForeground(){

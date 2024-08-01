@@ -21,6 +21,7 @@ import net.margaritov.preference.colorpicker.ColorPickerPreference;
 import net.margaritov.preference.colorpicker.ColorPickerView;
 import android.widget.RadioGroup;
 import android.graphics.Typeface;
+import android.view.inputmethod.EditorInfo;
 
 public class ColorKindEditDialog extends AlertDialog implements ColorPickerView.OnColorChangedListener, View.OnClickListener, ViewTreeObserver.OnGlobalLayoutListener, RadioGroup.OnCheckedChangeListener {
 
@@ -87,10 +88,9 @@ public class ColorKindEditDialog extends AlertDialog implements ColorPickerView.
 
 		this.mHexDefaultTextColor = this.mHexVal.getTextColors();
 		this.mHexVal.setOnEditorActionListener(new TextView.OnEditorActionListener(){
-
 				@Override
 				public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-					if (actionId != 6) {
+					if (actionId !=  EditorInfo.IME_ACTION_DONE) {
 						return false;
 					}
 					InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService("input_method");

@@ -83,9 +83,7 @@
         <item name="icon_undo">@drawable/ic_l_undo_light</item>
         <item name="icon_view">@drawable/ic_l_view_light</item>
 		
-		<item name="editor_syntax_operator_light">@color/editor_syntax_operator_light</item>
-		
-        <item name="theme_name">Material</item>
+		<item name="theme_name">Material</item>
     </style>
 	<!-- 原始风格 结束 -->
 
