@@ -8,14 +8,10 @@ import abcd.e4;
 import android.app.Activity;
 import android.text.TextUtils;
 import androidx.annotation.Keep;
-import com.aide.codemodel.api.ArrayType;
 import com.aide.codemodel.api.Entity;
 import com.aide.codemodel.api.EntitySpace;
-import com.aide.codemodel.api.ErrorTable;
 import com.aide.codemodel.api.Member;
 import com.aide.codemodel.api.Model;
-import com.aide.codemodel.api.Namespace;
-import com.aide.codemodel.api.ParameterizedType;
 import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.Type;
 import com.aide.codemodel.api.abstraction.CodeModel;
@@ -23,7 +19,11 @@ import com.aide.codemodel.api.abstraction.Syntax;
 import com.aide.codemodel.api.util.SyntaxTreeUtils;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
+import com.aide.codemodel.language.java.JavaCodeModel;
+import com.aide.codemodel.language.java.JavaCodeModelPro;
 import com.aide.codemodel.language.java.JavaLanguage;
+import com.aide.codemodel.language.java.JavaParser;
+import com.aide.codemodel.language.java.JavaParserPro;
 import com.aide.codemodel.language.kotlin.KotlinCodeModel;
 import com.aide.codemodel.language.smali.SmaliCodeModel;
 import com.aide.engine.SyntaxStyleType;
@@ -45,10 +45,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import com.aide.codemodel.api.ClassType;
-import com.aide.codemodel.api.collections.SetOf;
-import com.aide.codemodel.api.collections.SetOf.Iterator;
-import com.aide.codemodel.language.java.JavaTypeSystem;
+import com.aide.codemodel.api.Parser.a;
+import com.aide.codemodel.api.Parser;
+import io.github.zeroaicy.util.ContextUtil;
+import com.aide.common.AppLog;
 
 /**
  * 1.aapt2
@@ -70,11 +70,14 @@ public class ZeroAicyExtensionInterface {
 		codeModels.add(new SmaliCodeModel(model));
 		codeModels.add(new KotlinCodeModel(model));
 
-		/* 覆盖JavaCodeModel
-		 if (codeModels.get(0) instanceof JavaCodeModel) {
-		 codeModels.set(0, new JavaCodeModelPro(model));
-		 }
-		 //*/
+		//* 覆盖JavaCodeModel
+		if( AppLog.isPrintLog ){
+			// 只在共存版生效
+			if (codeModels.get(0) instanceof JavaCodeModel) {
+				codeModels.set(0, new JavaCodeModelPro(model));
+			}
+		}
+		//*/
 	}
 	/**
 	 * 测试 仅在共存版会被SyntaxTree::declareAttrType()调用
@@ -103,18 +106,7 @@ public class ZeroAicyExtensionInterface {
 	 */
 	@Keep
 	public static Type getVarNodeAttrType(SyntaxTree syntaxTree, int varParentNode) {
-		// varParentNode[TYPE_NAME]
-
-		if (SyntaxTreeUtils.isVarNode(syntaxTree, varParentNode) 
-			&& syntaxTree.hasAttrType(varParentNode)) {
-			return syntaxTree.getAttrType(varParentNode);
-		}
-		/*
-		 if (SyntaxTreeUtils.isVarNode(syntaxTree, varParentNode)) {
-		 Log.printlnStack(2, 5);
-		 }
-		 */
-		return null;
+		return SyntaxTreeUtils.getVarNodeAttrType(syntaxTree, varParentNode);
 	}
 
 
@@ -124,230 +116,17 @@ public class ZeroAicyExtensionInterface {
 	 */
 	@Keep
 	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws e4 {
-		SyntaxTree syntaxTree = JavaCodeAnalyzer$a.er(JavaCodeAnalyzer$a);
-		// 不是var
-		if (!syntaxTree.isIdentifierNode(varNode)) {
-			return null;
-		}
-
-		String varNodeIdentifierString = syntaxTree.getIdentifierString(varNode);
-
-		if (!"var".equals(varNodeIdentifierString)) {
-			return null;
-		}
-
-		// varNode必须getParentNode两次才是[JavaCodeAnalyzer$a::d8]中的node
-		// 获得var节点的父节点
-		// varNode [IDENTIFIER]
-
-		// [TYPE_NAME]
-		int varParentNode = syntaxTree.getParentNode(varNode);
-		// [VARIABLE_DECLARATION]
-		int varRootNode = syntaxTree.getParentNode(varParentNode);
-
-		// 字段变量不支持var
-		if (SyntaxTreeUtils.isFields(syntaxTree, varRootNode)) {
-			// 变量名称节点
-			// [VARIABLE]
-			int varNameNode = syntaxTree.getChildNode(varRootNode, 3);
-			// [VARIABLE]子节点[IDENTIFIER]
-			int errorNode = syntaxTree.getChildNode(varNameNode, 0);
-
-			String errorMsg = "Field </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C> cannot use the var keyword";
-
-			SyntaxTreeUtils.addSemanticError(syntaxTree, errorNode, errorMsg);
-
-			// UnknownEntityException
-			throw new abcd.e4();
-		}
-
-		if (SyntaxTreeUtils.isVariableDeclaration(syntaxTree, varRootNode)) {
-			// [JavaCodeAnalyzer$a::d8]先计算 变量的类型
-			// 也即会调用此方法，无论是否解析出来
-			// 都会遍历子节点，解析右侧计算表达式类型
-
-			int parentNodeCount = syntaxTree.getChildCount(varRootNode);
-			int expressionNode = -1;
-
-			// 计算右侧表达式类型
-			for (int childNodeIndex = 3; childNodeIndex < parentNodeCount; childNodeIndex += 2) {
-				int childNode = syntaxTree.getChildNode(varRootNode, childNodeIndex);
-
-				if (syntaxTree.getChildCount(childNode) > 2) {
-					// JavaCodeAnalyzer$a::fY()
-					expressionNode = syntaxTree.getChildNode(childNode, 3);
-					JavaCodeAnalyzer.a.Zo(JavaCodeAnalyzer$a, expressionNode, null);
-					break;
-				}
-			}
-			// 打印 expressionNode
-			if (expressionNode != -1) {
-				// 没有找到 expressionNode
-				final Type expressionNodeType = syntaxTree.getAttrType(expressionNode);
-				if (expressionNodeType != null && !"null".equals(expressionNodeType.getFullyQualifiedNameString())) {
-
-					if (!expressionNodeType.isNamespace()) {
-						// 解析后的 attrType带泛型
-						// 但从 JavaCodeAnalyzer$a::Ej或者Od 之后被剔除泛型了
-						// 此处会被覆盖所以 无用
-						// 拦截覆盖了，所以必须declareAttrType
-						// 由getVarAttrType拦截 varParentNode[TYPE_NAME]的类型
-						syntaxTree.declareAttrType(varParentNode, expressionNodeType);
-						// 不能是 16 17 20 6～10 22～25
-						// 为var添加高亮 高亮为type
-						syntaxTree.declareAttrReferenceKind(varNode, 30, expressionNodeType);
-					}
-
-					return expressionNodeType;
-				}
-			}
-
-			// 变量名称节点
-			// [VARIABLE]
-			int varNameNode = syntaxTree.getChildNode(varRootNode, 3);
-			// [VARIABLE]子节点[IDENTIFIER]
-			int errorNode = syntaxTree.getChildNode(varNameNode, 0);
-
-			String errorMsg = "Variable </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C> might not have been initialized" + "<//C>";
-			SyntaxTreeUtils.addError(syntaxTree, errorNode, errorMsg);
-
-			// UnknownEntityException
-			throw new abcd.e4();
-		}
-		
-		// foreach语句
-		if (SyntaxTreeUtils.isForeachStatement(syntaxTree, varRootNode)) {
-			// type name
-			int parentNodeCount = syntaxTree.getChildCount(varRootNode);
-
-			int expressionNode = -1;
-
-			// 查找 右侧表达式
-			// 因为 foreachStatement 右侧优先被计算因此不必计算
-
-			for (int childNodeIndex = 1; childNodeIndex < parentNodeCount; childNodeIndex ++) {
-				int childNode = syntaxTree.getChildNode(varRootNode, childNodeIndex);
-				
-				// 查找 冒号
-				if (SyntaxTreeUtils.isColon(syntaxTree, childNode)) {
-					// 获取foreach右侧表达式
-					expressionNode = syntaxTree.getChildNode(varRootNode, childNodeIndex + 1);
-					// 处理匿名内部类
-					if (SyntaxTreeUtils.isAnonymousClassCreation(syntaxTree, expressionNode)) {
-						expressionNode = syntaxTree.getChildNode(expressionNode, 2);
-					}
-					break;
-				}
-			}
-			
-			if (expressionNode != -1) {
-				// 没有找到 expressionNode
-				Type expressionNodeType = syntaxTree.getAttrType(expressionNode);
-
-				if (expressionNodeType != null && !"null".equals(expressionNodeType.getFullyQualifiedNameString())) {
-					if (expressionNodeType.isArrayType()) {
-						//JavaTypeSystem javaTypeSystem = JavaCodeAnalyzer$a.yS(JavaCodeAnalyzer$a);
-						ArrayType arrayType = (ArrayType)expressionNodeType;
-						expressionNodeType = arrayType.getElementType();
-					} else if (expressionNodeType.isParameterizedType()) {
-						ParameterizedType parameterizedType = (ParameterizedType)expressionNodeType;
-						Type[] absoluteArgumentTypes = parameterizedType.getAbsoluteArgumentTypes();
-						if (absoluteArgumentTypes == null || absoluteArgumentTypes.length == 0) {
-							// expressionNodeType = Object;
-							// 怎么获取Object类呢？？？
-							Model model = syntaxTree.getModel();
-							EntitySpace entitySpace = model.entitySpace;
-							Namespace zh = entitySpace.zh("java", "lang");
-							return zh.sG(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(JavaCodeAnalyzer$a).lg());
-
-						} else if (absoluteArgumentTypes.length == 1) {
-							expressionNodeType = absoluteArgumentTypes[0];
-						} else {
-							int errorNode = expressionNode;
-							ErrorTable errorTable = syntaxTree.getModel().errorTable;
-							// addSemanticError
-							errorTable.Mr(syntaxTree.getFile(), 
-										  syntaxTree.getLanguage(), 
-										  syntaxTree.getStartLine(errorNode), 
-										  syntaxTree.getStartColumn(errorNode), 
-										  syntaxTree.getEndLine(errorNode), 
-										  syntaxTree.getEndColumn(errorNode), 
-										  "具有多个泛型类型 </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C>", 20);
-							// UnknownEntityException
-							throw new abcd.e4();
-						}
-					} else if (expressionNodeType.isClassType()) {
-						// 提前处理 ANONYMOUS_CLASS_CREATION了
-						/*while( "(anonymous)".equals( expressionNodeType.getNameString())){
-						 ClassType classType = (ClassType)expressionNodeType;
-						 expressionNodeType = classType.getSuperType();
-						 }*/
-						SetOf allSuperTypes = ((ClassType) expressionNodeType).getAllSuperTypes();
-						SetOf.Iterator default_Iterator = allSuperTypes.DEFAULT_ITERATOR;
-						default_Iterator.init();
-						JavaTypeSystem javaTypeSystem = JavaCodeAnalyzer$a.yS(JavaCodeAnalyzer$a);
-						while (default_Iterator.hasMoreElements()) {
-							Type superType = (Type) default_Iterator.nextKey();
-							if (superType.isParameterizedType() && ((ParameterizedType)superType).getClassType() == javaTypeSystem.wc(syntaxTree.getFile())) {
-								Type type = ((ParameterizedType)superType).getAbsoluteArgumentTypes()[0];
-								if (type != null) {
-									expressionNodeType = type;
-									if (type.isParameterType()) {
-										// 未知ParameterType
-										Model model = syntaxTree.getModel();
-										EntitySpace entitySpace = model.entitySpace;
-										Namespace zh = entitySpace.zh("java", "lang");
-										expressionNodeType = zh.sG(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(JavaCodeAnalyzer$a).lg());
-									}
-									break;
-								}
-							}
-						}
-					} else {
-						// 变量名称节点
-						// [VARIABLE]
-						int varNameNode = syntaxTree.getChildNode(varRootNode, 3);
-						// [VARIABLE]子节点[IDENTIFIER]
-						int errorNode = syntaxTree.getChildNode(varNameNode, 0);
-
-						String errorMsg = "Unknown entity </C>" + expressionNodeType.getFullyQualifiedNameString() + "<//C>";
-						SyntaxTreeUtils.addSemanticError(syntaxTree, errorNode, errorMsg);
-						// UnknownEntityException
-						throw new abcd.e4();
-
-					}
-
-					if (expressionNodeType != null && !expressionNodeType.isNamespace()) {
-						// 解析后的 attrType带泛型
-						// 但从 JavaCodeAnalyzer$a::Ej或者Od 之后被剔除泛型了
-						// 此处会被覆盖所以 无用
-						// 拦截覆盖了，所以必须declareAttrType
-						// 由getVarAttrType拦截 varParentNode[TYPE_NAME]的类型
-						syntaxTree.declareAttrType(varParentNode, expressionNodeType);
-						// ParameterizedType不能是 16 17 20 6～10 22～25
-						if (expressionNodeType.isParameterizedType()) {
-							syntaxTree.declareAttrReferenceKind(varNode, 30, expressionNodeType);
-						} else {
-							// 为var添加高亮 高亮为type
-							syntaxTree.declareAttrReferenceKind(varNode, 10, expressionNodeType);
-
-						}
-					}
-
-					//System.out.println("varRootNode[解析右侧表达式后]");
-					//SyntaxTreeUtils.printNode(syntaxTree, varRootNode);
-
-					return expressionNodeType;
-				}
-			}
-		}
-		System.out.println("未知表达式: ");
-		SyntaxTreeUtils.printNode(syntaxTree, varRootNode);
-
-		throw new abcd.e4();
+		return SyntaxTreeUtils.getVarAttrType(JavaCodeAnalyzer$a, varNode);
 	}
 
-
+	@Keep
+	public static boolean parserLambdaExpression(JavaParser javaParser) throws Parser.a{
+		if(! (javaParser instanceof JavaParserPro)){
+			return false;
+		}
+		JavaParserPro javaParserPro = (JavaParserPro)javaParser;
+		return javaParserPro.parserLambdaExpression();
+	}
 
 	/**
 	 * 修正接口方法是否自动附加abstract

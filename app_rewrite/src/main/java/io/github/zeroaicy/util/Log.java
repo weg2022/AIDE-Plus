@@ -206,7 +206,7 @@ public final class Log {
 	}
 	public static void println(StackTraceElement[] stackTrace, int off, int endOff) {
 		if (isOut && Log.getLog() != null){
-			for (int i = off ; i < stackTrace.length -endOff - 1; i++) {
+			for (int i = off ; i < stackTrace.length - endOff - 1; i++) {
 				Log.println(stackTrace[i].toString());
 			}
 			Log.println();	

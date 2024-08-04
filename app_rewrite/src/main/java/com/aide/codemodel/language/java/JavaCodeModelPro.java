@@ -11,11 +11,16 @@ public class JavaCodeModelPro extends JavaCodeModel {
 	//ECJJavaCodeCompiler ecjJavaCodeCompiler;
 	public JavaCodeModelPro(Model model) {
 		super(model);
-		if( model != null ){
+		if (model != null) {
 			//ecjJavaCodeCompiler = new ECJJavaCodeCompiler(getLanguages().get(0), model);
 			if (model != null) {
 				ReflectPie on = ReflectPie.on(this);
-				JavaLanguage javaLanguage = on.get("DW");
+
+				ReflectPie javaLanguageReflectPie = on.field("DW");
+				
+				JavaLanguage javaLanguage = javaLanguageReflectPie.get();
+				
+				javaLanguageReflectPie.set("DW", new JavaSyntaxPro(model.identifierSpace));
 				JavaSyntax javaSyntax = (JavaSyntax) javaLanguage.getSyntax();
 				on.set("VH", new JavaParserPro(model.identifierSpace, model.errorTable, model.entitySpace, javaSyntax, false));
             }
@@ -26,6 +31,6 @@ public class JavaCodeModelPro extends JavaCodeModel {
 	public Compiler getCompiler() {
 		return super.getCompiler();
 	}
-	
-	
+
+
 }

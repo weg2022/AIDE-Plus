@@ -190,7 +190,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 				}
 			} else {
 				//Java项目为当前设备
-				projectMinSdk = Build.VERSION.SDK_INT;
+				projectMinSdk = ZeroAicySetting.getJavaProjectMinSdkLevel();
 			}
 			return projectMinSdk;
 		}

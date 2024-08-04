@@ -10,6 +10,8 @@ import com.aide.ui.rewrite.R;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import android.text.TextUtils;
+import android.os.Build;
 
 public class ZeroAicySetting {
 
@@ -152,6 +154,31 @@ public class ZeroAicySetting {
 	/*重定义Apk构建路径*/
 	public static boolean isEnableAdjustApkBuildPath() {
 		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_adjust_apk_build_path", true);
+	}
+	//获得Java项目dex的minsdk
+	public static int getJavaProjectMinSdkLevel() {
+		
+		int defMinSdkLevel = 21;
+		if (isCustomInstaller()) {
+			String defValue = ZeroAicySetting.defaultSp.getString("zero_aicy_javaproject_min_sdk_level", null);
+			
+			if( TextUtils.isEmpty( defValue)){
+				defMinSdkLevel = Build.VERSION.SDK_INT;
+			}else{
+				try {
+					defMinSdkLevel = Integer.parseInt(defValue);
+				}
+				catch (NumberFormatException e) {
+					// 值有误 跟随设备
+					defMinSdkLevel = Build.VERSION.SDK_INT;
+				}
+			}
+		}
+		if( defMinSdkLevel < 21 ){
+			// 不能低于21
+			defMinSdkLevel = 21;
+		}
+		return defMinSdkLevel;
 	}
 	
 	/**
