@@ -92,7 +92,10 @@ public final class Log {
 	public static void print(char[] s) {
 		if (isOut && Log.getLog() != null) Log.getLog().print(s);
 	}
-
+	public static void print(char[] s, int fromIndex, int toIndex) {
+		if (isOut && Log.getLog() != null) Log.getLog().print(String.valueOf(s, fromIndex, toIndex));
+	}
+	
 	public static void print(String s) {
 		if (isOut && Log.getLog() != null) Log.getLog().print(s);
 	}
@@ -132,7 +135,11 @@ public final class Log {
 	public static void println(char[] x) {
 		if (isOut && Log.getLog() != null) Log.getLog().println(x);
 	}
-
+	
+	public static void println(char[] s, int fromIndex, int toIndex) {
+		if (isOut && Log.getLog() != null) Log.getLog().println(String.valueOf(s, fromIndex, toIndex));
+	}
+	
 	public static void println(String x) {
 		//缓存
 		if (!isOut && preMsgList != null && preMsgList.size() < maxPreNumber) {
