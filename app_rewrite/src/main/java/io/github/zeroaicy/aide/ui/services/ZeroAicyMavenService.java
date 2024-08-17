@@ -507,13 +507,18 @@ public class ZeroAicyMavenService {
 				cache = ArtifactNode.pack(dep);
 				// 首次添加
 				this.depManager.put(cache.getGroupIdArtifactId(), cache);
-
+				if(TextUtils.isEmpty( cache.version )){
+					cache.version = "+";
+				}
 				return cache;
             }
 
 			// 检查更新
 			updateDep(ArtifactNode.pack(dep), cache);
 
+			if(TextUtils.isEmpty( cache.version )){
+				cache.version = "+";
+			}
 			return cache;
         }
 		catch (Error th) {
@@ -744,6 +749,10 @@ public class ZeroAicyMavenService {
 
     private String searchLocalDepVersion(String artifactIdDir, String searchVersion) {
         try {
+			if( TextUtils.isEmpty( searchVersion ) ){
+				// MavenMetadataXml getVersion未做null检查
+				searchVersion = "+";
+			}
             String metadataPath = artifactIdDir + "/maven-metadata.xml";
 
 			String version;
