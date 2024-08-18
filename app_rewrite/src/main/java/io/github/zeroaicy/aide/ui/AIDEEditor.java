@@ -32,7 +32,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 		private boolean jn = true;
 		private AIDEEditor ee = AIDEEditor.this;
-		
+
 		public EditorView(Context context) {
 			super(context);
 		}
@@ -42,11 +42,11 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			// TODO: Implement this method
 			super.onDraw(canvas);
 		}
-		
+
 		@Override
 		public void initColors() {
 			super.initColors();
-			
+
 			if (this.ee == null) {
                 return;
             }
@@ -58,25 +58,25 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
             } else {
                 this.selectionColor = new Color(getResources().getColor(isLight ? R.color.editor_selection_light : R.color.editor_selection));
             }
-			
+
 			// 背景颜色
             //this.graphicsColor = new Color(getResources().getColor(isLight ? R.color.editor_background_light : R.color.editor_background));
 			this.graphicsColor = new Color(ColorKind.EDITOR_BACKGROUND.getColor(getContext(), isLight));
-			
+
 			// 光标所在行背景色
 			this.Za = this.jn ? new Color(getResources().getColor(isLight ? R.color.editor_caret_line_light : R.color.editor_caret_line)): null;
-			
+
 			this.stepbarColor = this.jn ? new Color(getResources().getColor(isLight ? R.color.editor_stepping_bar_light : R.color.editor_stepping_bar)) : null;
-			
+
             this.Pa = new Color(getResources().getColor(isLight ? R.color.editor_caret_light : R.color.editor_caret));
-			
+
             this.separatorColor = new Color(getResources().getColor(isLight ? R.color.editor_separator_light : R.color.editor_separator));
             this.hyperlinkColor = new Color(getResources().getColor(isLight ? R.color.editor_hyperlink_light : R.color.editor_hyperlink));
-			
+
             this.Bx = new Color(getResources().getColor(isLight ? R.color.editor_diff_inserted_light : R.color.editor_diff_inserted));
             this.Jm = new Color(getResources().getColor(isLight ? R.color.editor_diff_deleted_light : R.color.editor_diff_deleted));
             this.An = new Color(getResources().getColor(isLight ? R.color.editor_line_number_light : R.color.editor_line_number));
-			
+
 		}
 
 		@Override
@@ -84,8 +84,8 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			this.jn = showCaretLine;
 			super.setShowCaretLine(showCaretLine);
 		}
-		
-		
+
+
 	}
 	public AIDEEditor(Context context) {
 		this(context, null);
@@ -119,19 +119,29 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		if (lowerCase.endsWith(".js")) {
 			return AppPreferences.nw();
 		}
-		if (!lowerCase.endsWith(".c") && !lowerCase.endsWith(".cpp") && !lowerCase.endsWith(".h") && !lowerCase.endsWith(".cc") && !lowerCase.endsWith(".hh") && !lowerCase.endsWith(".hpp")) {
-			if (lowerCase.endsWith(".xml")) {
-				return AppPreferences.XX();
-			}
-			if (!lowerCase.endsWith(".html") && !lowerCase.endsWith(".htm")) {
-				if (lowerCase.endsWith(".css")) {
-					return AppPreferences.u7();
-				}
-				return getTabSize();
-			}
+
+		if (lowerCase.endsWith(".c") 
+			|| lowerCase.endsWith(".cpp") 
+			|| lowerCase.endsWith(".h") 
+			|| lowerCase.endsWith(".cc") 
+			|| lowerCase.endsWith(".hh") 
+			|| lowerCase.endsWith(".hpp")) {
+			return AppPreferences.VH();
+		}
+
+		if (lowerCase.endsWith(".xml")) {
+			return AppPreferences.XX();
+		}
+
+		if (lowerCase.endsWith(".html") 
+			|| lowerCase.endsWith(".htm")) {
 			return AppPreferences.rN();
 		}
-		return AppPreferences.VH();
+		if (lowerCase.endsWith(".css")) {
+			return AppPreferences.u7();
+		}
+		return getTabSize();
+
 	}
 
 	@Override
@@ -276,34 +286,34 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
 				// 需要对textBuffers操作，防止并发
 				//synchronized (textBuffers) {
-					// 重置
-					textBuffers.clear();
+				// 重置
+				textBuffers.clear();
 
-					char[] bufferPool = new char[0x8000];
-					com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
-					IOUtils.close(reader);
+				char[] bufferPool = new char[0x8000];
+				com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
+				IOUtils.close(reader);
 
-					// 没有内容
-					if (textBuffers.size() == 0) {
-						textBuffers.addElement(new TextBuffer());
-					}
-					textBuffers.trimToSize();
+				// 没有内容
+				if (textBuffers.size() == 0) {
+					textBuffers.addElement(new TextBuffer());
+				}
+				textBuffers.trimToSize();
 
-					this.initing.set(false);
+				this.initing.set(false);
 
-					synchronized (this.lock) {
-						// 通知代码分析进程
-						this.lock.notifyAll();
-					}
+				synchronized (this.lock) {
+					// 通知代码分析进程
+					this.lock.notifyAll();
+				}
 
-					final CodeEditText.EditorView oEditorView = getOEditorView();
-					oEditorView.invalidateLayoutTask.DW();
-					oEditorView.indexingLayoutTask.DW();
+				final CodeEditText.EditorView oEditorView = getOEditorView();
+				oEditorView.invalidateLayoutTask.DW();
+				oEditorView.indexingLayoutTask.DW();
 
-					// 通知代码分析进程 内容填充完毕
-					EngineService engineService = ServiceContainer.getEngineService();
-					engineService.ef();
-					engineService.ei();
+				// 通知代码分析进程 内容填充完毕
+				EngineService engineService = ServiceContainer.getEngineService();
+				engineService.ef();
+				engineService.ei();
 
 				//}
 
