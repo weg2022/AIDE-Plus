@@ -3,7 +3,7 @@ package io.github.zeroaicy.aide.aapt2;
 
 import android.text.TextUtils;
 import com.aide.ui.ServiceContainer;
-import com.aide.ui.build.android.AaptService$b;
+import com.aide.ui.build.android.AaptService$ErrorResult;
 import com.aide.ui.services.EngineService;
 import com.aide.ui.util.FileSystem;
 import com.sdklite.aapt.Aapt;
@@ -55,27 +55,33 @@ public class Aapt2TaskFromZeroAicy {
 		}
 	}
 
-	public static AaptService$b proxyAapt(Object aapt$c) throws Exception {
+	public static AaptService$ErrorResult proxyAapt(Object aapt$c) throws Exception {
 		long oldTime = System.currentTimeMillis();
-		AaptServiceArgs aaptServiceArgs = new AaptServiceArgs(aapt$c);
-		AaptService$b proxyAapt = null;
+		
+		AaptService$ErrorResult proxyAapt = null;
+		AaptServiceArgs aaptServiceArgs = null;
 		try {
+			aaptServiceArgs = new AaptServiceArgs(aapt$c);
+			
+			if( aaptServiceArgs.mainPackageName == null){
+				return new AaptService$ErrorResult("没有找到主项目包名，请重新运行aapt2");
+			}
 			proxyAapt = proxyAapt2(aaptServiceArgs);
 		}
 		catch (Throwable e) {
 			e.printStackTrace(aaptServiceArgs.log);
-			proxyAapt = new AaptService$b(Log.getStackTraceString(e));
+			proxyAapt = new AaptService$ErrorResult(Log.getStackTraceString(e));
 		}
 
 		float diffTime = System.currentTimeMillis() - oldTime;
 		aaptServiceArgs.log.println("aapt2 总耗时: " + diffTime / 1000.0f + "s");
-		//日志不在使用，关闭流
+		//日志不再使用，关闭流
 		aaptServiceArgs.log.close();
 
 		return proxyAapt;
 	}
 
-	public static AaptService$b proxyAapt2(AaptServiceArgs aaptServiceArgs) throws Exception {
+	public static AaptService$ErrorResult proxyAapt2(AaptServiceArgs aaptServiceArgs) throws Exception {
 
 		PrintStream log = aaptServiceArgs.log;
 		//构建刷新
@@ -85,15 +91,15 @@ public class Aapt2TaskFromZeroAicy {
 		}
 
 		// 合并清单
-		AaptService$b mergedError = aaptServiceArgs.mergedAndroidManifestxml();
-		if (mergedError != null && mergedError.DW != null) {
+		AaptService$ErrorResult mergedError = aaptServiceArgs.mergedAndroidManifestxml();
+		if (mergedError != null && mergedError.errorInfo != null) {
 			return mergedError;
 		}
 		//编译
 		Map<String, String> allResourceMap = aaptServiceArgs.allResourceMap;
 		// 无序编译
 		for (String resDir : allResourceMap.keySet()) {
-			AaptService$b aaptError = compile(aaptServiceArgs, resDir);
+			AaptService$ErrorResult aaptError = compile(aaptServiceArgs, resDir);
 			if (aaptError != null) {
 				return aaptError;
 			}
@@ -101,14 +107,14 @@ public class Aapt2TaskFromZeroAicy {
 		long currentTimeMillis = System.currentTimeMillis();
 
 		// 增量 -link
-		AaptService$b linkError = incrementalLink(aaptServiceArgs);
+		AaptService$ErrorResult linkError = incrementalLink(aaptServiceArgs);
 		aaptServiceArgs.log.println("aapt2 call link " + (System.currentTimeMillis() - currentTimeMillis) + "ms");
 		if (linkError != null) {
 			return linkError;
 		}
 		
 		currentTimeMillis = System.currentTimeMillis();
-		AaptService$b optimizeError = incrementalOptimize(aaptServiceArgs);
+		AaptService$ErrorResult optimizeError = incrementalOptimize(aaptServiceArgs);
 		aaptServiceArgs.log.println("aapt2 call optimize " + (System.currentTimeMillis() - currentTimeMillis) + "ms");
 		if (optimizeError != null) {
 			return optimizeError;
@@ -121,7 +127,7 @@ public class Aapt2TaskFromZeroAicy {
 		long genRjavaTimeMillis = System.currentTimeMillis();
 
 		//资源文件
-		AaptService$b generateRjavaError = generateRjava(aaptServiceArgs);
+		AaptService$ErrorResult generateRjavaError = generateRjava(aaptServiceArgs);
 		if (generateRjavaError != null) {
 			return generateRjavaError;
 		}
@@ -160,10 +166,10 @@ public class Aapt2TaskFromZeroAicy {
 			}
 		}
 		ServiceContainer.aj(new RefreshEngineService());
-		return new AaptService$b(false);
+		return new AaptService$ErrorResult(false);
 	}
 
-	private static AaptService$b incrementalOptimize(AaptServiceArgs aaptServiceArgs) {
+	private static AaptService$ErrorResult incrementalOptimize(AaptServiceArgs aaptServiceArgs) {
 		if (aaptServiceArgs.shrinkResources) {
 			
 			File resourcesApFile = new File(aaptServiceArgs.resourcesApPath);
@@ -189,7 +195,7 @@ public class Aapt2TaskFromZeroAicy {
 					String s = aaptServiceArgs.getAapt2Error(j62);
 					aaptServiceArgs.log.println("aapt2 错误: -> " + s);
 					if (s != null) {
-						return new AaptService$b(s);
+						return new AaptService$ErrorResult(s);
 					}
 				}
 
@@ -198,7 +204,7 @@ public class Aapt2TaskFromZeroAicy {
 		return null;
 	}
 
-	private static AaptService$b generateRjava(AaptServiceArgs aaptServiceArgs) throws IOException {
+	private static AaptService$ErrorResult generateRjava(AaptServiceArgs aaptServiceArgs) throws IOException {
 		//资源文件时间戳
 		long resourcesApLastModified = new File(aaptServiceArgs.resourcesApPath).lastModified();
 
@@ -210,7 +216,7 @@ public class Aapt2TaskFromZeroAicy {
 		Symbols mainSymbols = symbolParser.parse(aaptServiceArgs.buildBin + "/intermediates/R.txt");
 		String mainPackageName = aaptServiceArgs.mainPackageName;
 		if( mainPackageName == null){
-			return new AaptService$b(String.format("找不到主项目包名, 请设置主项目包名，重新生成" ));
+			return new AaptService$ErrorResult(String.format("找不到主项目包名, 请设置主项目包名，重新生成" ));
 		}
 		//主项目R.java相对gen路径
 		String mainRJavaChildPath = mainPackageName.replace('.', '/') + "/R.java";
@@ -235,7 +241,7 @@ public class Aapt2TaskFromZeroAicy {
 		}
 		if( packageNameLine == null){
 			// 没有找到包名所在行
-			return new AaptService$b(String.format("在主项目R.java[%s]找不到包名, 请删除，重新生成", mainRJavaFile.getAbsolutePath()));
+			return new AaptService$ErrorResult(String.format("在主项目R.java[%s]找不到包名, 请删除，重新生成", mainRJavaFile.getAbsolutePath()));
 		}
 		//消除 final
 		for (int i = 0; i < rJavaLinelist.size(); i++) {
@@ -307,7 +313,7 @@ public class Aapt2TaskFromZeroAicy {
 	}
 
 
-	private static AaptService$b incrementalLink(AaptServiceArgs aaptServiceArgs) throws Exception {
+	private static AaptService$ErrorResult incrementalLink(AaptServiceArgs aaptServiceArgs) throws Exception {
 		PrintStream log = aaptServiceArgs.log;
 
 		String mainProjectGenDir = aaptServiceArgs.mainProjectGenDir;
@@ -355,7 +361,7 @@ public class Aapt2TaskFromZeroAicy {
 			// 检查是否没有编译
 			if (!flatZipFileSet.remove(flatZipPath)) {
 				//没有编译
-				AaptService$b compileError = compile(aaptServiceArgs, resDir);
+				AaptService$ErrorResult compileError = compile(aaptServiceArgs, resDir);
 				if (compileError != null) {
 					return compileError;
 				}
@@ -403,7 +409,7 @@ public class Aapt2TaskFromZeroAicy {
 			return null;
 		}
 
-		AaptService$b linkError = link35(aaptServiceArgs, flatZipFileList, aaptServiceArgs.assetsList, mainProjectGenDir, resourcesApPath, false, aaptServiceArgs.getAaptRulesPath(), rTxt);
+		AaptService$ErrorResult linkError = link35(aaptServiceArgs, flatZipFileList, aaptServiceArgs.assetsList, mainProjectGenDir, resourcesApPath, false, aaptServiceArgs.getAaptRulesPath(), rTxt);
 		if (linkError != null) {
 			return linkError;
 		}
@@ -437,7 +443,7 @@ public class Aapt2TaskFromZeroAicy {
 		}
 	}
 	//实现更细的颗粒度
-	private static AaptService$b compile(AaptServiceArgs aaptServiceArgs, String resDir) throws IOException {
+	private static AaptService$ErrorResult compile(AaptServiceArgs aaptServiceArgs, String resDir) throws IOException {
 		if (!new File(resDir).exists()) {
 			return null;
 		}
@@ -460,7 +466,7 @@ public class Aapt2TaskFromZeroAicy {
 			flatDirFile.mkdirs();
 		}
 
-		AaptService$b aaptError = null;
+		AaptService$ErrorResult aaptError = null;
 		String compileType;
 		if (!flatDirFile.exists() 
 			|| FileUtil.findFile(flatDirFile, null).isEmpty()) {
@@ -483,8 +489,8 @@ public class Aapt2TaskFromZeroAicy {
 	/**
 	 * 软件编译
 	 */
-	private static AaptService$b fullCompile(AaptServiceArgs aaptServiceArgs, String resDir, String flatDir, File flatDirFile) throws IOException {
-		AaptService$b aaptError = fullCompile(aaptServiceArgs, resDir, flatDir);
+	private static AaptService$ErrorResult fullCompile(AaptServiceArgs aaptServiceArgs, String resDir, String flatDir, File flatDirFile) throws IOException {
+		AaptService$ErrorResult aaptError = fullCompile(aaptServiceArgs, resDir, flatDir);
 		if (aaptError != null) {
 			return aaptError;
 		}
@@ -558,7 +564,7 @@ public class Aapt2TaskFromZeroAicy {
 	}
 
 	// 半成品apk
-	public static AaptService$b link35(AaptServiceArgs aaptServiceArgs, List<String> resourceList, List<String> assetsList,  String genDir, String outputPath, boolean isNonFinalIds , String proguardPath, String rTxtPath) throws Exception {
+	public static AaptService$ErrorResult link35(AaptServiceArgs aaptServiceArgs, List<String> resourceList, List<String> assetsList,  String genDir, String outputPath, boolean isNonFinalIds , String proguardPath, String rTxtPath) throws Exception {
 
 		String androidJar = aaptServiceArgs.androidJar;
 
@@ -661,7 +667,7 @@ public class Aapt2TaskFromZeroAicy {
 			aaptServiceArgs.log.println("aapt2 错误: -> " + s);
 
 			if (s != null) {
-				return new AaptService$b(s);
+				return new AaptService$ErrorResult(s);
 			}
 		}
 		return null;
@@ -700,7 +706,7 @@ public class Aapt2TaskFromZeroAicy {
 	}
 
 	// 编译成aapt2格式文件
-	public static AaptService$b fullCompile(AaptServiceArgs aaptServiceArgs, String resDir, String output) {
+	public static AaptService$ErrorResult fullCompile(AaptServiceArgs aaptServiceArgs, String resDir, String output) {
 		List<String> args = new ArrayList<>();
 
 		args.add(aaptServiceArgs.getAapt2Path());
@@ -720,14 +726,14 @@ public class Aapt2TaskFromZeroAicy {
 			if (j62.DW() != 0) {
 				String compileError = aaptServiceArgs.getAapt2Error(j62);
 				if (compileError != null) {
-					return new AaptService$b(compileError);
+					return new AaptService$ErrorResult(compileError);
 				}
 			}			
 		}catch(Throwable e){
 			String stackTraceString = Log.getStackTraceString(e);
 			String errorInfo = "命令: " + aaptServiceArgs.getAapt2Path();
 			aaptServiceArgs.log.println(errorInfo);
-			return new AaptService$b(errorInfo + "\n" + stackTraceString);
+			return new AaptService$ErrorResult(errorInfo + "\n" + stackTraceString);
 		}
 
 		return null;
@@ -748,7 +754,7 @@ public class Aapt2TaskFromZeroAicy {
 	/**
 	 * 优化
 	 */
-	private static AaptService$b incrementalCompile(AaptServiceArgs aaptServiceArgs, String resDir, String resFlatCacheDir) throws IOException {
+	private static AaptService$ErrorResult incrementalCompile(AaptServiceArgs aaptServiceArgs, String resDir, String resFlatCacheDir) throws IOException {
 		//增量编译
 		List<String> incrementalInputFiles = new ArrayList<>();
 		List<File> outFiles = new ArrayList<>();
@@ -773,7 +779,7 @@ public class Aapt2TaskFromZeroAicy {
 		}
 
 		if (! incrementalInputFiles.isEmpty()) {
-			AaptService$b incrementalCompile = incrementalCompile(aaptServiceArgs, incrementalInputFiles, resFlatCacheDir);
+			AaptService$ErrorResult incrementalCompile = incrementalCompile(aaptServiceArgs, incrementalInputFiles, resFlatCacheDir);
 			if (incrementalCompile != null) {
 				//有错误，直接返回
 				return incrementalCompile;
@@ -834,7 +840,7 @@ public class Aapt2TaskFromZeroAicy {
 
 
 	//增量编译
-	public static AaptService$b incrementalCompile(AaptServiceArgs aaptServiceArgs, List<String> inputFiles, String output) {
+	public static AaptService$ErrorResult incrementalCompile(AaptServiceArgs aaptServiceArgs, List<String> inputFiles, String output) {
 		List<String> args = new ArrayList<>();
 		args.add(aaptServiceArgs.getAapt2Path());
 		args.add("compile");
@@ -847,7 +853,7 @@ public class Aapt2TaskFromZeroAicy {
 		if (j62.DW() != 0) {
 			String errorInfo = aaptServiceArgs.getAapt2Error(j62);
 			if (errorInfo != null) {
-				return new AaptService$b(errorInfo);
+				return new AaptService$ErrorResult(errorInfo);
 			}
 		}
 

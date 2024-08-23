@@ -141,7 +141,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			try{
 				this.scopeTypeQuerier = new ScopeTypeQuerier(this.dependencyLibs, zeroAicyBuildGradle);
 			}catch(Throwable e){
-				e.printStackTrace();
+				if(e instanceof Error){
+					throw (Error)e;
+				}
+				throw new Error("scopeTypeQuerier创建错误", e);
 			}
 			
 			//Zo

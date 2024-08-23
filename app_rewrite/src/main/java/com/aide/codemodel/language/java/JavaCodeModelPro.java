@@ -6,6 +6,7 @@ import io.github.zeroaicy.util.reflect.ReflectPie;
 import com.aide.codemodel.api.EntitySpace;
 import com.aide.codemodel.api.ErrorTable;
 import com.aide.codemodel.api.IdentifierSpace;
+import io.github.zeroaicy.util.reflect.ReflectPieException;
 
 public class JavaCodeModelPro extends JavaCodeModel {
 	//ECJJavaCodeCompiler ecjJavaCodeCompiler;
@@ -14,15 +15,33 @@ public class JavaCodeModelPro extends JavaCodeModel {
 		if (model != null) {
 			//ecjJavaCodeCompiler = new ECJJavaCodeCompiler(getLanguages().get(0), model);
 			if (model != null) {
-				ReflectPie on = ReflectPie.on(this);
+				ReflectPie that = ReflectPie.on(this);
 
-				ReflectPie javaLanguageReflectPie = on.field("DW");
-				
+				ReflectPie javaLanguageReflectPie;
+				try {
+					javaLanguageReflectPie = that.field("DW");
+				}
+				catch (ReflectPieException e) {
+					javaLanguageReflectPie = that.field("javaLanguage");					
+				}
+
 				JavaLanguage javaLanguage = javaLanguageReflectPie.get();
-				
+
 				javaLanguageReflectPie.set("DW", new JavaSyntaxPro(model.identifierSpace));
+
 				JavaSyntax javaSyntax = (JavaSyntax) javaLanguage.getSyntax();
-				on.set("VH", new JavaParserPro(model.identifierSpace, model.errorTable, model.entitySpace, javaSyntax, false));
+
+
+				String javaParserFieldName = "VH";
+				try {
+					that.field(javaParserFieldName);
+				}
+				catch (ReflectPieException e) {
+					javaParserFieldName = "javaParser";
+				}
+
+				that.set(javaParserFieldName, new JavaParserPro(model.identifierSpace, model.errorTable, model.entitySpace, javaSyntax, false));
+
             }
 		}
 	}

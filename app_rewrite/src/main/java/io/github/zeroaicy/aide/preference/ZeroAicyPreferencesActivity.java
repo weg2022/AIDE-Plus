@@ -103,23 +103,32 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction p2) {
+		
         if (mZeroAicySettingsFragment == null) return;
+		
 		FragmentTransaction beginTransaction = fm.beginTransaction();
-
-        switch (tab.getTag().toString()) {
-
+		
+		switch (tab.getTag().toString()) {
+			
+			// AIDE原设置
 			case TAG_TAB_SETTING:
                 lv.setVisibility(View.VISIBLE);
 				beginTransaction.hide(mZeroAicySettingsFragment);
+				
 				if (lastVisibleFragment != null) {
 					beginTransaction.show(lastVisibleFragment);
 				}
+				
 				beginTransaction.commit();
                 break;
 
             case TAG_TAB_ADVANCED_SETTING:
+				
                 lv.setVisibility(View.GONE);
+				
+				
 				lastVisibleFragment = getVisibleFragment();
+				
 				if (lastVisibleFragment != null) {
 					beginTransaction.hide(lastVisibleFragment);
 				}
@@ -132,6 +141,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 	public Fragment getVisibleFragment() {
 		FragmentManager fragmentManager = fm;
 		List<Fragment> fragments = fragmentManager.getFragments();
+		
 		for (Fragment fragment : fragments) {
 			if (fragment != null && fragment.isVisible())
 				return fragment;

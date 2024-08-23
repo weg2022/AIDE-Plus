@@ -15,13 +15,13 @@ import java.util.Arrays;
 import java.security.MessageDigest;
 import java.math.BigInteger;
 import com.aide.ui.build.android.AaptService$c;
-import com.aide.ui.build.android.AaptService$b;
+import com.aide.ui.build.android.AaptService$ErrorResult;
 
 public class Aapt2Task {
 
 	private static final String TAG = Aapt2Task.class.getSimpleName();;
 	//AaptService$c m;
-	public static AaptService$b proxyAapt(Object aapt$c) {
+	public static AaptService$ErrorResult proxyAapt(Object aapt$c) {
 		try {
 			return proxyAaptZeroAicy(aapt$c);
 		} catch (Throwable e) {
@@ -30,7 +30,7 @@ public class Aapt2Task {
 		return null;
 	}
 	
-	private static AaptService$b proxyAaptZeroAicy(Object aapt$c) throws Exception {
+	private static AaptService$ErrorResult proxyAaptZeroAicy(Object aapt$c) throws Exception {
 		return Aapt2TaskFromZeroAicy.proxyAapt(aapt$c);
 	}
 

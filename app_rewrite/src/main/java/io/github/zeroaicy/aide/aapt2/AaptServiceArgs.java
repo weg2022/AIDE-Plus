@@ -2,7 +2,7 @@ package io.github.zeroaicy.aide.aapt2;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.aide.ui.build.android.AaptService;
-import com.aide.ui.build.android.AaptService$b;
+import com.aide.ui.build.android.AaptService$ErrorResult;
 import com.aide.ui.services.AssetInstallationService;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.aide.ui.build.android.AaptService$c;
 
 public class AaptServiceArgs {
 
@@ -76,7 +77,7 @@ public class AaptServiceArgs {
 
 	public AaptServiceArgs(Object mAaptS$c_Object) {
 
-
+		AaptService$c mAaptS$c;
 		this.mAaptS$cRef = ReflectPie.on(mAaptS$c_Object);
 
 		String currentAppHome = getCurrentAppHome();
@@ -174,6 +175,7 @@ public class AaptServiceArgs {
 		this.aManifestMap = mAaptS$cRef.get("Ws");
 
 		this.mainPackageName = this.genPackageNameMap.get(this.mainProjectGenDir);
+		
 	}
 
 	/**
@@ -288,7 +290,7 @@ public class AaptServiceArgs {
 	}
 
 	//合并AndroidManifestxml
-	public AaptService$b mergedAndroidManifestxml() {
+	public AaptService$ErrorResult mergedAndroidManifestxml() {
 		return this.mAaptS$cRef.call("EQ").get();
 	}
 

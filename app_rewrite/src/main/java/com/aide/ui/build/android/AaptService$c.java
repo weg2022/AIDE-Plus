@@ -75,7 +75,7 @@ public class AaptService$c {
     private final List<String> we;
 
 	//被Callable调用
-    public AaptService$b we() {
+    public AaptService$ErrorResult we() {
         try {
 
 			if (ZeroAicySetting.isEnableAapt2()) {
@@ -85,8 +85,8 @@ public class AaptService$c {
 
             // aapt实现
             AndroidProjectSupport.Qq(this.DW, this.v5);
-            AaptService$b mergedAndroidManifestxml = EQ();
-            if (mergedAndroidManifestxml.DW != null) {
+            AaptService$ErrorResult mergedAndroidManifestxml = EQ();
+            if (mergedAndroidManifestxml.errorInfo != null) {
                 return mergedAndroidManifestxml;
             }
 
@@ -104,9 +104,9 @@ public class AaptService$c {
                 parentFile.mkdirs();
             }
 
-            AaptService$b J0 = J0();
+            AaptService$ErrorResult J0 = J0();
 
-            if (J0.DW != null) {
+            if (J0.errorInfo != null) {
                 return J0;
             }
 
@@ -115,10 +115,10 @@ public class AaptService$c {
                 if (this.aM) {
                     v5();
                 }
-                AaptService$b Ws = Ws();
-                return Ws.DW != null ? Ws : QX();
+                AaptService$ErrorResult Ws = Ws();
+                return Ws.errorInfo != null ? Ws : QX();
             }
-            return new AaptService$b(false);
+            return new AaptService$ErrorResult(false);
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -160,12 +160,12 @@ public class AaptService$c {
     }
 
 	// 合并清单文件
-    private AaptService$b EQ() {
+    private AaptService$ErrorResult EQ() {
         try {
 
             if (this.we.size() <= 0 
 				&& this.J0.size() <= 0) {
-				return new AaptService$b(false);
+				return new AaptService$ErrorResult(false);
 			}
 
 			// injectedAManifestMap
@@ -224,11 +224,11 @@ public class AaptService$c {
 				// 合并
 				String mergedInfo = com.aide.ui.build.android.l.j6(AaptService.Zo(this.Mr), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
 				if (mergedInfo != null) {
-					return new AaptService$b(mergedInfo);
+					return new AaptService$ErrorResult(mergedInfo);
 				}
 			}
 
-            return new AaptService$b(false);
+            return new AaptService$ErrorResult(false);
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -307,7 +307,7 @@ public class AaptService$c {
         }
     }
 
-    private AaptService$b J0() {
+    private AaptService$ErrorResult J0() {
         try {
             for (Map.Entry<String, List<String>> entry : this.tp.entrySet()) {
 
@@ -318,20 +318,20 @@ public class AaptService$c {
 				String key = entry.getKey();
 				List<String> value = entry.getValue();
 				if (!key.equals(this.Zo)) {
-					AaptService$b J8 = J8(key, value);
-					if (J8.DW != null) {
+					AaptService$ErrorResult J8 = J8(key, value);
+					if (J8.errorInfo != null) {
 						return J8;
 					}
 				}
 
             }
             if (this.XL) {
-                AaptService$b J82 = J8(this.Zo, this.tp.get(this.Zo));
-                if (J82.DW != null) {
+                AaptService$ErrorResult J82 = J8(this.Zo, this.tp.get(this.Zo));
+                if (J82.errorInfo != null) {
                     return J82;
                 }
             }
-            return new AaptService$b(false);
+            return new AaptService$ErrorResult(false);
         }
 		catch (Throwable th) {
 			throw new Error(th);
@@ -339,7 +339,7 @@ public class AaptService$c {
     }
 
     @ey(method = -917848650515497287L)
-    private AaptService$b J8(String str, List<String> list) {
+    private AaptService$ErrorResult J8(String str, List<String> list) {
         try {
 
             String str2 = this.QX.get(str);
@@ -349,7 +349,7 @@ public class AaptService$c {
             }
 
             if (arrayList.isEmpty()) {
-                return new AaptService$b(false);
+                return new AaptService$ErrorResult(false);
             }
             if (new File(str2).exists()) {
                 arrayList.add(new File(str2));
@@ -359,7 +359,7 @@ public class AaptService$c {
             Hw(new File(str), "R.java", arrayList2);
             if (!this.aM && !arrayList2.isEmpty() && u7(arrayList, arrayList2)) {
                 AppLog.DW("Omitting aapt call to regenerate R.java in " + str + " (is uptodate)");
-                return new AaptService$b(false);
+                return new AaptService$ErrorResult(false);
             }
             ArrayList<String> arrayList3 = new ArrayList<>();
             if (str.equals(this.Zo)) {
@@ -389,16 +389,16 @@ public class AaptService$c {
                         FileSystem.aj(file.getPath());
                     }
                 }
-                return new AaptService$b(false);
+                return new AaptService$ErrorResult(false);
             }
-            return new AaptService$b(VH(j6.j6(), j6.DW()));
+            return new AaptService$ErrorResult(VH(j6.j6(), j6.DW()));
         }
 		catch (Throwable th) {
 			throw new Error(th);
         }
     }
 
-    private AaptService$b QX() {
+    private AaptService$ErrorResult QX() {
         try {
 
             if (!Thread.interrupted()) {
@@ -422,7 +422,7 @@ public class AaptService$c {
                 arrayList.add(new File(this.gn));
                 if (!this.aM && !arrayList.isEmpty() && new File(this.gn).exists() && u7(arrayList2, arrayList)) {
                     AppLog.DW("Omitting aapt package call (is uptodate)");
-                    return new AaptService$b(false);
+                    return new AaptService$ErrorResult(false);
                 }
                 ArrayList<String> arrayList3 = new ArrayList<>();
                 if (this.j3) {
@@ -459,9 +459,9 @@ public class AaptService$c {
                             FileSystem.aj(file.getPath());
                         }
                     }
-                    return new AaptService$b(true);
+                    return new AaptService$ErrorResult(true);
                 }
-                return new AaptService$b(VH(j6.j6(), j6.DW()));
+                return new AaptService$ErrorResult(VH(j6.j6(), j6.DW()));
             }
             throw new InterruptedException();
         }
@@ -489,7 +489,7 @@ public class AaptService$c {
         }
     }
 
-    private AaptService$b Ws() {
+    private AaptService$ErrorResult Ws() {
         try {
 
             for (Map.Entry<String, String> entry : this.u7.entrySet()) {
@@ -513,12 +513,12 @@ public class AaptService$c {
 						wf j6 = xf.j6(asList, (String) null, null, true, (OutputStream) null, (byte[]) null);
 						AppLog.DW("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
 						if (j6.DW() != 0) {
-							return new AaptService$b(VH(j6.j6(), j6.DW()));
+							return new AaptService$ErrorResult(VH(j6.j6(), j6.DW()));
 						}
 					}
 				}
             }
-            return new AaptService$b(false);
+            return new AaptService$ErrorResult(false);
         }
 		catch (Throwable th) {
             throw new Error(th);

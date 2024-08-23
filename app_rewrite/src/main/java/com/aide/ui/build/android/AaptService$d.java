@@ -16,7 +16,7 @@ import java.util.concurrent.FutureTask;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 
-class AaptService$d extends FutureTask<AaptService$b> {
+class AaptService$d extends FutureTask<AaptService$ErrorResult> {
 
 
     final AaptService aaptService;
@@ -35,13 +35,13 @@ class AaptService$d extends FutureTask<AaptService$b> {
 			return;
 		}
 		try {
-			AaptService$b aaptService$b = get();
+			AaptService$ErrorResult aaptService$b = get();
 			// 判断aapt是否有错误
-			if (aaptService$b.FH == null) {
+			if (aaptService$b.syntaxErrorsMap == null) {
 				// 切换到主线程
-				AaptService.j6(this.aaptService, aaptService$b.j6);
+				AaptService.j6(this.aaptService, aaptService$b.hasError);
 			} else {
-				AaptService.DW(this.aaptService, aaptService$b.FH);
+				AaptService.DW(this.aaptService, aaptService$b.syntaxErrorsMap);
 			}
 		}
 		catch (InterruptedException unused) {

@@ -59,7 +59,8 @@ public class ZeroAicyProjectService extends ProjectService {
 		super();
 		// 防止并发
 		synchronized (this) {
-			//Collections.synchronizedMap(new HashMap<String, List<String>>());
+			// Collections.synchronizedMap(new HashMap<String, List<String>>());
+			// 项目路径 -> 所有maven依赖
 			this.libraryMapping = //new HashMap<>();
 				new ConcurrentHashMap<String, List<String>>();
 

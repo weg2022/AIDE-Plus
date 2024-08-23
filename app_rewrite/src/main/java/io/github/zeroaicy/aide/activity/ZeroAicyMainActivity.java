@@ -603,7 +603,9 @@ public class ZeroAicyMainActivity extends MainActivity {
 	/**
 	 * 无意义了，做个参考吧
 	 */
+	/*
 	protected void superonCreate(Bundle bundle) {
+		if( true ) throw new Error("不要调用superonCreate，superonCreate仅供参考");
 		ReflectPie that = ReflectPie.on(this);
 
 		AppLog.Zo(this, "onCreate");
@@ -757,5 +759,6 @@ public class ZeroAicyMainActivity extends MainActivity {
 			}
 			y.u7(this);
 		}
-	}
+	 }
+	 //*/
 }
