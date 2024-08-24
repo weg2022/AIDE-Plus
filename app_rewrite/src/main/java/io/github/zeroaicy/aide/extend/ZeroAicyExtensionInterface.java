@@ -49,6 +49,8 @@ import com.aide.codemodel.api.Parser.a;
 import com.aide.codemodel.api.Parser;
 import io.github.zeroaicy.util.ContextUtil;
 import com.aide.common.AppLog;
+import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
+import com.aide.codemodel.api.abstraction.Language;
 
 /**
  * 1.aapt2
@@ -70,14 +72,14 @@ public class ZeroAicyExtensionInterface {
 		codeModels.add(new SmaliCodeModel(model));
 		codeModels.add(new KotlinCodeModel(model));
 
-		//* 覆盖JavaCodeModel
-		if( AppLog.isPrintLog ){
-			// 只在共存版生效
-			if (codeModels.get(0) instanceof JavaCodeModel) {
-				codeModels.set(0, new JavaCodeModelPro(model));
-			}
-		}
-		//*/
+		/* 覆盖JavaCodeModel
+		 if (AppLog.isPrintLog) {
+		 // 只在共存版生效
+		 if (codeModels.get(0) instanceof JavaCodeModel) {
+		 codeModels.set(0, new JavaCodeModelPro(model));
+		 }
+		 }
+		 //*/
 	}
 	/**
 	 * 测试 仅在共存版会被SyntaxTree::declareAttrType()调用
@@ -120,8 +122,8 @@ public class ZeroAicyExtensionInterface {
 	}
 
 	@Keep
-	public static boolean parserLambdaExpression(JavaParser javaParser) throws Parser.a{
-		if(! (javaParser instanceof JavaParserPro)){
+	public static boolean parserLambdaExpression(JavaParser javaParser) throws Parser.a {
+		if (! (javaParser instanceof JavaParserPro)) {
 			return false;
 		}
 		JavaParserPro javaParserPro = (JavaParserPro)javaParser;
@@ -136,18 +138,19 @@ public class ZeroAicyExtensionInterface {
 	@Keep
 	public static int getModifiers(SyntaxTree syntaxTree, int nodeIndex, int flags) {
 		// 显示声明 abstract 或 static，添加 public 就行
-		if ((flags & 0x4000) != 0 || (flags & 0x40) != 0) {
+		if ((flags & 0x4000) != 0 
+			|| (flags & 0x40) != 0) {
 			return flags |= 0x1;
 		}
-		// 不具有的，需要判断是否是Java源码
-		if (JavaLanguage.class.equals(syntaxTree.getLanguage().getClass())) {
-			// 源码暂时不支持 default method
-			// 为后来的 default method做准备
-			if (!SyntaxTreeUtils.isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0))) {
-				// 非 default static 才 |= 0x4000
-				return flags |= 0x4001;
-			}
+		// 处理源码的接口默认方法
+		Language language = syntaxTree.getLanguage();
+		// 非class 且 非default或非static时才添加抽象标志
+		if (! (language instanceof JavaBinaryLanguage)
+			&& !SyntaxTreeUtils.isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0))) {
+			// 非 default || 非static 才 |= 0x4000
+			return flags |= 0x4001;
 		}
+
 		return flags |= 0x1;
 	}
 
