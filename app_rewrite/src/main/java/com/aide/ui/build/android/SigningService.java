@@ -362,15 +362,19 @@ public class SigningService {
             }
         }
     }
-
-
+	
+	
     public void v5(String keyStoreFilePath, SigningRunnable signingRunnable) {
         try {
 			if (keyStoreFilePath == null || keyStoreFilePath.length() <= 0) {
-
-				signingRunnable.j6("", "", "", "");
+				// 会AndroidProjectBuildService.dx() 索引越界
+				synchronized( ServiceContainer.getProjectService().yS() ){
+					signingRunnable.j6("", "", "", "");
+				}
+				
 				return;
 			}
+			
 			if (!FileSystem.isFileAndNotZip(keyStoreFilePath)) {
 
 				MainActivity mainActivity = ServiceContainer.getMainActivity();

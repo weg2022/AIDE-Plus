@@ -18,6 +18,10 @@ import com.aide.ui.build.android.AaptService$d;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import android.os.Handler;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ThreadPoolService implements ExecutorService {
 
@@ -80,13 +84,19 @@ public class ThreadPoolService implements ExecutorService {
 	 */
 	@Override
 	public Future<?> submit(Runnable runnable) {
-		ThreadPoolService.Group group = new Group(runnable);
-		// 还在子线程中，直接运行
-		if (!isUiThread()) {
-			group.run();			
+		try{
+			ThreadPoolService.Group group = new Group(runnable);
+			// 还在子线程中，直接运行
+			if (!isUiThread()) {
+				group.run();			
+				return null;
+			}
+			return service.submit(group);
+			
+		}catch(RejectedExecutionException rejectedExecution){
+			// 过滤 shutdownNow()导致的异常
 			return null;
 		}
-		return service.submit(group);
 	}
 	/**
 	 * 监听
@@ -101,6 +111,15 @@ public class ThreadPoolService implements ExecutorService {
 		}
 		service.submit(group);
 	}
+	
+	/**
+	 * 查询任务是否为空
+	 */
+	 public boolean isEmptyTask(){
+		 
+		 return this.service.getQueue().size() == 0;
+	 }
+	
 
 	public static final boolean isDebug = !true;
 
@@ -120,9 +139,15 @@ public class ThreadPoolService implements ExecutorService {
 	};
 
 	// 主线程
-	private static Thread uiThread = Looper.getMainLooper().getThread();
-
-
+	private static Handler uiHandler = new Handler(Looper.getMainLooper());
+	private static Thread uiThread = uiHandler.getLooper().getThread();
+	
+	public static final boolean postDelayedOfUi(Runnable r, long delayMillis) {
+		return uiHandler.postDelayed(r, delayMillis);
+	}
+	public static final void removeCallbacksOfUi(Runnable r) {
+		uiHandler.removeCallbacks(r);
+	}
 	public static boolean isUiThread() {
 		return uiThread == Thread.currentThread();
 	}
@@ -157,20 +182,26 @@ public class ThreadPoolService implements ExecutorService {
 	}
 	// invokeAll阻塞调用处线程
 	// 暂时用这种
-	private final ExecutorService service;
+	private final ThreadPoolExecutor service;
 	public ExecutorService getService() {
 		return this.service;
 	}
 	public ThreadPoolService() {
-		service = Executors.newFixedThreadPool(1, threadFactory);
+		service = newFixedThreadPool(1, threadFactory);
 	}
 
 	public ThreadPoolService(int threadNumber) {
 		if (threadNumber > maxThreadNumber) {
 			threadNumber = maxThreadNumber;
 		}
-		service = Executors.newFixedThreadPool(threadNumber, threadFactory);
+		service = newFixedThreadPool(threadNumber, threadFactory);
 	}
+	public static ThreadPoolExecutor newFixedThreadPool(int nThreads) {
+        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+    }
+	public static ThreadPoolExecutor newFixedThreadPool(int nThreads, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
+    }
 
 	/**
 	 * 使得AaptService可以使用此线程池

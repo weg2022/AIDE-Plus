@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import com.aide.ui.util.FileSystem;
 
 @Keep
 public class EngineSolutionProject implements Parcelable {
@@ -35,7 +36,10 @@ public class EngineSolutionProject implements Parcelable {
     final String Q6;
     final boolean Z1;
     final boolean cT;
+	
     final List<EngineSolution.File> fY;
+	
+	// targetVersion
     final String hK;
     final List<String> iW;
     final String jw;
@@ -50,6 +54,8 @@ public class EngineSolutionProject implements Parcelable {
 
 	// 压缩标志
 	private boolean compress = false;
+
+	private static final boolean enableJava17 = false;
 
     public EngineSolutionProject(String projectNamespace, String projectPath, String str3, List<EngineSolution.File> sourceSolutionFiles, List<String> depProjectNamespaces, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5) {
 		// 项目名 此EngineSolutionProject唯一id
@@ -68,7 +74,22 @@ public class EngineSolutionProject implements Parcelable {
         this.zh = str4;
         this.AL = str5;
         this.w9 = str6;
+
+		// targetVersion
         this.hK = str7;
+		
+		/******************************测试Java17******************************************/
+		// 启用Java17
+		if (EngineSolutionProject.enableJava17) {
+			this.hK = "17";
+			if ("android.jar".equals(this.projectName) 
+				|| "rt.jar".equals(this.projectName)) {
+					// 添加 core-lambda-stubs.jar依赖
+				sourceSolutionFiles.add(new EngineSolution.File(FileSystem.getParent(projectPath) + "/core-lambda-stubs.jar", "core-lambda-stubs.jar", null, false, false));
+			}
+		}
+		/******************************测试Java17******************************************/
+		
         this.cT = z2;
         this.q7 = z3;
         this.Z1 = z4;
@@ -169,7 +190,7 @@ public class EngineSolutionProject implements Parcelable {
 
 	private byte[] compressParcelData(Parcel obtain, final int level) throws IOException {
 		ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
-		
+
 		GZIPOutputStream zipParcelOut = new GZIPOutputStream(byteArrayOut){
 			{
 				// 重写GZIPOutputStream，使得可以设置压缩等级
@@ -266,7 +287,7 @@ public class EngineSolutionProject implements Parcelable {
 			readParcel.recycle();
 		}
     }
-	
+
 	/**
 	 * 解压缩数据
 	 */

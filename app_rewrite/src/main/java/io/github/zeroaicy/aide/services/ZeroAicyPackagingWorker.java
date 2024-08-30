@@ -373,7 +373,31 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 			return dexCachePath;
 		}
-
+		
+		public void deleteADRTClassFile(String classFileCacheDir){
+			if(classFileCacheDir.endsWith("debug") || ZeroAicySetting.enableADRT() ){
+				return;
+			}
+			
+			String defaultClassDexCacheDirPath = getDefaultClassDexCacheDirPath();
+			
+			{
+				String[] deleteClassFileNames = new String[]{"adrt/ADRTSender", "adrt/ADRTLogCatReader"};
+				for( String deleteClassFileName : deleteClassFileNames){
+					// adrt/ADRTSender
+					//String deleteClassFileName = "adrt/ADRTSender.class";
+					File deleteClassFile = new File(classFileCacheDir, deleteClassFileName + ".class");
+					if( deleteClassFile.exists()){
+						deleteClassFile.delete();
+					}
+					File adrtDexFile = new File(defaultClassDexCacheDirPath, deleteClassFileName + ".dex");
+					if( adrtDexFile.exists()){
+						adrtDexFile.delete();
+					}
+				}	
+			}
+			
+		}
 		/**
 		 * dexing And merging Class Files
 		 */
@@ -381,18 +405,30 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			checkInterrupted();
 
 			List<String> incrementalClassFiles = new ArrayList<>();
+			// 
 			Set<String> classFileMap = new HashSet<>();
+			
 
 			//填充class文件
+			
+			// 主项目class缓存路径
 			String mainProjectClassCacheDirPath = getMainClassCacheDir();
+			// 填充前，删除 adrt注入的class文件
+			deleteADRTClassFile(mainProjectClassCacheDirPath);
+			
+			// 优先填充填主项目的class缓存
 			fillClassFileCache(mainProjectClassCacheDirPath, incrementalClassFiles, classFileMap);
 
 			//遍历添加所有项目的class缓存目录
 			for ( String classFileRootDir : getAllClassFileRootDirs() ){
 				checkInterrupted();
+				
 				if ( classFileRootDir != null 
 					|| !classFileRootDir.equals(mainProjectClassCacheDirPath) ){
-
+					// 填充前，删除 adrt注入的class文件
+					deleteADRTClassFile(classFileRootDir);
+					
+					// 填充子项目class缓存
 					fillClassFileCache(classFileRootDir, incrementalClassFiles, classFileMap);
 				}
 			}
@@ -402,6 +438,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			if ( incrementalClassFiles.isEmpty() ){
 				return mainClassesDexZipFilePath;
 			}
+			
 			//logDebug("待dexing类文件数量: " + incrementalClassFiles.size());
 
 			showProgress("Dexing - Classes", 67);
@@ -409,7 +446,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			dexingClassFilesFromD8(getDefaultClassDexCacheDirPath(), incrementalClassFiles);
 
 			showProgress("Merging - Classes", 69);
+			
+			// 查询需要合并的 dex
 			List<String> classeDexFiles = FileUtil.Files2Strings(FileUtil.findFile(new File(getDefaultClassDexCacheDirPath()), ".dex"));
+			// 合并dex
 			mergingClassDexs(mainClassesDexZipFilePath, classeDexFiles);				
 
 			return mainClassesDexZipFilePath;

@@ -51,6 +51,7 @@ import io.github.zeroaicy.util.ContextUtil;
 import com.aide.common.AppLog;
 import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
 import com.aide.codemodel.api.abstraction.Language;
+import com.aide.codemodel.language.java17.Java17CodeModel;
 
 /**
  * 1.aapt2
@@ -73,13 +74,13 @@ public class ZeroAicyExtensionInterface {
 		codeModels.add(new KotlinCodeModel(model));
 
 		/* 覆盖JavaCodeModel
-		 if (AppLog.isPrintLog) {
-		 // 只在共存版生效
-		 if (codeModels.get(0) instanceof JavaCodeModel) {
-		 codeModels.set(0, new JavaCodeModelPro(model));
-		 }
-		 }
-		 //*/
+		if (AppLog.isPrintLog) {
+			// 只在共存版生效
+			if (codeModels.get(0) instanceof JavaCodeModel) {
+				codeModels.set(0, new Java17CodeModel(model));
+			}
+		}
+		//*/
 	}
 	/**
 	 * 测试 仅在共存版会被SyntaxTree::declareAttrType()调用

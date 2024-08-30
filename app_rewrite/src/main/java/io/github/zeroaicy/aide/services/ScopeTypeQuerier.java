@@ -153,7 +153,7 @@ public class ScopeTypeQuerier {
 
 	private ScopeTypeMap scopeTypeMap = new ScopeTypeMap();
 
-	public ScopeTypeQuerier(String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle) {
+	public ScopeTypeQuerier(String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle) throws Error{
 		
 		if (dependencyLibs == null) {
 			return;

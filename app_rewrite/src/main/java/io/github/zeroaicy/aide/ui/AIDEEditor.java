@@ -39,7 +39,6 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 		@Override
 		protected void onDraw(Canvas canvas) {
-			// TODO: Implement this method
 			super.onDraw(canvas);
 		}
 

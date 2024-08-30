@@ -18,15 +18,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
+import androidx.annotation.Keep;
 
 
 public class JavaGradleProjectSupport extends JavaProjectSupport2 implements ProjectSupport {
-	
+
 	@Override
 	public void DW(boolean p) {
-		
+
 	}
-	int h;
 	/**
 	 * 是否必须Premium版才可用
 	 * 这个功能免费😂
@@ -34,58 +34,58 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	// isPremium
 	@Override
 	public boolean EQ() {
-		
+
 		return false;
 	}
 
 	@Override
 	public boolean FH(String string) {
-		
+
 		return false;
 	}
 
 	@Override
 	public boolean Hw() {
-		
+
 		return false;
 	}
 
 	@Override
 	public void J0(String string) {
-		
+
 	}
 
 	@Override
 	public boolean J8() {
-		
+
 		return false;
 	}
 
 	@Override
 	public int KD(String string) {
-		
+
 		return 0;
 	}
 
 	@Override
 	public void Mr() {
-		
+
 	}
 
 	@Override
 	public void P8(String string, String string1) {
-		
+
 	}
 
 	@Override
 	public String QX() {
-		
+
 		return null;
 	}
 
 	@Override
 	public void SI(String string, ValueRunnable<String> valueRunnable) {
-		
+
 	}
 
 
@@ -105,7 +105,6 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	/**
 	 * 模板
 	 */
-	 
 	@Override
 	public TemplateService.TemplateGroup[] VH() {
 		return new TemplateService.TemplateGroup[0];
@@ -118,10 +117,17 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	public EngineSolution Ws() {
 		return makeEngineSolution();
 	}
+	/**
+	 * 创建EngineSolution，用于代码分析进程处理依赖
+	 */
+	@Keep
 	public EngineSolution makeEngineSolution() {
 		return null;
 	}
-
+	
+	/**
+	 * 教程
+	 */
 	@Override
 	public List<com.aide.ui.trainer.c.c> XL() {
 		return Collections.emptyList();
@@ -141,15 +147,15 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	public boolean aM(String string) {
 		return false;
 	}
-	
-	
+
+
 	@Override
 	public void cn(List<String> list, boolean p) {
 	}
 
 	@Override
 	public void ei(String string) {
-		
+
 	}
 
 	/**
@@ -161,15 +167,18 @@ public class JavaGradleProjectSupport extends JavaProjectSupport2 implements Pro
 	 * 此项目不支持渠道包 ？
 	 * 
 	 */
+	 
 	@Override
 	public boolean er(String projectPath) {
 		return isSupport(projectPath);
 	}
-
+	
+	
 	public boolean isSupport(String projectPath) {
 		return false;
 	}
-
+	
+	
 	@Override
 	public boolean gW() {
 		return false;
