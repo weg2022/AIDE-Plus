@@ -803,7 +803,11 @@ public class ZeroAicyProjectService extends ProjectService {
 	}
 
 	public boolean isAndroidProjectInwhat(String filePath) {
-		if (filePath.startsWith(getCurrentAppHome())) {
+		String currentAppHome = getCurrentAppHome();
+		if( currentAppHome == null ){
+			return false;
+		}
+		if (filePath.startsWith(currentAppHome)) {
 			return true;
 		}
 
