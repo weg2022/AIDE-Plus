@@ -1,19 +1,16 @@
 package io.github.zeroaicy.aide.services;
 
-import android.os.Build;
 import android.text.TextUtils;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.utils.AndroidManifestParser;
+import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.MD5Util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import io.github.zeroaicy.aide.utils.AndroidManifestParser;
-import com.android.tools.r8.CompilationFailedException;
-import com.aide.ui.util.FileSystem;
-import com.aide.ui.util.BuildGradle;
-import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
+import java.util.concurrent.ExecutionException;
 
 public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker {
 
@@ -72,7 +69,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		private String outDirPath;
 		// 若为gradle项目才有
 		private ZeroAicyBuildGradle zeroAicyBuildGradle;
-		
+
 		//构建文件地址[类型分为apk和zip]
 		private String outFilePath;
 		// .ap_文件(aapt2 link产物)
@@ -86,7 +83,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		private String[] dependencyLibs;
 		// 使用替代
 		private ScopeTypeQuerier scopeTypeQuerier;
-		
+
 		//源码目录
 		private String[] sourceDirs;
 		//源码目录
@@ -134,19 +131,20 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			this.allClassFileRootDirs = classFileRootDirs;
 			this.sourceDirs = sourceDirs;
 			this.dependencyLibs = dependencyLibs;
-			
+
 			//  build/bin | bin/[debug | release]/dex
 			this.outDirPath = outDirPath;
 			this.zeroAicyBuildGradle = getZeroAicyBuildGradle();
-			try{
+			try {
 				this.scopeTypeQuerier = new ScopeTypeQuerier(this.dependencyLibs, zeroAicyBuildGradle);
-			}catch(Throwable e){
-				if(e instanceof Error){
+			}
+			catch (Throwable e) {
+				if (e instanceof Error) {
 					throw (Error)e;
 				}
 				throw new Error("scopeTypeQuerier创建错误", e);
 			}
-			
+
 			//Zo
 			this.defaultJarDexDirPath = this.getIntermediatesChildDirPath("jardex");
 
@@ -163,11 +161,11 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 			this.minSdk = this.getProjectMinSdk();
 			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
-			
+
 
 			// 安卓且输出是classesdebug 也没debug-aide
 			this.isNotDebugFormAIDE = isAndroidProject() && !"classesdebug".equals(classCacheDirFileName);
-			
+
 		}
 
 		private int getProjectMinSdk() {
@@ -206,7 +204,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 				return zeroAicyBuildGradle;
 			}
 			ZeroAicyBuildGradle singleton = ZeroAicyBuildGradle.getSingleton();
-			
+
 			String buildOutDirPath = this.getBuildOutDirPath();
 
 			// 不是gradle项目
@@ -224,7 +222,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			}
 			return this.zeroAicyBuildGradle = singleton.getConfiguration(buildGradleFile.getAbsolutePath());
 		}
-		
+
 		private AndroidManifestParser getAndroidManifestParser() {
 			String buildOutDirPath = getBuildOutDirPath();
 			AndroidManifestParser androidManifestParser = null;  
@@ -268,37 +266,9 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 				packaging();
 			}
 			catch (Throwable e) {
-				if (e instanceof CompilationFailedException 
-					|| e.getCause() instanceof CompilationFailedException) {
-					e = e.getCause();
-					while (e instanceof CompilationFailedException) {
-						e = e.getCause();	
-					}
-					String message = e.getMessage();
-					Log.d("日志", message);
-					int index;
-					if (message != null && (index = message.indexOf(" is defined multiple times:")) > 0) {
-						//合并错误
-						String type = message.substring(0, index);
-						String[] files = message.substring(index + "is defined multiple times: ".length()).split(", ");
-
-						StringBuilder sb = new StringBuilder("合并错误: ")
-							.append(type)
-							.append("在以下文件中重复定义");
-						for (String path : files) {
-							sb.append("\n");
-							sb.append(FileSystem.getName(path));
-
-						}
-						throw new Error(sb.toString());
-					}
-
-				}
-				Log.d("打包错误", "堆栈 -> ", e);
-				Throwable cause = e;
-				while ((cause = e.getCause()) != null) {
-					e = cause;
-				}
+				// 将错误信息保存到日志中
+				e.printStackTrace();
+				Log.e("TaskWrapper", "packaging", e);
 				if (e instanceof Error) {
 					throw (Error)e;
 				}
@@ -436,10 +406,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String[] getAllDependencyLibs() {
 			return this.dependencyLibs;
 		}
-		public ScopeTypeQuerier getScopeTypeQuerier(){
+		public ScopeTypeQuerier getScopeTypeQuerier() {
 			return this.scopeTypeQuerier;
 		}
-		
+
 		public String getDefaultJarDexDirPath() {
 			return this.defaultJarDexDirPath;
 		}
