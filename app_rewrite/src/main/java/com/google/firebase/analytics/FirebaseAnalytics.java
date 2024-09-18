@@ -1,4 +1,5 @@
 package com.google.firebase.analytics;
+
 import androidx.annotation.Keep;
 import android.content.Context;
 import android.os.Bundle;

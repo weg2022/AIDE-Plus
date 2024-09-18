@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 public class FileUtil {
 
-	private static final String LogDir = "/AIDE_CrashLog/";
+	private static final String LogDir = "/CrashLog";
 
 	public static String CrashLogPath;
 	public static String LogCatPath;
@@ -30,6 +30,7 @@ public class FileUtil {
 	
 	public static void init(){
 		FileUtil.CrashLogPath = getCrashLogPath(FileUtil.LogDir);
+		
 		FileUtil.LogCatPath = getLogCatPath(FileUtil.CrashLogPath);
 	}
 	
@@ -55,18 +56,30 @@ public class FileUtil {
 	private static String getCrashLogPath(String CrashDir) {
 		///内置储存器
 		File logRootDirectory = new File(Environment.getExternalStorageDirectory(), "Download");
+		boolean isExternalCacheDir = false;
+		
 		Context context = ContextUtil.getContext();
 		try{
-			if (! XXPermissions.isGranted(context, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+			
+			boolean isGranted = XXPermissions.isGranted(context, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+			
+			if (! isGranted) {
 				// 更改为: /内置储存器/Android/data/${PackageName}/cache
 				logRootDirectory = context.getExternalCacheDir();
+				isExternalCacheDir = true;
 			}	
 		}
 		catch (Throwable e){
 			logRootDirectory = context.getExternalCacheDir();
+			isExternalCacheDir = true;
 		}
 		
-		return (logRootDirectory.getAbsolutePath() + CrashDir + ContextUtil.getPackageName());
+		String crashDir = logRootDirectory.getAbsolutePath() + CrashDir;
+		if( !isExternalCacheDir ){
+			crashDir += "/";
+			crashDir += ContextUtil.getPackageName();
+		}
+		return crashDir;
 	}
 
 	public static List<String> Files2Strings(List<File> files) {

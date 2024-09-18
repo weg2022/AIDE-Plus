@@ -188,7 +188,9 @@
         </activity>
 
         <activity
-            android:name="com.dropbox.client2.android.AuthActivity"
+            android:exported="true"
+            
+			android:name="com.dropbox.client2.android.AuthActivity"
             android:launchMode="singleTask"
             android:configChanges="keyboard|orientation">
             <intent-filter>
@@ -364,14 +366,18 @@
         <receiver
             android:name="com.aide.ui.PromoNotificationAlarmReceiver" />
         <receiver
-            android:name="com.aide.ui.PackageUpgradedBroadcastReceiver">
+			android:exported="true"
+
+			android:name="com.aide.ui.PackageUpgradedBroadcastReceiver">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.aide.ui.UserPresentBroadcastReceiver">
+            android:exported="true"
+
+			android:name="com.aide.ui.UserPresentBroadcastReceiver">
             <intent-filter>
                 <action
                     android:name="android.intent.action.USER_PRESENT" />

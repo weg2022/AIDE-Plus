@@ -665,8 +665,9 @@ public class Aapt2TaskFromZeroAicy {
 		if (j62.DW() != 0) {
 			String s = aaptServiceArgs.getAapt2Error(j62);
 			aaptServiceArgs.log.println("aapt2 错误: -> " + s);
-
 			if (s != null) {
+				// 出现错误 删除输出文件
+				new File(outputPath).delete();
 				return new AaptService$ErrorResult(s);
 			}
 		}

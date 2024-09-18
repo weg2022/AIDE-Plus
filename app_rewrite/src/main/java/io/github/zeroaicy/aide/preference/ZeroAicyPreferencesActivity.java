@@ -17,6 +17,8 @@ import android.widget.ListView;
 import com.aide.ui.preferences.PreferencesActivity;
 import com.aide.ui.rewrite.R;
 import java.util.List;
+import android.os.Build;
+import java.util.Collections;
 
 public class ZeroAicyPreferencesActivity extends PreferencesActivity implements ActionBar.TabListener {
 
@@ -139,8 +141,12 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
     }
 
 	public Fragment getVisibleFragment() {
+		
 		FragmentManager fragmentManager = fm;
-		List<Fragment> fragments = fragmentManager.getFragments();
+		
+		List<Fragment> fragments = 
+		Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+		fragmentManager.getFragments() : Collections.emptyList() ;
 		
 		for (Fragment fragment : fragments) {
 			if (fragment != null && fragment.isVisible())

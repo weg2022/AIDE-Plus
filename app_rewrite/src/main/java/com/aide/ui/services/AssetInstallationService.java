@@ -5,6 +5,7 @@ package com.aide.ui.services;
 
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.os.Build;
 import com.aide.common.AppLog;
@@ -20,8 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
-import android.content.res.AssetFileDescriptor;
-import com.aide.ui.ServiceContainer;
 
 public class AssetInstallationService {
 	public static long getResourceSize(String resourceName) {
@@ -81,9 +80,7 @@ public class AssetInstallationService {
 
     private String v5;
 
-    public AssetInstallationService() {
-
-    }
+    public AssetInstallationService() {}
 
     public static String DW(String resourceName, boolean z) {
 		return FH(resourceName, z, false);
@@ -220,6 +217,7 @@ public class AssetInstallationService {
 					FileSystem.u7(resourceInputStream, outputPath, false);
 				} else {
 					File outputFile = new File(outputPath);
+					outputFile.setWritable(true);
 					outputFile.getParentFile().mkdirs();
 					// transferTo
 					StreamUtilities.Zo(resourceInputStream, new FileOutputStream(outputFile));
@@ -264,9 +262,19 @@ public class AssetInstallationService {
         if (this.v5 == null) {
 			this.v5 = DW("merger.zip", true);
 		}
+		File mergerZipFile = new File(this.v5);
+		
+		// Writable dex file is not allowed.
+		if( mergerZipFile.canWrite()){
+			mergerZipFile.setWritable(false);
+		}
+		
 		return this.v5;
     }
+	
 	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
+	
+	
     public void we() {
 		//AssetInstallationService.this.DW = getOutputPath("android.jar", true);
 
@@ -288,7 +296,9 @@ public class AssetInstallationService {
 
 						DW("proguard-android.txt", true);
 						DW("proguard-android-optimize.txt", true);
-
+						// 解压 r8
+						DW("com.android.tools.r8.zip", true);
+						
 					}
 					catch (Throwable e) {
 						e.printStackTrace();

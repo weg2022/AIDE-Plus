@@ -449,8 +449,8 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				}
 				if (projectValue != null) {
 					ProjectDependency projectDependency = new ProjectDependency(ast.getLine());
-					this.wearAppProject = projectDependency;
 					projectDependency.projectName = projectValue;
+					this.wearAppProject = projectDependency;
 					return;
 				}
 				dependencieList.add(new l(ast.getLine()));
@@ -550,8 +550,13 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 							if (coordsArray.length > 2) {
 								// groupId:artifactId:version@extension
 								// {group}:{name}:{version}[{:classifier}@{extension}]
+								
+								// 版本信息 也可能是 变量引用 $varName || ${varName}
+								// 如果是变量引用则解析变量
+								String version = resolvingVarValue(coordsArray[2]);
+								
 								if (coordsArray.length == 3) {
-									String version = coordsArray[2];
+									
 									int extensionEnd = version.indexOf("@");
 									if (extensionEnd >= 0) {
 										mavenDependency.version = version.substring(0, extensionEnd);
@@ -563,7 +568,9 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 								}
 
 								if (coordsArray.length > 3) {
-									mavenDependency.version = coordsArray[2];
+									
+									mavenDependency.version = version;
+									
 									String classifier = coordsArray[3];
 
 									int extensionEnd = classifier.indexOf("@");
@@ -586,6 +593,23 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				break;
 		}
     }
+	
+	private Map<String, String> varValueMap = new HashMap<>();
+	private String resolvingVarValue(String version) {
+		// TODO: Implement this method
+		if( version == null ) return "+";
+		if( version.length() < 2 ) return version;
+		
+		if( version.charAt(1) == '{' ){
+
+		}
+		
+		if( version.startsWith("$")){
+			
+		}
+		
+		return version;
+	}
 
     private String getNodeSimpleNameAt(String str, int index) {
 		String[] split = str.split("\\.");
