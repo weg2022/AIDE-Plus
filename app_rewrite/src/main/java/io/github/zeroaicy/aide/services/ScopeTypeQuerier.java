@@ -402,19 +402,19 @@ public class ScopeTypeQuerier {
 	}
 
 	public List<String> getDexingLibs() {
-		return dexingLibs;
+		return this.dexingLibs;
 	}
 
 	public List<String> getCompileOnlyLibs() {
-		return compileOnlyLibs;
+		return this.compileOnlyLibs;
 	}
 
 	public List<String> getRuntimeOnlyLibs() {
-		return runtimeOnlyLibs;
+		return this.runtimeOnlyLibs;
 	}
 
 	public List<String> getLibgdxNativesLibs() {
-		return libgdxNativesLibs;
+		return this.libgdxNativesLibs;
 	}
 
 	private static ScopeTypeQuerier.ScopeType getScopeType(int type) {

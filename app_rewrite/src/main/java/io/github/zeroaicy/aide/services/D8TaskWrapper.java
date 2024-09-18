@@ -106,7 +106,7 @@ public class D8TaskWrapper {
 		}
 		
 		String error = errorStreamReader.getError();
-		if (process.exitValue() != 0 || !TextUtils.isEmpty(error)) {
+		if (process.exitValue() != 0 && !TextUtils.isEmpty(error)) {
 			throw new Error(error);
 		}
 		//*/
@@ -148,5 +148,35 @@ public class D8TaskWrapper {
 				IOUtils.close(this.bufferedInputStream);
 			}
 		}
+	}
+	
+	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
+		// 都启用多线程dexing ❛˓◞˂̵✧
+		argsList.add("--thread-count");
+		argsList.add("32");
+
+		argsList.add("--min-api");
+		//待跟随minSDK
+		argsList.add(String.valueOf(minSdk));
+
+		if ( file_per_class_file ){
+			argsList.add("--file-per-class-file");
+		}
+		if ( intermediate ){
+			argsList.add("--intermediate");
+		}
+		if ( !TextUtils.isEmpty(user_androidjar) ){
+			argsList.add("--lib");
+			argsList.add(user_androidjar);
+		}
+
+		if ( dependencyLibs != null ){
+			for ( String librarie : dependencyLibs ){
+				argsList.add("--classpath");
+				argsList.add(librarie);
+			}
+		}
+		argsList.add("--output");
+		argsList.add(outPath);
 	}
 }

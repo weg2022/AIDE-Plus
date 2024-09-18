@@ -5,15 +5,10 @@ import android.text.TextUtils;
 import com.aide.common.AppLog;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
 import com.android.apksig.ApkSigner;
-import com.android.tools.r8.CompilationFailedException;
-import com.android.tools.r8.OutputMode;
-import com.android.tools.r8.R8Command;
-import com.android.tools.r8.origin.Origin;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 import io.github.zeroaicy.util.FileUtil;
-import io.github.zeroaicy.util.IOUtils;
 import io.github.zeroaicy.util.Log;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -26,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -39,6 +33,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -98,6 +93,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 混淆
 			if ( isAndroidProject() 
 				&& isMinify() ){
+					
 				packagingAndroidMinify();
 				logDebug("混淆打包共用时: " + (nowTime() - now) + "ms");
 				return;
@@ -154,7 +150,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("Run D8 Dexing", 60);
 
 			String dexingMergingJarDexFiles = null;
-			if ( !getValidLibs().isEmpty() ){
+			if ( !getDexingLibs().isEmpty() ){
 				dexingMergingJarDexFiles = dexingMergingJarDexFiles();
 			}
 
@@ -192,7 +188,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			boolean existsCacheDir = new File(dependencyLibDexZipFilePath).exists();
 
 			//dexing 没有Jardex缓存的依赖
-			for ( String libPath : getValidLibs() ){
+			for ( String libPath : getDexingLibs() ){
 				checkInterrupted();
 
 				File jarFile = new File(libPath);
@@ -224,7 +220,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null;
 			// 合并*.jar.dex
-			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, dependencyLibDexZipFilePath);
+			D8TaskWrapper.fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, dependencyLibDexZipFilePath);
 
 			//输入dexs
 			argsList.addAll(dependencyLibDexs);
@@ -232,7 +228,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			try{
 				// 将采用 子进程方式，防止oom
-				D8TaskWrapper.runD8Task(argsList);
+				HashMap<String, String> environment = new HashMap<String, String>();
+				environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+				D8TaskWrapper.runD8Task(argsList, environment);
 			}catch(Throwable e){
 				//删除缓存
 				new File(dependencyLibDexZipFilePath).delete();
@@ -323,7 +321,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * dexing库
 		 */
-		private String dexingJarLibFile(String libPath) throws CompilationFailedException, IOException, Throwable{
+		private String dexingJarLibFile(String libPath) throws IOException, Throwable{
 			//out
 			String dexCachePath = getJarDexCachePath(libPath);
 			File dexCacheFile = new File(dexCachePath);
@@ -335,13 +333,18 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			List<String> argsList = new ArrayList<>();
 
-			String user_androidjar = getUserAndroidJar();
+			String user_android_jar = getUserAndroidJar();
 			
 			
 			// dexing *.jar 提前脱糖
 			// compileOnlyLibs不能作为jar库依赖的脱糖库
 			// 因为会脱掉compileOnlyLibs
-			fillD8Args(argsList, getMinSdk(), false, true, user_androidjar, getValidLibs(), dexZipTempFile.getAbsolutePath());
+			D8TaskWrapper.fillD8Args(argsList, getMinSdk(), false, true, user_android_jar, getDexingLibs(), dexZipTempFile.getAbsolutePath());
+			// 
+//			for(String compileOnlyLib : compileOnlyLibs){
+//				argsList.add("--lib");
+//				argsList.add(compileOnlyLib);
+//			}
 			
 			//添加需要编译的jar
 			argsList.add(libPath);
@@ -350,7 +353,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					logDebug("dexing -> " + libPath);
 					//dexing jar
 					// 将采用 子进程方式，防止oom
-					D8TaskWrapper.runD8Task(argsList);
+					HashMap<String, String> environment = new HashMap<String, String>();
+					environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+					D8TaskWrapper.runD8Task(argsList, environment);
 				}catch(Throwable e){
 					//删除缓存
 					dexZipTempFile.delete();
@@ -400,7 +405,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * dexing And merging Class Files
 		 */
-		private String dexingMergingClassFiles() throws InterruptedException{
+		private String dexingMergingClassFiles() throws InterruptedException, Throwable{
 			checkInterrupted();
 
 			List<String> incrementalClassFiles = new ArrayList<>();
@@ -454,60 +459,14 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return mainClassesDexZipFilePath;
 		}
 		
-		public void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
-			// 都启用多线程dexing ❛˓◞˂̵✧
-			argsList.add("--thread-count");
-			argsList.add("32");
-			
-			argsList.add("--min-api");
-			//待跟随minSDK
-			argsList.add(String.valueOf(minSdk));
-
-			if ( file_per_class_file ){
-				argsList.add("--file-per-class-file");
-			}
-			if ( intermediate ){
-				argsList.add("--intermediate");
-			}
-			if ( !TextUtils.isEmpty(user_androidjar) ){
-				argsList.add("--lib");
-				argsList.add(user_androidjar);
-			}
-
-			if ( dependencyLibs != null ){
-				for ( String librarie : dependencyLibs ){
-					argsList.add("--classpath");
-					argsList.add(librarie);
-				}
-			}
-
-			/* desugar_libs: {
-			 argsList.add("--desugared-lib");
-			 argsList.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/META-INF/desugar/d8/desugar.json");
-			 } */
-			
-			argsList.add("--output");
-			argsList.add(outPath);
-		}
-
-		/**
-		 * 是否仅编译，接受小写
-		 */
-		private boolean isCompileOnly(String libFileNameLowerCase){
-			return libFileNameLowerCase.endsWith("_compileonly.jar");
-		} 
-		/**
-		 * 是否仅打包，接受小写
-		 */
-		private boolean isRuntimeOnly(String libFileNameLowerCase){
-			return libFileNameLowerCase.endsWith("_resource.jar");
-		}
+		
+		
 		/**
 		 * 存在的依赖，但不包括_resource.jar
 		 */
 		public List<String> getLibs(){
 			List<String> existsDependencyLibs = new ArrayList<>();
-			existsDependencyLibs.addAll(getValidLibs());
+			existsDependencyLibs.addAll(getDexingLibs());
 			existsDependencyLibs.addAll(compileOnlyLibs);
 			
 			// 处理 desugar_libs
@@ -517,14 +476,14 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return existsDependencyLibs;
 		}
 		// dexing所有class
-		private void dexingClassFilesFromD8(String outPath, List<String> dexingClassFiles){
+		private void dexingClassFilesFromD8(String outPath, List<String> dexingClassFiles) throws Throwable{
 			List<String> argsList = new ArrayList<>();
 			//检查输出目录
 			File outDir = new File(outPath);
 			if ( !outDir.exists() ){
 				outDir.mkdirs();
 			}
-			String user_androidjar = getUserAndroidJar();
+			String user_android_jar = getUserAndroidJar();
 			int minSdk = getMinSdk();
 			if ( minSdk < 21 ){
 				//minSdk＜21，无法编译生成的class
@@ -536,16 +495,23 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 所以必须提前脱糖
 			
 			// dexing AIDE编译的 *.class
-			fillD8Args(argsList, minSdk, true, true, user_androidjar, getValidLibs(), outPath);
+			D8TaskWrapper.fillD8Args(argsList, minSdk, true, true, user_android_jar, getDexingLibs(), outPath);
+			for(String compileOnlyLib : compileOnlyLibs){
+				argsList.add("--lib");
+				argsList.add(compileOnlyLib);
+			}
+			
 			//添加需要编译的jar
 			argsList.addAll(dexingClassFiles);
 			
 			// 将采用 子进程方式，防止oom
-			D8TaskWrapper.runD8Task(argsList);
+			HashMap<String, String> environment = new HashMap<String, String>();
+			environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+			D8TaskWrapper.runD8Task(argsList, environment);
 		}
 
 		//合并AIDE生成的class.dex
-		private void mergingClassDexs(String outDexZipPath, Collection<String> classeDexFiles){
+		private void mergingClassDexs(String outDexZipPath, Collection<String> classeDexFiles) throws Throwable{
 			File outDexZipFile = new File(outDexZipPath);
 			//删除缓存文件
 			outDexZipFile.delete();
@@ -553,12 +519,14 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null; 
 			// 合并 AIDE编译的 *.class.dex
-			fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, outDexZipPath);
+			D8TaskWrapper.fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, outDexZipPath);
 
 			//输入dexs
 			argsList.addAll(classeDexFiles);
 			// 将采用 子进程方式，防止oom
-			D8TaskWrapper.runD8Task(argsList);
+			HashMap<String, String> environment = new HashMap<String, String>();
+			environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+			D8TaskWrapper.runD8Task(argsList, environment);
 			//logDebug("合并classes.dex，已输出: " + outDexZipPath);
 		}
 
@@ -623,9 +591,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * dexing jar
 		 */
-		private List<String> validLibs = new ArrayList<>();
-		public List<String> getValidLibs(){
-			return this.validLibs;
+		private List<String> dexingLibs = new ArrayList<>();
+		public List<String> getDexingLibs(){
+			return this.dexingLibs;
 		}
 		/**
 		 * compileOnly
@@ -636,6 +604,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		 * aar混淆规则文件
 		 */
 		private List<Path> proguardPaths  = new ArrayList<>();
+		private List<String> proguardFiles  = new ArrayList<>();
 		
 		
 		/**
@@ -650,39 +619,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			ScopeTypeQuerier scopeTypeQuerier = getScopeTypeQuerier();
 			this.compileOnlyLibs = scopeTypeQuerier.getCompileOnlyLibs();
 			//this.runtimeOnlyLibs = scopeTypeQuerier.getRuntimeOnlyLibs();
-			this.validLibs = scopeTypeQuerier.getDexingLibs();
+			this.dexingLibs = scopeTypeQuerier.getDexingLibs();
 			
-			// 初始化混淆环境
-			if( isMinify()){
-				
-				for ( String dependencyLib : this.validLibs ){
-					String fileName = getFileName(dependencyLib).toLowerCase();
-					File jarFile = new File(dependencyLib);
-					if (  fileName.equals("classes.jar") ){
-						File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
-						if ( proguardFile.isFile() ){
-							this.proguardPaths.add(proguardFile.toPath());
-						}					
-					}
-				}
-				
-				// 查找主项目生成的 "aapt_rules.txt"
-				File aaptRulesFile = new File(getDefaultIntermediatesDirPath(), "aapt_rules.txt");
-				if ( aaptRulesFile.isFile() ){
-					this.proguardPaths.add(aaptRulesFile.toPath());			
-				}
-
-				/**
-				 * 从主项目build.gradle添加混淆规则文件
-				 */
-				for( String proguardPulesFilePath  : getZeroAicyBuildGradle().getProguardFiles()){
-					if( TextUtils.isEmpty( proguardPulesFilePath)){continue;}
-					File proguardPulesFile  = new File(proguardPulesFilePath);
-					if (proguardPulesFile.exists() && proguardPulesFile.isFile() ){
-						this.proguardPaths.add(proguardPulesFile.toPath());
-					}
-				}
-			}
 			
 		}
 		private void deleteCacheDir() {
@@ -707,24 +645,142 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		final ZipEntryTransformer.NativeLibFileTransformer nativeLibZipEntryTransformer;
 		final ZipEntryTransformer.LibgdxNativesTransformer libgdxNativesTransformer;
 		
-		public void minify2() throws Exception{
+		public void minify2() throws Exception, Throwable{
 			// proguardPaths
 			// 
+			// 初始化混淆环境
+			{
+				// 查找主项目生成的 "aapt_rules.txt"
+				File aaptRulesFile = new File(getDefaultIntermediatesDirPath(), "aapt_rules.txt");
+				if ( aaptRulesFile.isFile() ){
+					this.proguardFiles.add(aaptRulesFile.getAbsolutePath());
+					this.proguardPaths.add(aaptRulesFile.toPath());			
+				}
+
+				/**
+				 * 从主项目build.gradle添加混淆规则文件
+				 */
+				for( String proguardPulesFilePath  : getZeroAicyBuildGradle().getProguardFiles()){
+					if( TextUtils.isEmpty( proguardPulesFilePath)){continue;}
+					File proguardPulesFile  = new File(proguardPulesFilePath);
+					if (proguardPulesFile.isFile() ){
+						this.proguardFiles.add(proguardPulesFile.getAbsolutePath());
+						this.proguardPaths.add(proguardPulesFile.toPath());
+					}
+				}
+				// 遍历并添加混淆规则文件
+				for ( String dependencyLib : this.dexingLibs ){
+					File jarFile = new File(dependencyLib);
+					String fileName = jarFile.getName().toLowerCase();
+					
+					if (  fileName.equals("classes.jar") ){
+						File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
+						if ( proguardFile.isFile() ){
+							this.proguardFiles.add(proguardFile.getAbsolutePath());
+							this.proguardPaths.add(proguardFile.toPath());
+						}					
+					}
+				}
+
+				// 编译依赖库
+				showProgress("混淆......", 60);
+
+				logDebug("合并待混淆类库");
+
+				
+				// get混淆输出文件路径[dex.zip]
+				File mixUpDexZipFile = getMixUpDexZipFile(true);
+
+
+				//BaseDiagnosticsHandler baseDiagnosticsHandler = new BaseDiagnosticsHandler();
+				//32线程
+				int minSdk = getMinSdk();
+				//主要是为了兼容AIDE的输出类
+				minSdk = minSdk < 21 ? 21 : minSdk;
 			
+				List<String> argsList = new ArrayList<>();
+				argsList.add("--thread-count");
+				argsList.add("32");
+				
+				argsList.add("--lib");
+				argsList.add(getUserAndroidJar());
+				
+				argsList.add("--min-api");
+				argsList.add(String.valueOf(minSdk) );
+				
+				// 输出路径
+				argsList.add("--output ");
+				argsList.add(mixUpDexZipFile.getAbsolutePath());
+				
+				// 添加 AIDE编译的类
+				List<String> mainClassFilePaths = getMainClassFilePaths();
+				// 添加java -> class的类文件
+				argsList.addAll(mainClassFilePaths);
+				
+				// 添加库
+				argsList.addAll(this.getDexingLibs());
+				
+				// 添加混淆规则
+				for( String proguardPath : this.proguardFiles){
+					argsList.add("--pg-conf");
+					argsList.add(proguardPath);
+				}
+				
+				//* 输出映射表
+				if( true ){
+					argsList.add("--pg-map-output");
+					File proguardMapFile = new File(getIntermediatesChildDirPath("r8"), "proguardMap.txt");
+					argsList.add(proguardMapFile.getAbsolutePath());
+				}
+				//*/
+				
+				showProgress("混淆class中......", 65);
+				
+				//运行r8
+				HashMap<String, String> environment = new HashMap<String, String>();
+				
+				environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+				D8TaskWrapper.runR8Task(argsList, environment);
+				
+				//R8Command.Builder builder = R8Command.parse(argsList.toArray(new String[argsList.size()]), null);
+				//builder.addProguardConfigurationFiles(this.proguardPaths);
+				//com.android.tools.r8.R8.run(builder.build());
+				//com.android.tools.r8.R8.main(argsList.toArray(new String[argsList.size()]));
+			}
 		}
 		
+		private String libEnsureCapacityPath;
+		
+		public String getLibEnsureCapacityPathPath() {
+			if( this.libEnsureCapacityPath == null ){
+				this.libEnsureCapacityPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libEnsureCapacity.so";
+			}
+			return this.libEnsureCapacityPath;
+		}
 		/**
 		 * 
-		 */
+		 // 参数1 mainClassFilePaths AIDE编译的类文件集合
+		 // 参数2 validDepPaths 需要混淆的jar库
+		 // 参数3 proguardPaths 混淆规则
+		 // 参数4 minSdk
+		 // 参数5 输出路径
+		 // 参数6 ProguardMap输出路径
+		 // 参数7 androidJarPath
 		public void minify() throws Exception{
-
-			// 参数1 mainClassFilePaths AIDE编译的类文件集合
-			// 参数2 validDepPaths 需要混淆的jar库
-			// 参数3 proguardPaths 混淆规则
-			// 参数4 minSdk
-			// 参数5 输出路径
-			// 参数6 ProguardMap输出路径
-			// 参数7 androidJarPath
+			
+			// 从aar添加混淆规则
+			for ( String dependencyLib : this.dexingLibs ){
+				System.out.println(dependencyLib);
+				File jarFile = new File(dependencyLib);
+				String fileName = jarFile.getName().toLowerCase();
+				if (  fileName.equals("classes.jar") ){
+					File proguardFile = new File(jarFile.getParentFile(), "proguard.txt");
+					if ( proguardFile.isFile() ){
+						this.proguardFiles.add(proguardFile.getAbsolutePath());
+						this.proguardPaths.add(proguardFile.toPath());
+					}					
+				}
+			}
 
 			// 编译依赖库
 			showProgress("混淆......", 60);
@@ -735,7 +791,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 			// get混淆输出文件路径[dex.zip]
 			File mixUpDexZipFile = getMixUpDexZipFile(true);
-
 
 			//BaseDiagnosticsHandler baseDiagnosticsHandler = new BaseDiagnosticsHandler();
 			//32线程
@@ -752,9 +807,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				builder.addClassProgramData(readAllBytes, Origin.root());
 			}
 			
-			/**
-			 * 有效依赖
-			 */
+			// 有效依赖
 			List<Path> validDepPaths = new ArrayList<>();
 			
 			for ( String validDepPath : this.getValidLibs() ){
@@ -765,6 +818,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// android.jar
 			Path androidJarPath = Paths.get(getUserAndroidJar());
 			
+			
+			showProgress("混淆class中......", 65);
+			
+			System.out.println( this.proguardFiles);
+			
+			//运行r8
 			R8Command r8Command = builder
 				// 所有类
 				.addProgramFiles(validDepPaths)
@@ -779,12 +838,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				// 输出 ProguardMap
 				.setProguardMapOutputPath(new File(getIntermediatesChildDirPath("r8"), "proguardMap.txt").toPath())
 				.build();
-
-			showProgress("混淆class中......", 65);
-			
-			//运行r8
 			com.android.tools.r8.R8.run(r8Command);
 		}
+		//*/
 		
 		/**
 		 * 遍历AIDE Class缓存路径添加class文件
@@ -806,11 +862,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 			return allClassFiles;
 		}
-
-		public void shrinkResources(){
-			//压缩资源 会，但不在这
-		}
-		
 		/**
 		 * 
 		 */
@@ -820,15 +871,19 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 还是算了
 			ZeroAicyBuildGradle zeroAicyBuildGradle = getZeroAicyBuildGradle();
 			
-			return !zeroAicyBuildGradle.isSingleton() && this.isNotDebugFormAIDE && zeroAicyBuildGradle.isMinifyEnabled();
+			return !zeroAicyBuildGradle.isSingleton()
+				&& this.isNotDebugFormAIDE 
+				&& zeroAicyBuildGradle.isMinifyEnabled();
 		}
 		
 		// 安卓支持混淆才有意义，也只能是安卓
 		private void packagingAndroidMinify() throws Throwable{
 			
 			//混淆
-			minify();
-
+			//minify();
+			
+			minify2();
+			
 			showProgress("构建APK", 80);			
 			//未zip优化，未签名
 			File unZipAlignedUnSignedApkFile = getUnZipAlignedUnSignedApkFile(true);
@@ -1113,7 +1168,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			logDebug("从JAR文件添加资源");
 			
 			// dexing jar资源
-			for ( String dependencyLibPath : this.validLibs){
+			for ( String dependencyLibPath : this.dexingLibs){
 				this.packagingZipFile(dependencyLibPath, zipResourceZipEntryTransformer, packagingZipOutput, false);
 			}
 			// 备注⚠️ 现在runtimeOnlyJars不仅仅是_[%d]_resource.jar为名字了
