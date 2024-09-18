@@ -9,16 +9,14 @@ import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Build;
 import android.os.Bundle;
-import java.io.File;
-import java.lang.reflect.Field;
-import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.ContextUtil;
+import io.github.zeroaicy.util.Log;
+import java.lang.reflect.Field;
 
 /**
  * 开启异常打印开关
@@ -214,11 +212,18 @@ public class iy {
         }
     }
 
-    public static PendingIntent j6(Context context, int i, Intent intent, int i2) {
+    public static PendingIntent j6(Context context, int i, Intent intent, int flags) {
+		// Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE or FLAG_MUTABLE be specified when creating a PendingIntent.
+		// Strongly consider using FLAG_IMMUTABLE, only use FLAG_MUTABLE if some functionality depends on the PendingIntent being mutable, e.g.
+		// if it needs to be used with inline replies or bubbles.
+		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+			flags |= PendingIntent.FLAG_IMMUTABLE;
+		}
+		
         if (DW != null) {
-            return wy.DW(context, i, intent, i2, (Bundle) null);
+            return wy.DW(context, i, intent, flags, (Bundle) null);
         }
-        return PendingIntent.getActivity(context, i, intent, i2);
+        return PendingIntent.getActivity(context, i, intent, flags);
     }
 
     public static void lg(Throwable th, long j, Object obj, Object obj2, Object obj3, Object obj4, Object obj5, Object obj6) {
