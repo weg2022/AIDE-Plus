@@ -28,14 +28,18 @@ public class CodeEditText extends com.aide.ui.views.CodeEditText {
 		removeAllViews();
 		addView(new EditorView(getContext()));
 	}
-
+	
+	
+	public boolean isLightTheme(){
+		return super.sG();
+	}
 	public class EditorView extends com.aide.ui.views.CodeEditText.EditorView {
 		CodeEditText codeEditText = CodeEditText.this;
 		public EditorView(Context context) {
 			super(context);
 
 		}
-
+		
 		@Override
 		public void initColors() {
 			super.initColors();
@@ -66,18 +70,20 @@ public class CodeEditText extends com.aide.ui.views.CodeEditText {
 			}
 
             this.Pa = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f050019 : 0x7f050018));
+			
             this.separatorColor = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f050029 : 0x7f050028));
             this.hyperlinkColor = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f050021 : 0x7f050020));
+			
             this.Bx = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f05001f : 0x7f05001e));
             this.Jm = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f05001d : 0x7f05001c));
             this.An = new Color(getResources().getColor(this.codeEditText.sG() ? 0x7f050023 : 0x7f050022));
 		}
 
 		protected boolean showCaretLine = true;
+		
 		@Override
 		public void setShowCaretLine(boolean showCaretLine) {
-			this.showCaretLine = showCaretLine;
-			super.setShowCaretLine(showCaretLine);
+			super.setShowCaretLine(this.showCaretLine = showCaretLine);
 		}
 
 	}

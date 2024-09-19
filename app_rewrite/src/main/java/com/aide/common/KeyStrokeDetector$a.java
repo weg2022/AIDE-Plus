@@ -41,7 +41,9 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 
 	//只有自己引用，可以改名(j6)
     final KeyStrokeDetector.KeyStrokeHandler KeyStrokeHandler;
+	
 	private final boolean isWatch = ZeroAicySetting.isWatch();
+	
 	public KeyStrokeDetector$a(KeyStrokeDetector keyStrokeDetector, View view, boolean fullEditor, KeyStrokeDetector.KeyStrokeHandler keyStrokeHandler, View editorTextView) {
         super(view, fullEditor);
         this.keyStrokeDetector = keyStrokeDetector;

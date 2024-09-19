@@ -1,18 +1,10 @@
 package io.github.zeroaicy.aide.utils;
 
-import abcd.an;
-import abcd.as;
-import abcd.db;
-import abcd.id;
-import abcd.nn;
-import abcd.ps;
-import android.app.Activity;
+import android.text.TextUtils;
 import com.aide.ui.util.Configuration;
-import com.hjq.permissions.Permission;
-import groovyjarjarantlr.Utils;
+import io.github.zeroaicy.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -30,16 +22,13 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Attr;
-import android.text.TextUtils;
-import io.github.zeroaicy.util.Log;
 
 public class AndroidManifestParser extends Configuration<AndroidManifestParser>{
 	
