@@ -131,7 +131,10 @@ public class Logger implements Runnable {
 	private static boolean isSendLogcat;
 
 	public static void onContext(Context context, String debuggerPackageName) {
-		if( debuggerPackageName != null ){
+		if( debuggerPackageName == null ){
+			return;
+		}
+		if( Logger.debuggerPackageName != null ){
 			return;
 		}
 		Logger.context = context;
