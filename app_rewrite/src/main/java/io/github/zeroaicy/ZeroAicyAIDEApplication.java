@@ -44,7 +44,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		String crashProcessName = getPackageName() + ":crash";
 		String curProcessName = ContextUtil.getProcessName();
-		
+
 		if (crashProcessName.equals(curProcessName) 
 			|| curProcessName.contains("crash")) {
 			Log.d(TAG, "crash进程: ", curProcessName);
@@ -68,9 +68,9 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 		// 防止App的context为null
 		ServiceContainer.sh(this);
-	
+
 		// 判断是否显示AIDE-WhatsNewDialog
-		if( ZeroAicySetting.isReinstall()){
+		if (ZeroAicySetting.isReinstall()) {
 			SharedPreferences sharedPreferences = getSharedPreferences("WhatsNew", 0);
 			SharedPreferences.Editor edit = sharedPreferences.edit();
 			// 重置
@@ -80,7 +80,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		// Return if this application is not in debug mode 
 		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
-		
+
 
 	// 共存版发送logcat log
 	private void method2() {
@@ -98,26 +98,28 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 			logger.start();
 		}
 
-		StrictMode.setThreadPolicy(
-			new StrictMode.ThreadPolicy.Builder()
-			//.detectDiskReads()  // 监测读磁盘
-			//.detectDiskWrites()  // 监测写磁盘
-			.detectNetwork()      // 监测网络操作
-			.detectCustomSlowCalls()  // 监测哪些方法执行慢
-			.detectResourceMismatches()  // 监测资源不匹配
-			.penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
-			.build());
+		/*
+		 StrictMode.setThreadPolicy(
+		 new StrictMode.ThreadPolicy.Builder()
+		 //.detectDiskReads()  // 监测读磁盘
+		 //.detectDiskWrites()  // 监测写磁盘
+		 .detectNetwork()      // 监测网络操作
+		 .detectCustomSlowCalls()  // 监测哪些方法执行慢
+		 .detectResourceMismatches()  // 监测资源不匹配
+		 .penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
+		 .build());
 
-		// 监测VM虚拟机进程级别的Activity泄漏或者其它资源泄漏
-		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-							   .detectActivityLeaks()  // 监测内存泄露情况
-							   .detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
-							   .detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
-							   .detectCleartextNetwork()  // 监测明文网络
-							   //.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
-							   .detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
-							   .penaltyLog()
-							   .build());
+		 // 监测VM虚拟机进程级别的Activity泄漏或者其它资源泄漏
+		 StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+		 .detectActivityLeaks()  // 监测内存泄露情况
+		 .detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
+		 .detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
+		 .detectCleartextNetwork()  // 监测明文网络
+		 //.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
+		 .detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
+		 .penaltyLog()
+		 .build());
+		 //*/
 	}
 
 
@@ -131,28 +133,30 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		if (false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {     
 			Log.d(TAG, "启用严苛模式: ");
 			// 监测当前线程（UI线程）上的网络、磁盘读写等耗时操作
-			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-									   //.detectDiskReads()  // 监测读磁盘
-									   //.detectDiskWrites()  // 监测写磁盘
-									   .detectNetwork()      // 监测网络操作
-									   .detectCustomSlowCalls()  // 监测哪些方法执行慢
-									   .detectResourceMismatches()  // 监测资源不匹配
-									   .penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
-									   .penaltyDialog()
-									   .penaltyDeath()
-									   .penaltyDropBox()  //监测到将信息存到Dropbox文件夹 data/system/dropbox
-									   .build());
+			StrictMode.setThreadPolicy(
+				new StrictMode.ThreadPolicy.Builder()
+				//.detectDiskReads()  // 监测读磁盘
+				//.detectDiskWrites()  // 监测写磁盘
+				.detectNetwork()      // 监测网络操作
+				.detectCustomSlowCalls()  // 监测哪些方法执行慢
+				.detectResourceMismatches()  // 监测资源不匹配
+				.penaltyLog()   // 打印日志，也可设置为弹窗提示penaltyDialog()或者直接使进程死亡penaltyDeath()
+				.penaltyDialog()
+				.penaltyDeath()
+				.penaltyDropBox()  //监测到将信息存到Dropbox文件夹 data/system/dropbox
+				.build());
 
 			// 监测VM虚拟机进程级别的Activity泄漏或者其它资源泄漏
-			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-								   .detectActivityLeaks()  // 监测内存泄露情况
-								   .detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
-								   .detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
-								   .detectCleartextNetwork()  // 监测明文网络
-								   //.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
-								   .detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
-								   .penaltyLog()
-								   .build());
+			StrictMode.setVmPolicy(
+				new StrictMode.VmPolicy.Builder()
+				.detectActivityLeaks()  // 监测内存泄露情况
+				.detectLeakedSqlLiteObjects()  // SqlLite资源未关闭，如cursor
+				.detectLeakedClosableObjects()  // Closable资源未关闭，如文件流
+				.detectCleartextNetwork()  // 监测明文网络
+				//.setClassInstanceLimit(MyClass.class, 1)  // 设置某个类的实例上限，可用于内存泄露提示
+				.detectLeakedRegistrationObjects()  // 监测广播或者ServiceConnection是否有解注册
+				.penaltyLog()
+				.build());
 		}
 	}
 

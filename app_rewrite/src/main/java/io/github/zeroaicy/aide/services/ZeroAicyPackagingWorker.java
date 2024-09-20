@@ -9,6 +9,7 @@ import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
 import io.github.zeroaicy.util.FileUtil;
+import io.github.zeroaicy.util.IOUtils;
 import io.github.zeroaicy.util.Log;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -19,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -44,6 +44,14 @@ import java.util.zip.ZipInputStream;
 public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 	private static final String TAG = "Worker";
+	
+	private static void logDebug(String msg){
+		Log.i(TAG, msg);
+	}
+
+	private static long nowTime(){
+		return System.currentTimeMillis();
+	}
 	
 	public ZeroAicyPackagingWorker(ExternalPackagingService service){
 		super(service);
@@ -188,9 +196,12 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			boolean existsCacheDir = new File(dependencyLibDexZipFilePath).exists();
 
 			//dexing 没有Jardex缓存的依赖
-			for ( String libPath : getDexingLibs() ){
+			List<String> dexingLibs = getDexingLibs();
+			List<String> needDexingLibs = new ArrayList<>();
+			
+			
+			for (String libPath: dexingLibs) {
 				checkInterrupted();
-
 				File jarFile = new File(libPath);
 				String dexCachePath = getJarDexCachePath(libPath);
 				File dexCacheFile = new File(dexCachePath);
@@ -199,11 +210,28 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				if ( isBuildRefresh() || ! existsCacheDir
 					|| !dexCacheFile.exists() 
 					|| jarFile.lastModified() > dexCacheFile.lastModified() ){
-						dexingJarLibFile(libPath);
+					// 需要重写dexing，添加进dexing列表
+					needDexingLibs.add(libPath);
+				}else{
+					dependencyLibDexs.add(dexCachePath);
 				}
-				dependencyLibDexs.add(dexCachePath);
 			}
-
+			
+			if( !needDexingLibs.isEmpty()){
+				var size = needDexingLibs.size();
+				var dexingCount = 0;
+				for (String libPath: needDexingLibs) {
+					checkInterrupted();
+					showProgress(String.format("Dexing - Libraries (%d/%d)", dexingCount, size), 64);
+					dexingCount++;
+					// 根本不需要判断，已提前判断
+					dexingJarLibFile(libPath);
+					
+					String dexCachePath = getJarDexCachePath(libPath);
+					dependencyLibDexs.add(dexCachePath);
+				}
+			}
+			
 			//合并
 			//此缓存察觉不到依赖数量变化
 
@@ -459,22 +487,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			return mainClassesDexZipFilePath;
 		}
 		
-		
-		
-		/**
-		 * 存在的依赖，但不包括_resource.jar
-		 */
-		public List<String> getLibs(){
-			List<String> existsDependencyLibs = new ArrayList<>();
-			existsDependencyLibs.addAll(getDexingLibs());
-			existsDependencyLibs.addAll(compileOnlyLibs);
-			
-			// 处理 desugar_libs
-			/*if( desugar_libs ){
-				existsDependencyLibs.add("");
-			}*/
-			return existsDependencyLibs;
-		}
 		// dexing所有class
 		private void dexingClassFilesFromD8(String outPath, List<String> dexingClassFiles) throws Throwable{
 			List<String> argsList = new ArrayList<>();
@@ -1053,6 +1065,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				.build()
 				.sign();
 		}
+		
 		// 流将自动关闭
 		private PrivateKey readPrivateKeyFromFile(InputStream inputStream) throws NoSuchProviderException, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
 			byte[] readAllBytes = FileUtil.readAllBytes(inputStream);
@@ -1062,7 +1075,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 		  
 
-		private PrivateKey readPrivateKeyFromFile(byte[] keyBytes) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {  
+		private PrivateKey readPrivateKeyFromFile(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {  
 			// 使用Bouncy Castle的PKCS8EncodedKeySpec来解析私钥  
 			PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);  
 			KeyFactory kf = KeyFactory.getInstance("RSA", "BC"); // 或者 "EC", "DSA" 等，取决于你的私钥类型  
@@ -1256,7 +1269,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				packagingZipOutput.putNextEntry(zipEntry);
 
 				BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-				streamTransfer(inputStream, packagingZipOutput);
+				IOUtils.streamTransfer(inputStream, packagingZipOutput);
 				inputStream.close();
 
 				packagingZipOutput.closeEntry();
@@ -1332,7 +1345,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 					
 					
 					packagingZipOutput.putNextEntry(newZipEntry);
-					streamTransfer(zipFileInput, packagingZipOutput);
+					IOUtils.streamTransfer(zipFileInput, packagingZipOutput);
 					//Entry写入完成
 					packagingZipOutput.closeEntry();
 				}
@@ -1340,21 +1353,6 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			finally{
 				if ( zipFileInput != null ) zipFileInput.close();
 			}
-		}
-
-		private void streamTransfer(InputStream bufferedInputStream, OutputStream packagingZipOutput) throws IOException{
-			byte[] data = new byte[4096];
-			int read;
-			while ( (read = bufferedInputStream.read(data)) > 0 ){
-				packagingZipOutput.write(data, 0, read);
-			}
-		}
-		private void logDebug(String msg){
-			Log.i(TAG, msg);
-		}
-
-		private long nowTime(){
-			return System.currentTimeMillis();
 		}
 
 	}

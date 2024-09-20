@@ -17,6 +17,15 @@ public class IOUtils {
 
 	private static final String TAG = "IOUtils";
 	
+
+	public static void streamTransfer(InputStream bufferedInputStream, OutputStream packagingZipOutput) throws IOException{
+		byte[] data = new byte[4096];
+		int read;
+		while ( (read = bufferedInputStream.read(data)) > 0 ){
+			packagingZipOutput.write(data, 0, read);
+		}
+	}
+	
 	public static byte[] readAllBytes(InputStream inputStream) throws IOException {
 		return readAllBytes(inputStream, true);
 	}

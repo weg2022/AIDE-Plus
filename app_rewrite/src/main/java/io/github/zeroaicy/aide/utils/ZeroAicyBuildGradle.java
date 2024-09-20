@@ -26,6 +26,11 @@ import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.UnicodeEscapingReader;
 import org.codehaus.groovy.antlr.parser.GroovyLexer;
 import org.codehaus.groovy.antlr.parser.GroovyRecognizer;
+import io.github.zeroaicy.util.IOUtils;
+import groovyjarjarantlr.TokenStreamRecognitionException;
+import com.aide.ui.ServiceContainer;
+import com.aide.engine.SyntaxError;
+import com.aide.ui.project.internal.GradleTools;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
 	public static class DependencyExt extends Dependency {
@@ -145,18 +150,25 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		// 导致解析时无法使用此变量, 赋值
 		this.configurationPath = filePath;
 		this.isSingleton = false;
+		
 		init();
-
+		
+		FileReader fileReader = null;
+		UnicodeEscapingReader unicodeEscapingReader = null;
 		try {
-			FileReader fileReader = new FileReader(filePath);
+			
+			fileReader = new FileReader(filePath);
 			SourceBuffer sourceBuffer = new SourceBuffer();
-			UnicodeEscapingReader unicodeEscapingReader = new UnicodeEscapingReader(fileReader, sourceBuffer);
+			unicodeEscapingReader = new UnicodeEscapingReader(fileReader, sourceBuffer);
+			
 			GroovyLexer groovyLexer = new GroovyLexer(unicodeEscapingReader);
 			unicodeEscapingReader.setLexer(groovyLexer);
 
 			GroovyRecognizer groovyRecognizer = GroovyRecognizer.make(groovyLexer);
 			groovyRecognizer.setSourceBuffer(sourceBuffer);
+			
 			groovyRecognizer.compilationUnit();
+			
 			fileReader.close();
 
 			for (AST ast = groovyRecognizer.getAST(); ast != null; ast = getNextSibling(ast)) {
@@ -167,7 +179,29 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			//Log.d(TAG, "signingConfigMap", signingConfigMap);
 		}
 		catch (Exception e) {
+			if( e instanceof TokenStreamRecognitionException){
+				TokenStreamRecognitionException tokenStreamRecognitionException = (TokenStreamRecognitionException)e;
+				var line = tokenStreamRecognitionException.WB.jw;
+				
+				Map<String, List<SyntaxError>> hashMap = new HashMap<>();
+				
+				SyntaxError syntaxError = new SyntaxError();
+				syntaxError.jw = line;
+				syntaxError.fY = 1;
+				syntaxError.qp = line;
+				syntaxError.k2 = 1000;
+				syntaxError.zh = tokenStreamRecognitionException.toString();
+				
+				hashMap.put(filePath, Collections.singletonList(syntaxError));
+				ServiceContainer.J0().EQ("Gradle", hashMap);
+			}
+		}
+		catch (Throwable e) {
 			e.printStackTrace();
+		}
+		finally{
+			IOUtils.close(unicodeEscapingReader);
+			IOUtils.close(fileReader);
 		}
     }
 
