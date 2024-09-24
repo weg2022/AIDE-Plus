@@ -154,22 +154,22 @@ public class JKS extends KeyStoreSpi {
     private static final int PRIVATE_KEY  = 1;
     private static final int TRUSTED_CERT = 2;
 
-    private final Vector aliases;
-    private final HashMap trustedCerts;
-    private final HashMap privateKeys;
-    private final HashMap certChains;
-    private final HashMap dates;
+    private final Vector<String> aliases;
+    private final HashMap<String, Certificate> trustedCerts;
+    private final HashMap<String, byte[]> privateKeys;
+    private final HashMap<String, Certificate[]> certChains;
+    private final HashMap<String, Date> dates;
 
     // Constructor.
     // ------------------------------------------------------------------------
 
     public JKS() {
         super();
-        aliases = new Vector();
-        trustedCerts = new HashMap();
-        privateKeys = new HashMap();
-        certChains = new HashMap();
-        dates = new HashMap();
+        aliases = new Vector<>();
+        trustedCerts = new HashMap<>();
+        privateKeys = new HashMap<>();
+        certChains = new HashMap<>();
+        dates = new HashMap<>();
 
     }
 

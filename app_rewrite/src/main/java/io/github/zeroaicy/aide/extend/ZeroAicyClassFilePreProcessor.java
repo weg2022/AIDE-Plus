@@ -15,30 +15,35 @@ import java.util.Collections;
 import java.util.Vector;
 import java.io.File;
 import java.util.Hashtable;
+import androidx.annotation.Keep;
+import java.io.StringReader;
 
 
 /**
  * ZeroAicy实现的ClassFilePreProcessor
  */
+@Keep
 public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
-	
+
 	Hashtable<String, ZipFile> M;
 	public ZeroAicyClassFilePreProcessor() {
-		
-	}
-	
-	private static ZeroAicyClassFilePreProcessor singleton;
 
+	}
+
+	private static ZeroAicyClassFilePreProcessor singleton;
+	
+	@Deprecated
 	public static boolean isDefaultMethod(String methodSignature) {
 		return false;//ClassReader.hasDefaultMethod(methodSignature);
 	}
+	
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyClassFilePreProcessor();
 		}
 		return singleton;
 	}
-
+	
 	@Override
 	public Reader QX(String zipFilePath, String className, String str3) {
 		if (className.endsWith(".class")) {
@@ -46,17 +51,18 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			if (readClassFile != null) {
 				return readClassFile;
 			}
+			return new StringReader("// 类解析器错误");
 		}
 		return super.QX(zipFilePath, className, str3);
 	}
-	
+
 	//复用 ZipFile
 	@Override
 	public ZipFile yS(String string) {
 		return super.yS(string);
 	}
-	
-	
+
+
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName) {
 
@@ -77,7 +83,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 					&& zipEntryName.endsWith(".java")) {
 					zipEntryName = zipEntryName.substring(4);
 				}
-				
+
 				if (zipEntryName.endsWith("/")) {
 					//去除路径末尾 /
 					zipEntryName = zipEntryName.substring(0, zipEntryName.length() - 1);

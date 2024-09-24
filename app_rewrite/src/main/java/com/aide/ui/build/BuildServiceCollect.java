@@ -20,15 +20,16 @@ public class BuildServiceCollect {
 
     @fy
     private static boolean VH;
-
+    @gy
+    private static boolean gn;
+	
+	
     @dy(field = 3399072473542906440L)
     public static AndroidProjectBuildService androidProjectBuildService;
 
     @dy(field = 2197916291524773644L)
     public static IBuildService[] buildServices;
 
-    @gy
-    private static boolean gn;
 
     @dy(field = 2203712763761595957L)
     public static HtmlCodeBuildService htmlCodeBuildService;

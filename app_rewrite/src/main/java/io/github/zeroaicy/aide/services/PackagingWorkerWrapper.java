@@ -11,16 +11,35 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.Set;
 
 public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker {
 
 	ExternalPackagingService externalPackagingService;
 	private String noBackupFilesDirPath;
+
 	public PackagingWorkerWrapper(ExternalPackagingService externalPackagingService) {
 		//父类没有使用封闭类[ExternalPackagingService]
 		null.super();
 		this.externalPackagingService = externalPackagingService;
 	}
+
+	public static String getFileName(String path) {
+		int fileNameStartIndex = path.lastIndexOf('/');
+		if (fileNameStartIndex >= 0) {
+			return path.substring(fileNameStartIndex);
+		}
+		return path;
+	}
+	
+	private String libEnsureCapacityPath;
+	public String getLibEnsureCapacityPathPath() {
+		if (this.libEnsureCapacityPath == null) {
+			this.libEnsureCapacityPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libEnsureCapacity.so";
+		}
+		return this.libEnsureCapacityPath;
+	}
+	
 	public String getUserAndroidJar() {
 		return ZeroAicySetting.getDefaultSpString("user_androidjar", getNoBackupFilesDirPath() + "/.aide/android.jar");
 	}
@@ -91,7 +110,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		//构建刷新
 		private final boolean buildRefresh;
 
-		private final String zipalignPath;
+		private final String zipalignLibPath;
 
 		private final String signaturePath;
 
@@ -109,11 +128,12 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			return minSdk;
 		}
 
-		public String getZipalignPath() {
-			return this.zipalignPath;
+		public String getZipalignLibPath() {
+			return this.zipalignLibPath;
 		}
 
 		public final boolean isNotDebugFormAIDE;
+
 		public TaskWrapper(String mainClassCacheDir, String[] classFileRootDirs, String[] sourceDirs, String[] dependencyLibs, String outDirPath, String Zo, String aaptResourcePath, String[] nativeLibDirs, String outFilePath, String signaturePath, String signaturePassword, String signatureAlias, String signatureAliasPassword, boolean buildRefresh, boolean Ws, boolean QX) {
 			super(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, Zo, aaptResourcePath, nativeLibDirs, outFilePath, signaturePath, signaturePassword, signatureAlias, signatureAliasPassword, buildRefresh, Ws, QX);
 
@@ -160,12 +180,11 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			this.buildRefresh = buildRefresh;
 
 			this.minSdk = this.getProjectMinSdk();
-			this.zipalignPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
+			this.zipalignLibPath = externalPackagingService.getApplicationInfo().nativeLibraryDir + "/libzipalign.so";
 
 
 			// 安卓且输出是classesdebug 也没debug-aide
-			this.isNotDebugFormAIDE = isAndroidProject() && !"classesdebug".equals(classCacheDirFileName);
-
+			this.isNotDebugFormAIDE = isAndroidProject() && !classCacheDirFileName.endsWith("debug");
 		}
 
 		private int getProjectMinSdk() {
@@ -302,6 +321,78 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 
 		/**********共用层，共用一些相同的代码逻辑***********************************/
 
+		
+		/**
+		 * 是否启用混淆
+		 */
+		public boolean isMinify() {
+			// 不是debug-aide变体 无法简单区分 debug 与 release
+			// 可以从用 sp的ProjectService 但是 sp不能跨进程
+			// 还是算了
+			ZeroAicyBuildGradle zeroAicyBuildGradle = getZeroAicyBuildGradle();
+			
+			return !zeroAicyBuildGradle.isSingleton()
+				&& this.isNotDebugFormAIDE 
+				&& zeroAicyBuildGradle.isMinifyEnabled();
+		}
+		/**
+		 * 根据isBuildRefresh是否增量
+		 */
+		public void fillClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet) {
+			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, this.isBuildRefresh());
+		}
+		/**
+		 * 默认不增量
+		 */
+		public void fillAllClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet) {
+			fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, true);
+		}
+
+		/**
+		 * 递归填充classCacheRootDirPath目录下的所有class文件
+		 */
+		public void fillClassFileCacheMap(String classCacheRootDirPath, File dirFile, List<String> incrementalClassFiles, Set<String> classFileSet, boolean isBuildRefresh) {
+			File[] listFiles = dirFile.listFiles();
+			if (listFiles == null) {
+				return;
+			}
+
+			for (File classFile : listFiles) {
+				if (classFile.isDirectory()) {
+					fillClassFileCacheMap(classCacheRootDirPath, classFile, incrementalClassFiles, classFileSet, isBuildRefresh);
+					continue;
+				}
+
+				if (classFile.isFile()) {
+					String classFilePath = classFile.getPath();
+					if (!getFileName(classFilePath).toLowerCase().endsWith(".class")) {
+						continue;
+					}
+
+					String classFileSubPath = classFilePath.substring(classCacheRootDirPath.length());
+					if (classFileSet.contains(classFileSubPath)) {
+						//AppLog.DW("忽略重复 .class 文件 " + classFilePath);
+						continue;
+					}
+					classFileSet.add(classFileSubPath);
+
+					if (isBuildRefresh) {
+						//构建刷新，直接添加
+						incrementalClassFiles.add(classFilePath);
+						continue;
+					}
+
+					//判断是否更新
+					String classDexFileCache = getClassDexFileCache(classFileSubPath);
+
+					File dexFile = new File(classDexFileCache);
+					if (classFile.lastModified() > dexFile.lastModified()) {
+						//需要重新dexing的class
+						incrementalClassFiles.add(classFilePath);
+					}
+				}
+			}
+		}
 		/**
 		 * 签名路径
 		 */
@@ -452,40 +543,4 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			//super.a8(progressTitle, progress);
 		}
 	}
-
-
-	/**
-	 * -dontwarn *
-	 private void 混淆(boolean 混淆, List<String> classesDexZipList){
-	 if ( 混淆 ){
-	 String mixUpDexZipFilePath = getMixUpDexZipFilePath();
-	 File outDexZipFile = new File(mixUpDexZipFilePath);
-	 //删除缓存文件
-	 outDexZipFile.delete();
-
-	 List<String> argsList  = new ArrayList<String>();
-	 String user_androidjar = getUserAndroidJar(); 
-	 //fillD8Args(argsList, false, false, user_androidjar, null, mixUpDexZipFilePath);
-	 // --pg-compat             # 在 Proguard 兼容模式下使用 R8 进行编译。
-	 // --pg-conf <file>        # 混淆器配置<file>.
-	 // --pg-conf-output <file> # 将集合配置输出到<file>.
-	 // --pg-map-output <file>  # 将结果名称和线路映射输出到<file>
-	 argsList.add("--pg-compat");
-	 argsList.add("--pg-conf");
-	 argsList.add("混淆配置");
-
-
-
-	 argsList.add("--release");
-	 argsList.add("--dex");
-
-	 //输入dexs
-	 argsList.addAll(classesDexZipList);
-	 com.android.tools.r8.D8.main(argsList.toArray(new String[argsList.size()]));
-
-	 //添加混淆后的dex.zip
-	 classesDexZipList.clear();
-	 classesDexZipList.add(mixUpDexZipFilePath);
-	 }
-	 }*/
 }

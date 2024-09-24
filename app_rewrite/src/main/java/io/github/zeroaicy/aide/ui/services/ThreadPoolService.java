@@ -1,27 +1,15 @@
 package io.github.zeroaicy.aide.ui.services;
 
+import java.util.concurrent.*;
+
+import android.os.Handler;
 import android.os.Looper;
 import io.github.zeroaicy.util.Log;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import org.codehaus.groovy.tools.shell.util.Logger;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.ThreadFactory;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import com.aide.ui.build.android.AaptService$d;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import android.os.Handler;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class ThreadPoolService implements ExecutorService {
 
@@ -153,26 +141,26 @@ public class ThreadPoolService implements ExecutorService {
 	}
 
 	// 默认子线程
-	private static ThreadPoolService defaultExecutorsService;
+	private static ThreadPoolService defaultThreadPoolService;
 
-	// 默认线程为4
-	public static ThreadPoolService getExecutorsService() {
-		if (defaultExecutorsService == null) {
-			defaultExecutorsService = getExecutorsService("default", 4);
+	// 默认线程为1
+	public static ThreadPoolService getDefaultThreadPoolService() {
+		if (defaultThreadPoolService == null) {
+			defaultThreadPoolService = getThreadPoolService("default", 1);
 		}
-		return defaultExecutorsService;
+		return defaultThreadPoolService;
 	}
 
 	private static Map<String, ThreadPoolService> executorsNameMap = new HashMap<>();
 
 	/**
-	 * 默认线程数为 1
+	 * 默认线程数为 4
 	 */
 	public static ThreadPoolService getThreadPoolService(String executorsName) {
-		return getExecutorsService(executorsName, 1);
+		return getThreadPoolService(executorsName, 4);
 	}
 
-	private static ThreadPoolService getExecutorsService(String executorsName, int threadNumber) {
+	public static ThreadPoolService getThreadPoolService(String executorsName, int threadNumber) {
 		ThreadPoolService temp = executorsNameMap.get(executorsName);
 		if (temp == null) {
 			temp = new ThreadPoolService(threadNumber);
@@ -180,6 +168,7 @@ public class ThreadPoolService implements ExecutorService {
 		}
 		return temp;
 	}
+	
 	// invokeAll阻塞调用处线程
 	// 暂时用这种
 	private final ThreadPoolExecutor service;

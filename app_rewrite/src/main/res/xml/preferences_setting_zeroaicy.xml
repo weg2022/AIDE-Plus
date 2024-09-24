@@ -100,7 +100,7 @@
                 android:title="解除Java项目API限制"
                 android:summary="解除Java项目被限制API, 可以使用android.jar中类而不受限制" 
 				android:key="zero_aicy_remove_javaproject_api_limitations"
-                android:defaultValue="false" />
+                android:defaultValue="true" />
 
 			<SwitchPreference
                 android:title="重定义Apk构建路径"

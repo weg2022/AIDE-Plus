@@ -6,6 +6,8 @@ import com.aide.common.AppLog;
 import com.aide.ui.services.AssetInstallationService;
 import com.aide.ui.util.ArtifactNode;
 import com.aide.ui.util.BuildGradle;
+import static com.aide.ui.util.BuildGradle.*;
+
 import com.aide.ui.util.Configuration;
 import com.aide.ui.util.FileSystem;
 import groovyjarjarantlr.collections.AST;
@@ -33,14 +35,14 @@ import com.aide.engine.SyntaxError;
 import com.aide.ui.project.internal.GradleTools;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
-	public static class DependencyExt extends Dependency {
+	public static class DependencyExt extends com.aide.ui.util.BuildGradle.Dependency {
 		public static final int CompileOnly = 0x1;
 		public static final int RuntimeOnly = 0x2;
 		public static final int LibgdxNatives = 0x3;
 		
 		public final int type;
-		public final Dependency dependency;
-		public DependencyExt(int type, Dependency dependency) {
+		public final BuildGradle.Dependency dependency;
+		public DependencyExt(int type, BuildGradle.Dependency dependency) {
 			super(dependency.line);
 			this.type = type;
 			this.dependency = dependency;
@@ -181,8 +183,8 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 		catch (Exception e) {
 			if( e instanceof TokenStreamRecognitionException){
 				TokenStreamRecognitionException tokenStreamRecognitionException = (TokenStreamRecognitionException)e;
-				var line = tokenStreamRecognitionException.WB.jw;
-				
+				int line = tokenStreamRecognitionException.WB.jw;
+
 				Map<String, List<SyntaxError>> hashMap = new HashMap<>();
 				
 				SyntaxError syntaxError = new SyntaxError();

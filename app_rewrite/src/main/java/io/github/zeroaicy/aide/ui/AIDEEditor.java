@@ -28,7 +28,8 @@ import io.github.zeroaicy.aide.highlight.ColorKind;
 import android.graphics.Canvas;
 
 public class AIDEEditor extends com.aide.ui.AIDEEditor {
-	public class EditorView extends com.aide.ui.AIDEEditor.EditorView {
+	
+	public class EditorView extends CodeEditText.EditorView {
 
 		private boolean jn = true;
 		private AIDEEditor ee = AIDEEditor.this;
@@ -53,14 +54,14 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			// is Material主题
 			if (AndroidHelper.lg(getContext())) {
                 //this.selectionColor = new Color(getResources().getColor(isLight ? R.color.editor_selection_material_light : R.color.editor_selection_material));
-				this.selectionColor = new Color(ColorKind.EDITOR_SELECTION.getColor(getContext(), isLight));
+				this.selectionColor = new Color(io.github.zeroaicy.aide.highlight.ColorKind.EDITOR_SELECTION.getColor(getContext(), isLight));
             } else {
                 this.selectionColor = new Color(getResources().getColor(isLight ? R.color.editor_selection_light : R.color.editor_selection));
             }
 
 			// 背景颜色
             //this.graphicsColor = new Color(getResources().getColor(isLight ? R.color.editor_background_light : R.color.editor_background));
-			this.graphicsColor = new Color(ColorKind.EDITOR_BACKGROUND.getColor(getContext(), isLight));
+			this.graphicsColor = new Color(io.github.zeroaicy.aide.highlight.ColorKind.EDITOR_BACKGROUND.getColor(getContext(), isLight));
 
 			// 光标所在行背景色
 			this.Za = this.jn ? new Color(getResources().getColor(isLight ? R.color.editor_caret_line_light : R.color.editor_caret_line)): null;
@@ -105,7 +106,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	}
 
 	@Override
-	protected CodeEditText.EditorView getOEditorView() {
+	protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
 		return super.getOEditorView();
 	}
 
@@ -184,10 +185,10 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	 * 文件路径，也有可能是jar里的class
 	 */
 	//@Override
-	protected OpenFileService.OpenFileModel Z1_2(final String filePath) {
+	/*protected OpenFileService.OpenFileModel Z1_2(final String filePath) {
 		// 先返回，内容异步塞入
 		return new AIDEEditorModel(filePath);
-	}
+	}*/
 
 
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
@@ -212,7 +213,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			textBuffers.addElement(new TextBuffer("异步加载中....".toCharArray()));
 
 			// 异步
-			ThreadPoolService.getExecutorsService().submit(
+			ThreadPoolService.getDefaultThreadPoolService().submit(
 				new Runnable(){
 					@Override
 					public void run() {
@@ -225,7 +226,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		@Override
 		public void j6() {
 			// 异步
-			ThreadPoolService.getExecutorsService().submit(
+			ThreadPoolService.getDefaultThreadPoolService().submit(
 				new Runnable(){
 					@Override
 					public void run() {

@@ -18,6 +18,8 @@ public class D8TaskWrapper {
 	public static final String R8Task = "io.github.zeroaicy.r8.R8Task";
 	public static final String D8Task = "io.github.zeroaicy.r8.D8Task";
 
+	public static final String D8BatchTask = "io.github.zeroaicy.r8.D8BatchTask";
+
 	public static void runD8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
@@ -27,11 +29,24 @@ public class D8TaskWrapper {
 		run(D8Task, argList);
 
 	}
+	
 	public static void runD8Task(List<String> argList, Map<String, String> environment) throws Throwable {
 		run(D8Task, argList, environment);
-
 	}
-
+	/**
+	 * 编译多个jar且输出多个路径
+	 * argList 为通用配置 run minsdk android_sdk路径等
+	 * 不可有 --output及输入文件
+	 */
+	public static void runD8BatchTask(List<String> inputFiles, List<String> outputFiles, List<String> argList, Map<String, String> environment) throws Throwable {
+		// 输出
+		argList.add(String.join("|", outputFiles));
+		// 输入
+		argList.add(String.join("|", inputFiles));
+		
+		run(D8BatchTask, argList, environment);
+	}
+	
 	public static void runR8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
@@ -65,15 +80,7 @@ public class D8TaskWrapper {
 		cmdList.add(className);
 
 		cmdList.addAll(argList);
-		/*
-		 abcd.wf j62 = abcd.xf.j6(cmdList, null, environment, true, null, null);
-
-		 if (j62.DW() != 0) {
-		 byte[] j6 = j62.j6();
-		 String error = new String(j6);
-		 throw new RuntimeException(error);
-		 }
-		 */
+		
 
 		//*
 		String[] args = cmdList.toArray(new String[cmdList.size()]);

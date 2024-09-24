@@ -272,7 +272,7 @@ public class AssetInstallationService {
 		return this.v5;
     }
 	
-	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
+	ThreadPoolService executorsService = ThreadPoolService.getDefaultThreadPoolService();
 	
 	
     public void we() {

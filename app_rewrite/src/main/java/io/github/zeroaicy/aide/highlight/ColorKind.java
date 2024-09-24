@@ -63,7 +63,7 @@ public enum ColorKind {
 	private int customTypefaceStyle = -1;
 
 
-	public ColorKind(String colorKindKey, String colorName, int lightColorId, int darkColorId){
+	private ColorKind(String colorKindKey, String colorName, int lightColorId, int darkColorId){
 
 		// 作为唯一标志
 		this.key = colorKindKey;
@@ -76,7 +76,7 @@ public enum ColorKind {
 		this.defaultTypefaceStyle = -1;
 	}
 
-	public ColorKind(String colorKindKey, String colorName, int lightColorId, int darkColorId, int typefaceStyle){
+	private ColorKind(String colorKindKey, String colorName, int lightColorId, int darkColorId, int typefaceStyle){
 		// 作为唯一标志
 		this.key = colorKindKey;
 

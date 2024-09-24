@@ -51,8 +51,8 @@ public class CodeTheme {
 
 		// 加载自定义高亮
 		Map<String, ?> customColorMap = codeThemePreferences.getAll();
-		Set<Map.Entry<String, ?>> entrySet = customColorMap.entrySet();
-		entrySet.removeIf(new Predicate<Map.Entry<String, ?>>(){
+		
+		customColorMap.entrySet().removeIf(new Predicate<Map.Entry<String, ?>>(){
 				@Override
 				public boolean test(Map.Entry<String, ?> entry) {
 					// 过滤非int类型
@@ -62,7 +62,7 @@ public class CodeTheme {
 			});
 
 		// 填充自定义高亮
-		for (Map.Entry<String, ?> entry : entrySet) {
+		for (Map.Entry<String, ?> entry : customColorMap.entrySet()) {
 			long colorValue = (Long) entry.getValue();
 			int[] values = separateLong2int(colorValue);
 			int lightColor = values[0];

@@ -39,7 +39,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	private static final String TAG = "ZeroAicyProjectService";
 
 	// 使用ProjectService的实现类的类名作为线程池标记
-	private static final ThreadPoolService executorsService = ThreadPoolService.getThreadPoolService(ZeroAicyProjectService.class.getName());
+	private static final ThreadPoolService executorsService = ThreadPoolService.getThreadPoolService(ZeroAicyProjectService.class.getName(), 1);
 
 	/**
 	 * 使用此线程池的有: AaptService 
@@ -421,7 +421,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			// ProjectService.c::run() -> DW() -> init()
 			init(); 
 
-			final ProjectService.d d = new d(z);
+			final ProjectService.d d = new ProjectService.d(z);
 			ServiceContainer.aj(new Runnable(){
 					@Override
 					public void run() {

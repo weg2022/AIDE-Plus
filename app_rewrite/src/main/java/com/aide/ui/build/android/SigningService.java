@@ -1,11 +1,13 @@
 package com.aide.ui.build.android;
 
 import abcd.ed;
+import android.app.Activity;
 import androidx.annotation.Keep;
 import com.aide.common.MessageBox;
 import com.aide.common.ValueRunnable;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
+import com.aide.ui.ServiceContainer;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.utils.jks.JksKeyStore;
@@ -24,8 +26,6 @@ import java.util.Collections;
 import java.util.Date;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
-import com.aide.ui.ServiceContainer;
-import android.app.Activity;
 
 public class SigningService {
 

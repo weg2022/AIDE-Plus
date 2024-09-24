@@ -118,7 +118,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 	}
 
 	// 默认子线程
-	ThreadPoolService executorsService = ThreadPoolService.getExecutorsService();
+	ThreadPoolService executorsService = ThreadPoolService.getDefaultThreadPoolService();
 	// ui进程
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
 

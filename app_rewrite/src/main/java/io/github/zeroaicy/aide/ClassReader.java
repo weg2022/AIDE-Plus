@@ -13,9 +13,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Method;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import androidx.annotation.Keep;
 
+@Keep
 public class ClassReader {
-	private static final String TAG2 = "ZeroAicyClassReader";
+	private static final String TAG3 = "ZeroAicyClassReader";
 
 	private static final String TAG = "ZeroAicyClassReader";
 
@@ -127,7 +132,7 @@ public class ClassReader {
             Class.forName(DefaultMethodAllowedListClass).getMethod("hasDefaultMethod", String.class);
         }
 		catch (Throwable e) {
-			Log.d(TAG, "isDirect false");
+			Log.e(TAG, "isDirect false", e);
 			return false;
         }
         return true;
@@ -156,6 +161,10 @@ public class ClassReader {
 		}
 		catch (Throwable e) {
 			notReadClassFileLib();
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(stringWriter);
+			e.printStackTrace(printWriter);
+			return new StringReader(stringWriter.getBuffer().toString());
 		}
 		return null;
 	}
