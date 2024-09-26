@@ -62,6 +62,7 @@ jint JNI_OnLoad(JavaVM* vm, void*) {
         heap[j + 1] = kAllocatedMemorySize;
         heap[j + 2] = kAllocatedMemorySize;
         heap[j + 3] = kAllocatedMemorySize;
+        break;
       }
       break;
     }
