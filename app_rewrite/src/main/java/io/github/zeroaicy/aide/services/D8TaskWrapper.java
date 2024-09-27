@@ -29,7 +29,7 @@ public class D8TaskWrapper {
 		run(D8Task, argList);
 
 	}
-	
+
 	public static void runD8Task(List<String> argList, Map<String, String> environment) throws Throwable {
 		run(D8Task, argList, environment);
 	}
@@ -43,10 +43,10 @@ public class D8TaskWrapper {
 		argList.add(String.join("|", outputFiles));
 		// 输入
 		argList.add(String.join("|", inputFiles));
-		
+
 		run(D8BatchTask, argList, environment);
 	}
-	
+
 	public static void runR8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
@@ -80,40 +80,44 @@ public class D8TaskWrapper {
 		cmdList.add(className);
 
 		cmdList.addAll(argList);
-		
+
 
 		//*
 		String[] args = cmdList.toArray(new String[cmdList.size()]);
 		System.out.println(cmdList);
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
 		processBuilder.environment().putAll(environment);
-		
-		
+
+
 		// 运行进程
 		Process process = processBuilder.start();
-		
+
 		// 读取错误流
 		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream());
 		Thread thread = new Thread(errorStreamReader);
-		thread.start();		
+		thread.start();
+
 		// 读取输出流
 		D8TaskWrapper.ProcessStreamReader inputStreamReader = new ProcessStreamReader(process.getInputStream());
 		Thread inputStreamReaderThread = new Thread(inputStreamReader);
 		inputStreamReaderThread.start();		
-		
+
 		try {
 			// 等待 r8进程运行完
 			// 再此之前必须读取输出流和错误流
 			// 否则缓存池用完会阻塞
 			process.waitFor();
-			
+
 		}
 		catch (Throwable e) {
 			e.printStackTrace();
 		}
-		
+
 		String error = errorStreamReader.getError();
-		if (process.exitValue() != 0 && !TextUtils.isEmpty(error)) {
+		if (process.exitValue() != 0) {
+			if (TextUtils.isEmpty(error)) {
+				error = inputStreamReader.getError();
+			}
 			throw new Error(error);
 		}
 		//*/
@@ -156,7 +160,7 @@ public class D8TaskWrapper {
 			}
 		}
 	}
-	
+
 	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		argsList.add("--thread-count");
@@ -166,19 +170,19 @@ public class D8TaskWrapper {
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));
 
-		if ( file_per_class_file ){
+		if (file_per_class_file) {
 			argsList.add("--file-per-class-file");
 		}
-		if ( intermediate ){
+		if (intermediate) {
 			argsList.add("--intermediate");
 		}
-		if ( !TextUtils.isEmpty(user_androidjar) ){
+		if (!TextUtils.isEmpty(user_androidjar)) {
 			argsList.add("--lib");
 			argsList.add(user_androidjar);
 		}
 
-		if ( dependencyLibs != null ){
-			for ( String librarie : dependencyLibs ){
+		if (dependencyLibs != null) {
+			for (String librarie : dependencyLibs) {
 				argsList.add("--classpath");
 				argsList.add(librarie);
 			}

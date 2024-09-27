@@ -197,31 +197,32 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("Dexing - Libraries", 62);
 
 			List<String> dependencyLibDexs = new ArrayList<>();
-
-			String dependencyMergerFile = getDependencyMergerFilePath();
+			// jar缓存目录
+			String defaultJarDexDirPath = getDefaultJarDexDirPath();
 
 			//缓存目录都不存在，全量dexing
-			boolean existsCacheDir = new File(dependencyMergerFile).exists();
+			boolean existsCacheDir = new File(defaultJarDexDirPath).exists();
 
 			//dexing 没有Jardex缓存的依赖
 			List<String> dexingLibs = getDexingLibs();
 			List<String> needDexingLibs = new ArrayList<>();
 
-			for ( String libPath: dexingLibs ){
+			for ( String inputJarFilePath: dexingLibs ){
 				checkInterrupted();
 
-				File jarFile = new File(libPath);
-				String dexCachePath = getJarDexCachePath(libPath);
-				File dexCacheFile = new File(dexCachePath);
+				File inputJarFile = new File(inputJarFilePath);
+				String outputDexZipFile = getJarDexCachePath(inputJarFilePath);
+				File dexCacheFile = new File(outputDexZipFile);
 
 				//根据时间戳判断是否需要dexing
-				if ( isBuildRefresh() || ! existsCacheDir
+				if ( isBuildRefresh() 
+					|| ! existsCacheDir
 					|| !dexCacheFile.exists() 
-					|| jarFile.lastModified() > dexCacheFile.lastModified() ){
+					|| inputJarFile.lastModified() > dexCacheFile.lastModified() ){
 					// 需要重写dexing，添加进dexing列表
-					needDexingLibs.add(libPath);
+					needDexingLibs.add(inputJarFilePath);
 				}else{
-					dependencyLibDexs.add(dexCachePath);
+					dependencyLibDexs.add(outputDexZipFile);
 				}
 			}
 
@@ -249,8 +250,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				// 填充任务列表
 				fillDexingJarTasks(needDexingLibs, configuration, taskDoneLister, tasks);
 
-
-				ThreadPoolService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 8);
+				long now = nowTime();
+				
+				ThreadPoolService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 4);
 				List<Future<DexingJarTask>> futures = threadPoolService.invokeAll(tasks);
 				for ( Future<DexingJarTask> future : futures ){
 					// // 这会阻塞直到任务完成或抛出异常
@@ -262,27 +264,28 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 						dependencyLibDexs.add(dexingJarTask.outputDexZipFile);
 					}
 				}
+				
+				logDebug("Dexing - Libraries 共用时: " + (nowTime() - now) + "ms");
 			}
 			if ( !isMergingJarDexFiles(dependencyLibDexs) ){
 				Log.d(TAG, "缓存文件没有更新，不需要合并");
-				return dependencyMergerFile;
+				return defaultJarDexDirPath;
 			}
+			
+			// 合并依赖
+			MergingJarDexFiles(dependencyLibDexs, getDependencyMergerFilePath());
 
-			checkInterrupted();
-
-			MergingJarDexFiles(dependencyLibDexs, dependencyMergerFile);
-
-			return dependencyMergerFile;
+			return defaultJarDexDirPath;
 		}
 		/**
 		 * 对需要dexing的Jar进行分组
 		 */
 		private void fillDexingJarTasks(List<String> needDexingLibs, DexingJarTask.Configuration configuration, DexingJarTask.TaskDoneLister taskDoneLister, List<DexingJarTask> tasks){
-			AtomicInteger dexingingCount = configuration.dexingingCount;
+			
 			final int needDexingLibsSize = needDexingLibs.size();
 			
 			long filterThreshold = 8 * 1024 * 1024;
-			long filterThreshold2 = 2 * 1024 * 1024;
+			long filterThreshold2 = 8 * 1024 * 1024;
 
 			for ( int index = 0; index < needDexingLibsSize; index++ ){
 
@@ -311,8 +314,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 				long smallInputJarFilesSize = bigInputJarFileSize;
 				// 在阈值内
-				while ( smallInputJarFiles.size() < 16
-					   && smallInputJarFilesSize < filterThreshold2 
+				while (smallInputJarFilesSize < filterThreshold2 
 					   && index < needDexingLibsSize ){
 					String inputJarFile2 = needDexingLibs.get(index);
 					String outputDexZipFile2 = getJarDexCachePath(inputJarFile2);
@@ -339,11 +341,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				DexingJarTask dexingJarTask = new DexingJarTask(smallInputJarFiles, smallOutputDexZipFiles, configuration);
 				dexingJarTask.setTaskDoneLister(taskDoneLister);
 				tasks.add(dexingJarTask);
-				logDebug(String.format("DexingJarTask内文件 (%d/%d)", dexingingCount.get(), smallInputJarFilesSize));
+				logDebug(String.format("DexingJarTask内文件 %d", smallInputJarFiles.size()));
 			}
 		}
 
-		public void MergingJarDexFiles(List<String> dependencyLibDexs, String dependencyMergerFile){
+		public void MergingJarDexFiles(List<String> dependencyLibDexs, String dependencyMergerFile) throws Throwable{
 			showProgress("Merging - Libraries", 65);
 			List<String> argsList  = new ArrayList<String>();
 			String user_androidjar = null;
@@ -357,9 +359,11 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				D8TaskWrapper.runD8Task(argsList, environment);
 			}
 			catch (Throwable e){
-				//删除缓存
+				
+				// 有错误时，删除缓存
 				new File(dependencyMergerFile).delete();
-				//throw e;
+				
+				throw e;
 			}
 			logDebug("合并依赖库，已输出: " + dependencyMergerFile);
 		}
