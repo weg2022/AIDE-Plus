@@ -81,4 +81,18 @@
         <item name="icon_view">@drawable/ic_l_view_dark</item>
         <item name="theme_name">Material</item>
     </style>
+	
+	<style name="ActivityPreferencesThemeDark" parent="@android:style/Theme.Material">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:dialogTheme">@style/DialogThemeDark</item>
+        <item name="android:alertDialogTheme">@style/AlertDialogThemeDark</item>
+        <item name="android:colorPrimary">@color/primary_material</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark_material</item>
+        <item name="android:colorAccent">@color/accent_material</item>
+		<!-- ActionBar Tab内Text禁用全部大写 -->
+		<item name="android:actionBarTabTextStyle">@style/App.Widget.Material3.Light.ActionBar.TabText</item>
+		
+		<item name="theme_name">Material</item>
+    </style>
+
 </resources>

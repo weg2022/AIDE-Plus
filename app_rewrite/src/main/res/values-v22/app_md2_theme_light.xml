@@ -38,6 +38,8 @@
         <item name="android:actionBarTabStyle">@style/App.Widget.Material3.Light.ActionBar.TabView</item>
 		<!-- ActionBar Tab内Text禁用全部大写 -->
 		<item name="android:actionBarTabTextStyle">@style/App.Widget.Material3.Light.ActionBar.TabText</item>
+		<item name="actionBarTabTextStyle">@style/App.Widget.Material3.Light.ActionBar.TabText</item>
+		
 		<!-- dialogTheme主题 -->
         <item name="android:dialogTheme">@style/DialogThemeLight</item>
         <!-- alertDialogTheme主题 -->
@@ -86,8 +88,19 @@
 		
 		<item name="theme_name">Material</item>
     </style>
-	<!-- 原始风格 结束 -->
 
+	
+	<style name="ActivityPreferencesThemeLight" parent="@android:style/Theme.Material.Light">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:dialogTheme">@style/DialogThemeLight</item>
+        <item name="android:alertDialogTheme">@style/AlertDialogThemeLight</item>
+        <item name="android:colorPrimary">@color/primary_material_light</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark_material_light</item>
+        <item name="android:colorAccent">@color/accent_material_light</item>
+        <!-- ActionBar Tab内Text禁用全部大写 -->
+		<item name="android:actionBarTabTextStyle">@style/App.Widget.Material3.Light.ActionBar.TabText</item>
+        <item name="theme_name">Material</item>
+    </style>
 	
 
 </resources>
