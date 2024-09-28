@@ -11,6 +11,7 @@ import com.aide.ui.command.KeyStrokeCommand;
 import com.aide.ui.command.MenuCommand;
 import abcd.tf;
 import androidx.annotation.Keep;
+import android.content.ComponentName;
 
 @Keep
 public class OpenAideTermux implements KeyStrokeCommand, MenuCommand {
@@ -99,7 +100,13 @@ public class OpenAideTermux implements KeyStrokeCommand, MenuCommand {
 		}
 	
 		Context context = ServiceContainer.getContext();
-		Intent launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage("com.aide.termux");
+		Intent launchIntentForPackage;
+		if ( "io.github.zeroaicy.aide2".equals( context.getPackageName()) ){
+			launchIntentForPackage = new Intent().setComponent(new ComponentName(context, "com.termux.app.TermuxActivity"));
+		}else{
+			launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage("com.aide.termux");
+
+		}
 		if (launchIntentForPackage == null) {
 			com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "AIDE-Termux未安装");
 			return true;
