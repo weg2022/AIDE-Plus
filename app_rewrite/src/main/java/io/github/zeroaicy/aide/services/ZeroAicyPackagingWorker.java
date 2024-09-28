@@ -197,12 +197,10 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			showProgress("Dexing - Libraries", 62);
 
 			List<String> dependencyLibDexs = new ArrayList<>();
-			// jar缓存目录
-			String defaultJarDexDirPath = getDefaultJarDexDirPath();
 
 			//缓存目录都不存在，全量dexing
-			boolean existsCacheDir = new File(defaultJarDexDirPath).exists();
-
+			boolean existsCacheDir = new File(getDefaultJarDexDirPath()).exists();
+			boolean isBuildRefresh = isBuildRefresh() || ! existsCacheDir;
 			//dexing 没有Jardex缓存的依赖
 			List<String> dexingLibs = getDexingLibs();
 			List<String> needDexingLibs = new ArrayList<>();
@@ -215,8 +213,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				File dexCacheFile = new File(outputDexZipFile);
 
 				//根据时间戳判断是否需要dexing
-				if ( isBuildRefresh() 
-					|| ! existsCacheDir
+				if ( isBuildRefresh
 					|| !dexCacheFile.exists() 
 					|| inputJarFile.lastModified() > dexCacheFile.lastModified() ){
 					// 需要重写dexing，添加进dexing列表
@@ -267,15 +264,17 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 				
 				logDebug("Dexing - Libraries 共用时: " + (nowTime() - now) + "ms");
 			}
+			String dependencyMergerFilePath = getDependencyMergerFilePath();
+			
 			if ( !isMergingJarDexFiles(dependencyLibDexs) ){
 				Log.d(TAG, "缓存文件没有更新，不需要合并");
-				return defaultJarDexDirPath;
+				return dependencyMergerFilePath;
 			}
 			
 			// 合并依赖
-			MergingJarDexFiles(dependencyLibDexs, getDependencyMergerFilePath());
+			MergingJarDexFiles(dependencyLibDexs, dependencyMergerFilePath);
 
-			return defaultJarDexDirPath;
+			return dependencyMergerFilePath;
 		}
 		/**
 		 * 对需要dexing的Jar进行分组
