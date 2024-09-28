@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AaptService$c {
+public class AaptService$Args {
 
     private final Map<String, List<String>> DW;
     private final Map<String, String> EQ;
@@ -37,7 +37,7 @@ public class AaptService$c {
     private final String FH;
 
 	//androidJar File
-    private final String Hw;
+    public final String androidSdkFilePath;
 
     private final List<String> J0;
 
@@ -60,10 +60,11 @@ public class AaptService$c {
 
 	// mainProjectGenDir
     private final String Zo;
-    private boolean aM;
+	
+    public boolean isBuildRefresh;
 
 	//resource.ap_
-    private final String gn;
+    public final String resourcesApPath;
     private boolean j3;
 
     private final String j6;
@@ -99,7 +100,7 @@ public class AaptService$c {
 
             j6();
 
-            File parentFile = new File(this.gn).getParentFile();
+            File parentFile = new File(this.resourcesApPath).getParentFile();
             if (!parentFile.exists()) {
                 parentFile.mkdirs();
             }
@@ -112,7 +113,7 @@ public class AaptService$c {
 
             Zo();
             if (!this.XL) {
-                if (this.aM) {
+                if (this.isBuildRefresh) {
                     v5();
                 }
                 AaptService$ErrorResult Ws = Ws();
@@ -125,7 +126,7 @@ public class AaptService$c {
         }
     }
 
-    public AaptService$c(AaptService aaptService, String aaptPath, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean z2, boolean z3) {
+    public AaptService$Args(AaptService aaptService, String aaptPath, String str2, String str3, Map<String, List<String>> map, List<String> list, List<String> list2, String androidJarFilePath, String str5, List<String> list3, String resourceAp_FilePath, Map<String, String> genPackageNameMap, Map<String, String> map3, Map<String, String> map4, Map<String, String> map5, Map<String, List<String>> map6, Map<String, String> map7, boolean z, boolean isBuildRefresh, boolean z3) {
 
 		this.Mr = aaptService;
         this.j6 = str2;
@@ -134,10 +135,10 @@ public class AaptService$c {
         this.FH = aaptPath;
         this.we = list;
         this.J0 = list2;
-        this.Hw = androidJarFilePath;
+        this.androidSdkFilePath = androidJarFilePath;
         this.Zo = str5;
         this.VH = list3;
-        this.gn = resourceAp_FilePath;
+        this.resourcesApPath = resourceAp_FilePath;
 
 		//genDir -> packageName，但只有子项目，子项目的子项目没有
         this.EQ = genPackageNameMap;
@@ -146,7 +147,7 @@ public class AaptService$c {
         this.J8 = map5;
         this.tp = map6;
         this.XL = z;
-        this.aM = z2;
+        this.isBuildRefresh = isBuildRefresh;
         this.j3 = z3;
         this.QX = new HashMap<String, String>(map4);
         this.Ws = new HashMap<>();
@@ -155,7 +156,7 @@ public class AaptService$c {
         }
     }
 
-    public static String DW(AaptService$c aaptService$c) {
+    public static String DW(AaptService$Args aaptService$c) {
         return aaptService$c.j6;
     }
 
@@ -283,7 +284,7 @@ public class AaptService$c {
 		return lastInputJarFilesSet;
 	}
 
-    public static Map<String, String> FH(AaptService$c aaptService$c) {
+    public static Map<String, String> FH(AaptService$Args aaptService$c) {
         return aaptService$c.Ws;
     }
 
@@ -357,15 +358,15 @@ public class AaptService$c {
 
             ArrayList<File> arrayList2 = new ArrayList<>();
             Hw(new File(str), "R.java", arrayList2);
-            if (!this.aM && !arrayList2.isEmpty() && u7(arrayList, arrayList2)) {
+            if (!this.isBuildRefresh && !arrayList2.isEmpty() && u7(arrayList, arrayList2)) {
                 AppLog.DW("Omitting aapt call to regenerate R.java in " + str + " (is uptodate)");
                 return new AaptService$ErrorResult(false);
             }
             ArrayList<String> arrayList3 = new ArrayList<>();
             if (str.equals(this.Zo)) {
-                arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.Hw, "--no-version-vectors"}));
+                arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             } else {
-                arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.Hw, "--no-version-vectors"}));
+                arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             }
             for (String str4 : list) {
                 if (new File(str4).exists()) {
@@ -417,18 +418,18 @@ public class AaptService$c {
                         Hw(new File(str3), null, arrayList2);
                     }
                 }
-                arrayList2.add(new File(this.Hw));
+                arrayList2.add(new File(this.androidSdkFilePath));
                 Hw(new File(this.Zo), "R.java", arrayList);
-                arrayList.add(new File(this.gn));
-                if (!this.aM && !arrayList.isEmpty() && new File(this.gn).exists() && u7(arrayList2, arrayList)) {
+                arrayList.add(new File(this.resourcesApPath));
+                if (!this.isBuildRefresh && !arrayList.isEmpty() && new File(this.resourcesApPath).exists() && u7(arrayList2, arrayList)) {
                     AppLog.DW("Omitting aapt package call (is uptodate)");
                     return new AaptService$ErrorResult(false);
                 }
                 ArrayList<String> arrayList3 = new ArrayList<>();
                 if (this.j3) {
-                    arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "-I", this.Hw, "-F", this.gn}));
+                    arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "-I", this.androidSdkFilePath, "-F", this.resourcesApPath}));
                 } else {
-                    arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "--debug-mode", "-I", this.Hw, "-F", this.gn}));
+                    arrayList3.addAll(Arrays.asList(new String[]{this.FH, "package", "-f", "--no-crunch", "--auto-add-overlay", "--debug-mode", "-I", this.androidSdkFilePath, "-F", this.resourcesApPath}));
                 }
                 for (String str4 : this.VH) {
                     if (new File(str4).exists()) {

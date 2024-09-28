@@ -32,6 +32,7 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import com.aide.ui.build.android.AndroidProjectBuildServiceKt;
+import com.aide.ui.build.android.AaptService$Args;
 
 public class Aapt2TaskFromZeroAicy {
 
@@ -55,13 +56,13 @@ public class Aapt2TaskFromZeroAicy {
 		}
 	}
 
-	public static AaptService$ErrorResult proxyAapt(Object aapt$c) throws Exception {
+	public static AaptService$ErrorResult proxyAapt(AaptService$Args args) throws Exception {
 		long oldTime = System.currentTimeMillis();
 		
 		AaptService$ErrorResult proxyAapt = null;
 		AaptServiceArgs aaptServiceArgs = null;
 		try {
-			aaptServiceArgs = new AaptServiceArgs(aapt$c);
+			aaptServiceArgs = new AaptServiceArgs(args);
 			
 			if( aaptServiceArgs.mainPackageName == null){
 				return new AaptService$ErrorResult("没有找到主项目包名，请重新运行aapt2");
@@ -252,6 +253,7 @@ public class Aapt2TaskFromZeroAicy {
 		Map<String, String> genPackageNameMap = aaptServiceArgs.genPackageNameMap;
 		//遍历所有包名
 		for (Map.Entry<String, String> subProjectGen : genPackageNameMap.entrySet()) {
+			
 			String subGenDirPath = subProjectGen.getKey();
 			if (mainPackageName.equals(subProjectGen.getValue())) {
 				// 跳过主项目包名
@@ -269,11 +271,11 @@ public class Aapt2TaskFromZeroAicy {
 			// R怎么只包含自己的资源呢🤔🤔🤔🤔
 			// 根据R.txt生成
 			if (subRtxtPath == null) {
+				
 				//没有R.txt使用主项目的
 				//子项目R.java路径
 				File subRJavaFile = new File(subProjectGen.getKey(), subRJavaAbsolutePath);
 				rJavaLinelist.set(packageNameLineCount, packageNameLine.replace(mainPackageName, subPackageName));
-
 				if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
 					subRJavaFile.getParentFile().mkdirs();
 					AaptServiceArgs.writeLines(subRJavaFile, rJavaLinelist);
@@ -301,13 +303,24 @@ public class Aapt2TaskFromZeroAicy {
 				//向主项目gen目录写入，aar子项目不需要
 				File subRJavaFile = new File(mainProjectGenDir, subRJavaAbsolutePath);
 				if (!subRJavaFile.exists() || subRJavaFile.lastModified() < resourcesApLastModified) {
+					
 					subRJavaFile.getParentFile().mkdirs();
 					//跳过此R生成
 					Aapt.generateR(subRJavaFile, subPackageName, subSymbols);
 				}
+				// AAr子项目不需要，到AIDE库项目需要啊
+				if( !subGenDirPath.endsWith(".aar/gen")){
+					File subRJavaFile2 = new File(subProjectGen.getKey(), subRJavaAbsolutePath);
+					if (!subRJavaFile2.exists() || subRJavaFile2.lastModified() < resourcesApLastModified) {
+
+						subRJavaFile2.getParentFile().mkdirs();
+						//跳过此R生成
+						Aapt.generateR(subRJavaFile2, subPackageName, subSymbols);
+					}
+					
+				}
+				
 			}
-
-
 		}
 		return null;
 	}
@@ -551,15 +564,21 @@ public class Aapt2TaskFromZeroAicy {
 			}
 			return "";
 		}
-
-		if (rTxtPath.endsWith("/build/gen")) {
-			//子项目
-			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/build/gen".length());
-			File rTxtFile = new File(rTxtPath, "R.txt");
-			if (rTxtFile.exists()) {
-				return rTxtFile.getAbsolutePath();
-			}
-		}
+		// 不对仅有主主项目才有 intermediates/R.txt
+//		if (rTxtPath.endsWith("/build/gen")) {
+//			//子项目
+//			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/build/gen".length());
+//			File rTxtFile = new File(rTxtPath, "R.txt");
+//			if (rTxtFile.exists()) {
+//				return rTxtFile.getAbsolutePath();
+//			}
+//			// intermediates中的R.txt
+//			// 这样可以保证生成的R.java比较贴合
+//			File intermediatesRtxt = new File(rTxtFile.getParentFile(), "build/bin/intermediates/R.txt");
+//			if ( intermediatesRtxt.exists() ) {
+//				return intermediatesRtxt.getAbsolutePath();
+//			}
+//		}
 		return null;
 	}
 
@@ -700,9 +719,9 @@ public class Aapt2TaskFromZeroAicy {
 		if (manifestXml != null && FileSystem.exists(manifestXml)) {
 			return manifestXml;
 		}
-		aaptServiceArgs.log.println("没有AndroidManifest文件玩尼玛\n");
+		aaptServiceArgs.log.println("没有AndroidManifest文件玩尼玛🐶\n");
 		//没辙了
-		throw new RuntimeException("没有AndroidManifest文件玩尼玛\n" + "Fuck you! Not found AndroidManifest file!!!");
+		throw new RuntimeException("没有AndroidManifest文件玩尼玛🐶\n" + "Fuck you! Not found AndroidManifest file🐶!!!");
 
 	}
 

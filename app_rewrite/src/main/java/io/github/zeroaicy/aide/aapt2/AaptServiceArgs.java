@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.ui.build.android.AaptService$c;
+import com.aide.ui.build.android.AaptService$Args;
 
 public class AaptServiceArgs {
 
@@ -75,10 +75,9 @@ public class AaptServiceArgs {
 
 	public final boolean shrinkResources;
 
-	public AaptServiceArgs(Object mAaptS$c_Object) {
-
-		AaptService$c mAaptS$c;
-		this.mAaptS$cRef = ReflectPie.on(mAaptS$c_Object);
+	public AaptServiceArgs(AaptService$Args args) {
+		
+		this.mAaptS$cRef = ReflectPie.on(args);
 
 		String currentAppHome = getCurrentAppHome();
 
@@ -109,12 +108,18 @@ public class AaptServiceArgs {
 		}
 
 
-		this.isBuildRefresh = ((Boolean)mAaptS$cRef.get("aM")).booleanValue();
-
-		this.androidJar = mAaptS$cRef.get("Hw");
-
+		this.isBuildRefresh = 
+		// ((Boolean)mAaptS$cRef.get("aM")).booleanValue();
+		 args.isBuildRefresh;
+		 
+		this.androidJar = 
+			// mAaptS$cRef.get("Hw");
+			args.androidSdkFilePath;
 		//resource.ap_
-		this.resourcesApPath = mAaptS$cRef.get("gn");
+		this.resourcesApPath = 
+				// mAaptS$cRef.get("gn");
+		args.resourcesApPath;
+		
 		// 构建缓存路径
 		this.buildBin = new File(this.resourcesApPath).getParent();
 		// 日志输出

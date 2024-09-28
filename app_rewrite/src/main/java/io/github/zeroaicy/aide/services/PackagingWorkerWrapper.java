@@ -155,16 +155,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			//  build/bin | bin/[debug | release]/dex
 			this.outDirPath = outDirPath;
 			this.zeroAicyBuildGradle = getZeroAicyBuildGradle();
-			try {
-				this.scopeTypeQuerier = new ScopeTypeQuerier(this.dependencyLibs, zeroAicyBuildGradle);
-			}
-			catch (Throwable e) {
-				if (e instanceof Error) {
-					throw (Error)e;
-				}
-				throw new Error("scopeTypeQuerier创建错误", e);
-			}
-
+			
 			//Zo
 			this.defaultJarDexDirPath = this.getIntermediatesChildDirPath("jardex");
 
@@ -266,6 +257,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String getDefaultIntermediatesDirPath() {
 			return defaultIntermediatesDirPath;
 		}
+		
 		public String getMergerCacheDirPath() {
 			return this.mergerCachePath;
 		}
@@ -497,7 +489,20 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String[] getAllDependencyLibs() {
 			return this.dependencyLibs;
 		}
-		public ScopeTypeQuerier getScopeTypeQuerier() {
+		public ScopeTypeQuerier getScopeTypeQuerier() throws Throwable {
+			if( this.scopeTypeQuerier == null ){
+				this.scopeTypeQuerier = new ScopeTypeQuerier(this.dependencyLibs, getZeroAicyBuildGradle());
+
+/*				try {
+				}
+				catch (Throwable e) {
+					if (e instanceof Error) {
+						throw (Error)e;
+					}
+					throw new Error("scopeTypeQuerier创建错误", e);
+				}
+*/
+			}
 			return this.scopeTypeQuerier;
 		}
 

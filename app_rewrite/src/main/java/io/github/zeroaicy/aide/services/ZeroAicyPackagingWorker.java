@@ -581,7 +581,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 		/**
 		 * 初始化环境
 		 */
-		private void initBuildEnvironment(){
+		private void initBuildEnvironment() throws Throwable{
 
 			if ( isBuildRefresh() ){
 				deleteCacheDir();
@@ -599,9 +599,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			File defaultClassDexCacheDir = new File(getDefaultClassDexCacheDirPath());
 			File mergerCacheDir = new File(getMergerCacheDirPath());
 
-			FileUtil.deleteFolder(defaultJarDexDir);
-			FileUtil.deleteFolder(defaultClassDexCacheDir);
-			FileUtil.deleteFolder(mergerCacheDir);
+			FileUtil.deleteFolder(new File(getDefaultIntermediatesDirPath()));
 
 			defaultJarDexDir.mkdirs();
 			defaultClassDexCacheDir.mkdirs();
@@ -877,7 +875,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			logDebug("Signing APK共用时: " + (nowTime() - now) + "ms");
 		}
 
-		private void packagingLibgdxNativesResources(PackagingStream packagingZipOutput) throws IOException{
+		private void packagingLibgdxNativesResources(PackagingStream packagingZipOutput) throws IOException, Throwable{
 			logDebug("从LibgdxNatives添加资源");
 			for ( String libgdxNativesLibPath : getScopeTypeQuerier().getLibgdxNativesLibs() ){
 				this.libgdxNativesTransformer.setCurLibgdxNativesLibsPath(libgdxNativesLibPath);
@@ -902,7 +900,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			}
 		}
 
-		private void packagingJarResources(PackagingStream packagingZipOutput) throws IOException{
+		private void packagingJarResources(PackagingStream packagingZipOutput) throws IOException, Throwable{
 
 			logDebug("从JAR文件添加资源");
 

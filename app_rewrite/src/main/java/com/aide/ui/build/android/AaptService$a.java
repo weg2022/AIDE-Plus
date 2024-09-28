@@ -12,7 +12,7 @@ class AaptService$a implements Callable<AaptService$ErrorResult> {
 	private AaptService$a.TaskFactory taskFactory;
 
 	public interface TaskFactory {
-		List<AaptService$c> getTasks();
+		List<AaptService$Args> getTasks();
 	} 
 
     public AaptService$a(AaptService aaptService, TaskFactory taskFactory) {
@@ -28,14 +28,14 @@ class AaptService$a implements Callable<AaptService$ErrorResult> {
     @Override
     public AaptService$ErrorResult call() {
         try {
-			List<AaptService$c> tasks = taskFactory.getTasks();
+			List<AaptService$Args> tasks = taskFactory.getTasks();
 
             boolean hasError = false;
-            for (AaptService$c cVar : tasks) {
+            for (AaptService$Args cVar : tasks) {
                 AaptService$ErrorResult aaptService$b = cVar.we();
                 hasError |= aaptService$b.hasError;
                 if (aaptService$b.errorInfo != null) {
-                    aaptService$b.syntaxErrorsMap = AaptService.v5(this.DW, AaptService$c.DW(cVar), AaptService$c.FH(cVar), aaptService$b.errorInfo);
+                    aaptService$b.syntaxErrorsMap = AaptService.v5(this.DW, AaptService$Args.DW(cVar), AaptService$Args.FH(cVar), aaptService$b.errorInfo);
                     return aaptService$b;
                 }
             }

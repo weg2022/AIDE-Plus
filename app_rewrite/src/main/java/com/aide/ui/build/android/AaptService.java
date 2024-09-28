@@ -185,7 +185,7 @@ public class AaptService {
         aaptService.J8(z);
     }
 
-    private AaptService$c tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
+    private AaptService$Args tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
 		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
 		
 		Map<String, String> jO = AndroidProjectSupport.jO(vy, str3);
@@ -194,7 +194,7 @@ public class AaptService {
 		Map<String, String> FN = AndroidProjectSupport.FN(vy, str3);
 		Map<String, List<String>> oY = AndroidProjectSupport.oY(vy, str3);
 		Map<String, String> Z1 = AndroidProjectSupport.Z1(vy, str3);
-		return new AaptService$c(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
+		return new AaptService$Args(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
     }
 
     private SyntaxError u7(String str, int i, String str2) {
@@ -251,8 +251,8 @@ public class AaptService {
 			// 但此线程池用的是项目服务线程池
 			AaptService$a.TaskFactory taskFactory = new AaptService$a.TaskFactory(){
 				@Override
-				public List<AaptService$c> getTasks() {
-					ArrayList<AaptService$c> arrayList = new ArrayList<>();
+				public List<AaptService$Args> getTasks() {
+					ArrayList<AaptService$Args> arrayList = new ArrayList<>();
 					for (String next : ServiceContainer.getProjectService().yS()) {
 						arrayList.add(tp(next, true, false, false, null, str, we));
 					}
@@ -281,8 +281,8 @@ public class AaptService {
 			// 改成异步
 			AaptService$a.TaskFactory taskFactory = new AaptService$a.TaskFactory(){
 				@Override
-				public List<AaptService$c> getTasks() {
-					ArrayList<AaptService$c> arrayList = new ArrayList<>();
+				public List<AaptService$Args> getTasks() {
+					ArrayList<AaptService$Args> arrayList = new ArrayList<>();
 					if (z3) {
 						for (String str4 : ServiceContainer.getProjectService().yS()) {
 							if (str.equals(str4)) {

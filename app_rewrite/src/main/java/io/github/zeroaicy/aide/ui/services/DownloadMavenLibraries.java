@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import io.github.zeroaicy.util.FileUtil;
 
 public class DownloadMavenLibraries implements Callable<Void> {
 	
@@ -235,6 +236,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		}
 		catch (Throwable unused) {
 			Log.d(" Maven Download", dependencyString, unused);
+			FileUtil.deleteFolder(artifactPath);
 			return false;
 		}
 
