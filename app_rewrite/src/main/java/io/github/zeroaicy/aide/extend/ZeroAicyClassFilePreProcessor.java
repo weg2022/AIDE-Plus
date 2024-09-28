@@ -25,25 +25,23 @@ import java.io.StringReader;
 @Keep
 public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
-	Hashtable<String, ZipFile> M;
-	public ZeroAicyClassFilePreProcessor() {
-
-	}
+	public ZeroAicyClassFilePreProcessor() {}
 
 	private static ZeroAicyClassFilePreProcessor singleton;
-	
+
 	@Deprecated
 	public static boolean isDefaultMethod(String methodSignature) {
 		return false;//ClassReader.hasDefaultMethod(methodSignature);
 	}
-	
+
 	public static ClassFilePreProcessor getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyClassFilePreProcessor();
 		}
 		return singleton;
 	}
-	
+
+	// -> readZipEntry
 	@Override
 	public Reader QX(String zipFilePath, String className, String str3) {
 		if (className.endsWith(".class")) {
@@ -51,18 +49,20 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			if (readClassFile != null) {
 				return readClassFile;
 			}
-			return new StringReader("// 类解析器错误");
+			return new StringReader(String.format( "//类解析器错误 -> %s/%s\n", zipFilePath, className));
 		}
 		return super.QX(zipFilePath, className, str3);
 	}
 
 	//复用 ZipFile
+	// -> getZipFile
 	@Override
 	public ZipFile yS(String string) {
 		return super.yS(string);
 	}
-
-
+	
+	
+	// -> listZipEntry
 	@Override
 	public List<String> J8(String zipFilePath, String listZipEntryName) {
 
@@ -141,32 +141,37 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 		}
 	}
 
+	// -> collectClassAndJavaFiles
 	@Override
 	public void aM(String str, String str2, Vector<String> vector) {
         try {
             if (str2.length() > 0) {
                 str2 = str2 + File.separator;
             }
-            String[] list = new File(str + File.separatorChar).list();
-
-            if (list != null) {
-                for (String str3 : list) {
-                    String str4 = str + File.separatorChar + str3;
-                    if (new File(str4).isDirectory()) {
-                        aM(str4, str2 + str3, vector);
-                    } else if (str3.lastIndexOf(36) == -1 && str3.endsWith(".class")) {
-                        vector.add(str2 + str3);
-                    } else if (str3.endsWith(".java")) {
-                        vector.add(str2 + str3);
-                    }
-                }
-            }
-        }
+            String[] childNames = new File(str + File.separatorChar).list();
+			if (childNames == null) {
+				return;
+			}
+			for (String childName : childNames) {
+				String childPath = str + File.separatorChar + childName;
+				if (new File(childPath).isDirectory()) {
+					aM(childPath, str2 + childName, vector);
+				}
+				else if (childName.lastIndexOf(36) == -1 && childName.endsWith(".class")) {
+					vector.add(str2 + childName);
+				}
+				else if (childName.endsWith(".java")) {
+					vector.add(str2 + childName);
+				}
+			}
+		}
+        
 		catch (Throwable th) {
 
         }
     }
 
+	// -> collectClassAndJavaFiles
 	@Override
 	public String[] Ws(String str) {
         try {
@@ -177,9 +182,11 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
                     if (substring.indexOf("$") == -1) {
                         vector.add(substring);
                     }
-                } else if (new File(str).isDirectory()) {
+                }
+				else if (new File(str).isDirectory()) {
                     aM(str, "", vector);
-                } else {
+                }
+				else {
                     Enumeration<? extends ZipEntry> entries = yS(str).entries();
                     while (entries.hasMoreElements()) {
                         ZipEntry nextElement = entries.nextElement();
@@ -188,7 +195,9 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 							&& name.lastIndexOf('/') >= name.lastIndexOf('$')
 							&& name.endsWith(".class")) {
                             vector.add(name);
-                        } else if (!nextElement.isDirectory() && name.endsWith(".java")) {
+							continue;
+                        }
+						if (!nextElement.isDirectory() && name.endsWith(".java")) {
                             if (name.startsWith("src/") || name.startsWith("src\\")) {
                                 name = name.substring(4, name.length());
                             }
@@ -198,6 +207,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
                 }
             }
 			catch (Exception unused) {
+				
             }
             String[] strArr = new String[vector.size()];
             vector.copyInto(strArr);

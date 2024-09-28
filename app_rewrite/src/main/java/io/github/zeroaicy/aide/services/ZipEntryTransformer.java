@@ -110,10 +110,8 @@ public interface ZipEntryTransformer {
 			zipEntryName = zipEntryName.toLowerCase();
 			if (zipEntryName.endsWith(".class")
 				|| zipEntryName.endsWith(".java")) {
-
 				return null;
 			}
-
 			return zipEntry;
 		}
 	}

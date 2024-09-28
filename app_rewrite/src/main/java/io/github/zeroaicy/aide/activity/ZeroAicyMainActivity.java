@@ -4,16 +4,15 @@ import abcd.iy;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.Menu;
@@ -28,21 +27,12 @@ import android.widget.Toast;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.legacy.app.ActionBarDrawerToggle;
 import com.aide.common.AndroidHelper;
-import com.aide.common.AppLog;
-import com.aide.common.MessageBox;
-import com.aide.ui.AppPreferences;
 import com.aide.ui.MainActivity;
-import com.aide.ui.PromoNotificationAlarmReceiver;
 import com.aide.ui.ServiceContainer;
-import com.aide.ui.ThemedActionbarActivity;
-import com.aide.ui.activities.TrainerCourseActivity;
-import com.aide.ui.firebase.FireBaseLogEvent;
-import com.aide.ui.marketing.WhatsNewDialog;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.views.SplitView;
-import com.aide.ui.y;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
@@ -54,7 +44,6 @@ import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -64,7 +53,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ZeroAicyMainActivity extends MainActivity {
 
 
-	private static final String TAG_15255570984065567 = "ZeroAicyMainActivity";
+	private static final String TAG_155784065567 = "ZeroAicyMainActivity";
 
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
@@ -458,8 +447,15 @@ public class ZeroAicyMainActivity extends MainActivity {
 					@Override
 					public boolean onMenuItemClick(MenuItem _item) {
 						String cmdline = itemNameMap.get(itemName);
-
-						Intent launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
+						
+						Intent launchIntentForPackage;
+						if ( "io.github.zeroaicy.aide2".equals( getPackageName()) ){
+							launchIntentForPackage = new Intent().setComponent(new ComponentName(ZeroAicyMainActivity.this, "com.termux.app.TermuxActivity"));
+						}else{
+							launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
+							
+						}
+						
 						if (launchIntentForPackage == null) {
 							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
 							return true;

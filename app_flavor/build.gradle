@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
@@ -10,7 +10,7 @@ android {
         targetSdkVersion 28
         versionCode 2008210017
 		// [3.2.210316]
-        versionName "2.2.0.3.8-beta01"
+        versionName "2.2.0.3.8-beta02"
     }
 	signingConfigs{
 		release{

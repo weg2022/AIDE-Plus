@@ -134,7 +134,6 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 				if (lastVisibleFragment != null) {
 					beginTransaction.hide(lastVisibleFragment);
 				}
-
 				beginTransaction.show(mZeroAicySettingsFragment).commit();
                 break;
         }
