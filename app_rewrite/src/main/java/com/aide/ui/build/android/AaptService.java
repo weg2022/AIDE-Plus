@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import com.aide.ui.services.ZeroAicyProjectService;
+import androidx.annotation.Keep;
 
 public class AaptService {
 
@@ -42,7 +43,8 @@ public class AaptService {
 		this.Hw = context;
 		this.executorsService =  ZeroAicyProjectService.getProjectServiceThreadPoolService();
     }
-
+	
+	@Keep
     static void DW(AaptService aaptService, Map<String, List<SyntaxError>> map) {
         aaptService.XL(map);
     }
@@ -174,7 +176,8 @@ public class AaptService {
     static Context Zo(AaptService aaptService) {
         return aaptService.Hw;
     }
-
+	
+	@Keep
     static boolean gn(boolean z) {
         v5 = z;
         return z;
@@ -185,7 +188,7 @@ public class AaptService {
         aaptService.J8(z);
     }
 
-    private AaptService$Args tp(String str, boolean z, boolean z2, boolean z3, String str2, String str3, String str4) {
+    private AaptService$Args tp(String str, boolean z, boolean isBuildRefresh, boolean z3, String str2, String str3, String aaptPath) {
 		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
 		
 		Map<String, String> jO = AndroidProjectSupport.jO(vy, str3);
@@ -194,7 +197,7 @@ public class AaptService {
 		Map<String, String> FN = AndroidProjectSupport.FN(vy, str3);
 		Map<String, List<String>> oY = AndroidProjectSupport.oY(vy, str3);
 		Map<String, String> Z1 = AndroidProjectSupport.Z1(vy, str3);
-		return new AaptService$Args(this, str4, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, z2, z3);
+		return new AaptService$Args(this, aaptPath, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, isBuildRefresh, z3);
     }
 
     private SyntaxError u7(String str, int i, String str2) {
@@ -218,7 +221,8 @@ public class AaptService {
 		}
 		return AssetInstallationService.DW("aapt", false);
     }
-
+	
+	@Keep
     public void EQ(String str) {
 		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), str);
 		for (String str2 : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
@@ -239,7 +243,8 @@ public class AaptService {
 	}
 	
 	// AndroidProjectBuildService::yO -> Mr
-    public void Mr(final String str) {
+    @Keep
+	public void Mr(final String str) {
         try {
             final String we = we();
             if (this.DW != null) {
@@ -270,7 +275,8 @@ public class AaptService {
     public void aM(e eVar) {
 		this.FH = eVar;
     }
-
+	
+	@Keep
     public void j3(final String str, final String str2, final String str3, final boolean z, final boolean z2, final boolean z3) {
         try {
             final String we = we();

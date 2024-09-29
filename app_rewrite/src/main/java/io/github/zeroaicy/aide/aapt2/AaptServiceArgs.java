@@ -30,7 +30,7 @@ public class AaptServiceArgs {
 
 	AaptService AaptService;
 
-	private ReflectPie mAaptS$cRef;
+	AaptService$Args args;
 
 	public final String buildBin;
 
@@ -76,8 +76,7 @@ public class AaptServiceArgs {
 	public final boolean shrinkResources;
 
 	public AaptServiceArgs(AaptService$Args args) {
-		
-		this.mAaptS$cRef = ReflectPie.on(args);
+		this.args = args;
 
 		String currentAppHome = getCurrentAppHome();
 
@@ -109,16 +108,14 @@ public class AaptServiceArgs {
 
 
 		this.isBuildRefresh = 
-		// ((Boolean)mAaptS$cRef.get("aM")).booleanValue();
+		// ((Boolean)argsRef.get("aM")).booleanValue();
 		 args.isBuildRefresh;
 		 
-		this.androidJar = 
-			// mAaptS$cRef.get("Hw");
-			args.androidSdkFilePath;
+		// argsRef.get("Hw");
+		this.androidJar = args.androidSdkFilePath;
 		//resource.ap_
-		this.resourcesApPath = 
-				// mAaptS$cRef.get("gn");
-		args.resourcesApPath;
+		// argsRef.get("gn");
+		this.resourcesApPath = args.resourcesApPath;
 		
 		// 构建缓存路径
 		this.buildBin = new File(this.resourcesApPath).getParent();
@@ -126,16 +123,19 @@ public class AaptServiceArgs {
 		this.log = new PrintStream(Log.AsyncOutputStreamHold.createOutStream(new File(buildBin, "intermediates/aapt_log.log")));
 
 		//gen查找packageName
-		this.genPackageNameMap = mAaptS$cRef.get("EQ");
+		// argsRef.get("EQ");
+		this.genPackageNameMap = args.genPackageNameMap;
 
 		//gen对应的 res(包含res依赖，[0]为gen所在res)
-		this.genResDirsMap = mAaptS$cRef.get("tp");
+		// argsRef.get("tp");
+		this.genResDirsMap = args.genResDirsMap;
 
-		//fullCustomVar();
+		// fullCustomVar();
 
 
 		//主项目gen目录
-		this.mainProjectGenDir = mAaptS$cRef.get("Zo");
+		// argsRef.get("Zo");
+		this.mainProjectGenDir = args.mainProjectGenDir;
 
 		//主项目res目录
 		List<String> mainResDirs = this.genResDirsMap.get(this.mainProjectGenDir);
@@ -149,11 +149,13 @@ public class AaptServiceArgs {
 		}
 
 		//res -> bin的res(正好可以用于DataBinding存放脱糖的xml)
-		this.allResourceMap = mAaptS$cRef.get("u7");
-
-		List<String> assets = mAaptS$cRef.get("VH");
-		if (assets != null) {
-			this.assetsList.addAll(assets);
+		// argsRef.get("u7");
+		this.allResourceMap = args.allResourceMap;
+		
+		// argsRef.get("VH");
+		List<String> assetDirPaths = args.assetDirPaths;
+		if (assetDirPaths != null) {
+			this.assetDirPaths.addAll(assetDirPaths);
 		}
 
 
@@ -169,15 +171,20 @@ public class AaptServiceArgs {
 
 
 		// 子项目的gen目录
-		this.subProjectGens = mAaptS$cRef.get("we");
+		// argsRef.get("we");
+		this.subProjectGens = args.subProjectGens;
 		
-		this.variantManifestPaths = mAaptS$cRef.get("J0");
+		// argsRef.get("J0");
+		this.variantManifestPaths = args.variantManifestPaths;
 		
-		this.mergedAManifestMap = mAaptS$cRef.get("J8");
+		// argsRef.get("J8");
+		this.mergedAManifestMap = args.mergedAManifestMap;
 
-		this.injectedAManifestMap = mAaptS$cRef.get("QX");
-
-		this.aManifestMap = mAaptS$cRef.get("Ws");
+		// argsRef.get("QX");
+		this.injectedAManifestMap = args.injectedAManifestMap;
+		
+		// argsRef.get("Ws");
+		this.aManifestMap = args.aManifestMap;
 
 		this.mainPackageName = this.genPackageNameMap.get(this.mainProjectGenDir);
 		
@@ -255,7 +262,7 @@ public class AaptServiceArgs {
 	//主项目gen目录 Zo
 	public final String mainProjectGenDir;
 
-	public final List<String> assetsList = new ArrayList<>();
+	public final List<String> assetDirPaths = new ArrayList<>();
 
 	//genDir -> packageName，但只有子项目，子项目的子项目没有
 	public final Map<String, String> genPackageNameMap;
@@ -284,19 +291,24 @@ public class AaptServiceArgs {
 	 * 反射调用元方法
 	 */
 	public void buildRefresh() {
-		this.mAaptS$cRef.call("v5");
+		// this.argsRef.call("v5");
+		this.args.buildRefresh();
 	}
 	public void generateBuildConfigJava() {
-		this.mAaptS$cRef.call("Zo");
+		// this.argsRef.call("Zo");
+		this.args.generateBuildConfigJava();
+		
 	}
 
 	public String getAapt2Error(abcd.wf j62) {
-		return this.mAaptS$cRef.call("VH", new Object[] {j62.j6(), j62.DW()}).get();
+		// return this.argsRef.call("VH", new Object[] {j62.j6(), j62.DW()}).get();
+		return this.args.getAaptError(j62.j6(), j62.DW());
 	}
 
 	//合并AndroidManifestxml
 	public AaptService$ErrorResult mergedAndroidManifestxml() {
-		return this.mAaptS$cRef.call("EQ").get();
+		// return this.argsRef.call("EQ").get();
+		return this.args.mergedAndroidManifestxml();
 	}
 
 

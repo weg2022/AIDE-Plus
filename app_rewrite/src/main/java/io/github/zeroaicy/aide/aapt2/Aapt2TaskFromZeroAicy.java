@@ -422,7 +422,7 @@ public class Aapt2TaskFromZeroAicy {
 			return null;
 		}
 
-		AaptService$ErrorResult linkError = link35(aaptServiceArgs, flatZipFileList, aaptServiceArgs.assetsList, mainProjectGenDir, resourcesApPath, false, aaptServiceArgs.getAaptRulesPath(), rTxt);
+		AaptService$ErrorResult linkError = link35(aaptServiceArgs, flatZipFileList, aaptServiceArgs.assetDirPaths, mainProjectGenDir, resourcesApPath, false, aaptServiceArgs.getAaptRulesPath(), rTxt);
 		if (linkError != null) {
 			return linkError;
 		}

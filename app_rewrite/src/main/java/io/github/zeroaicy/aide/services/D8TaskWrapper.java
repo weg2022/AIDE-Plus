@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.io.PrintStream;
 
 public class D8TaskWrapper {
 
@@ -20,7 +21,7 @@ public class D8TaskWrapper {
 
 	public static final String D8BatchTask = "io.github.zeroaicy.r8.D8BatchTask";
 
-	public static void runD8Task(List<String> argList) throws Throwable {
+	public static void runD8Task( List<String> argList ) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 
@@ -30,7 +31,7 @@ public class D8TaskWrapper {
 
 	}
 
-	public static void runD8Task(List<String> argList, Map<String, String> environment) throws Throwable {
+	public static void runD8Task( List<String> argList, Map<String, String> environment ) throws Throwable {
 		run(D8Task, argList, environment);
 	}
 	/**
@@ -38,7 +39,7 @@ public class D8TaskWrapper {
 	 * argList 为通用配置 run minsdk android_sdk路径等
 	 * 不可有 --output及输入文件
 	 */
-	public static void runD8BatchTask(List<String> inputFiles, List<String> outputFiles, List<String> argList, Map<String, String> environment) throws Throwable {
+	public static void runD8BatchTask( List<String> inputFiles, List<String> outputFiles, List<String> argList, Map<String, String> environment ) throws Throwable {
 		// 输出
 		argList.add(String.join("|", outputFiles));
 		// 输入
@@ -47,13 +48,13 @@ public class D8TaskWrapper {
 		run(D8BatchTask, argList, environment);
 	}
 
-	public static void runR8Task(List<String> argList) throws Throwable {
+	public static void runR8Task( List<String> argList ) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 		run(R8Task, argList, Collections.<String, String>emptyMap());
 
 	}
-	public static void runR8Task(List<String> argList, Map<String, String> environment) throws Throwable {
+	public static void runR8Task( List<String> argList, Map<String, String> environment ) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 		run(R8Task, argList, environment);
@@ -61,11 +62,11 @@ public class D8TaskWrapper {
 	}
 
 
-	private static void run(String className, List<String> argList) throws Throwable {
+	private static void run( String className, List<String> argList ) throws Throwable {
 		run(className, argList, Collections.<String, String>emptyMap());
 	}
 
-	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
+	private static void run( String className, List<String> argList, Map<String, String> environment ) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
 		new File(r8Path).setWritable(false);
@@ -94,8 +95,8 @@ public class D8TaskWrapper {
 
 		// 读取错误流
 		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream());
-		Thread thread = new Thread(errorStreamReader);
-		thread.start();
+		Thread errorStreamReaderThread = new Thread(errorStreamReader);
+		errorStreamReaderThread.start();
 
 		// 读取输出流
 		D8TaskWrapper.ProcessStreamReader inputStreamReader = new ProcessStreamReader(process.getInputStream());
@@ -112,56 +113,62 @@ public class D8TaskWrapper {
 		catch (Throwable e) {
 			e.printStackTrace();
 		}
+		if ( process.exitValue() == 0 ) {
+			return;
+		}
 
 		String error = errorStreamReader.getError();
-		if (process.exitValue() != 0) {
-			if (TextUtils.isEmpty(error)) {
-				error = inputStreamReader.getError();
-			}
-			throw new Error(error);
+		if ( TextUtils.isEmpty(error) ) {
+			error = inputStreamReader.getError();
 		}
+		error = "\nTask: " 
+			+ className 
+			+ "-> process exitValue = " 
+			+ process.exitValue() 
+			+ "\n\n Error: -> \n"
+			+ error;
+		throw new Error(error);
+
 		//*/
 	}
 
 	public static class ProcessStreamReader implements Runnable {
 		BufferedInputStream bufferedInputStream;
 		ByteArrayOutputStream byteArrayOutputStream;
-		public ProcessStreamReader(InputStream inputStream) {
+		public ProcessStreamReader( InputStream inputStream ) {
 			this.byteArrayOutputStream = new ByteArrayOutputStream();
 
 			this.bufferedInputStream = new BufferedInputStream(inputStream);
 		}
+
 		String error;
-		public String getError() {
-			try {
-				if (this.error == null) {
-					this.error = new String(this.byteArrayOutputStream.toByteArray());
-				}
-				return this.error;
-			}
-			finally {
-				IOUtils.close(this.byteArrayOutputStream);
-			}
+		public String getError( ) {
+			return this.error;
 		}
 		@Override
-		public void run() {
+		public void run( ) {
 			try {
-				byte[] data = new byte[1024 * 100];
+				byte[] data = new byte[1024 * 10];
 				int count = 0;
-				while ((count = this.bufferedInputStream.read(data)) != -1) {
+				while ( ( count = this.bufferedInputStream.read(data) ) != -1 ) {
 					this.byteArrayOutputStream.write(data, 0, count);
 				}
 			}
-			catch (IOException e) {
-				e.printStackTrace();
+			catch (Throwable e) {
+				e.printStackTrace(new PrintStream(this.byteArrayOutputStream));
 			}
 			finally {
+				// 关闭流
 				IOUtils.close(this.bufferedInputStream);
+				// 读取错误
+				this.error = new String(this.byteArrayOutputStream.toByteArray());
+				// 关闭流
+				IOUtils.close(this.byteArrayOutputStream);
 			}
 		}
 	}
 
-	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
+	public static void fillD8Args( List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath ) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		argsList.add("--thread-count");
 		argsList.add("32");
@@ -170,19 +177,19 @@ public class D8TaskWrapper {
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));
 
-		if (file_per_class_file) {
+		if ( file_per_class_file ) {
 			argsList.add("--file-per-class-file");
 		}
-		if (intermediate) {
+		if ( intermediate ) {
 			argsList.add("--intermediate");
 		}
-		if (!TextUtils.isEmpty(user_androidjar)) {
+		if ( !TextUtils.isEmpty(user_androidjar) ) {
 			argsList.add("--lib");
 			argsList.add(user_androidjar);
 		}
 
-		if (dependencyLibs != null) {
-			for (String librarie : dependencyLibs) {
+		if ( dependencyLibs != null ) {
+			for ( String librarie : dependencyLibs ) {
 				argsList.add("--classpath");
 				argsList.add(librarie);
 			}
