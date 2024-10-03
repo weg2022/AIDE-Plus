@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import androidx.annotation.Keep;
+import com.aide.common.AppLog;
 
 @Keep
 public class ClassReader {
@@ -56,19 +57,19 @@ public class ClassReader {
 		 * 动态添加
 		 */
 		if (isDynamic) {
-			Log.d(TAG, "动态调用");
+			AppLog.d(TAG, "动态调用");
 			loadDynamicDex();
 		} else if (isDirect) {
-			Log.d(TAG, "合并模式, Direct调用");
+			AppLog.d(TAG, "合并模式, Direct调用");
 		} else {
 			useReaderClassFromZeroAicy = false;
-			Log.d(TAG, "错误模式，解析库禁用");
+			AppLog.w(TAG, "错误模式，解析库禁用");
 
 		}
 
 		try {
 			Context context = ContextUtil.getContext();
-			Log.d(TAG, "context is " +  context.getPackageName());
+			AppLog.d(TAG, "context is " +  context.getPackageName());
 
 			SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 			onSharedPreferenceChanged = new SharedPreferences.OnSharedPreferenceChangeListener(){
@@ -91,8 +92,8 @@ public class ClassReader {
 							break;
 					}
 
-					Log.d(TAG, "useReaderClassFromZeroAicy改变为: " +  ClassReader.useReaderClassFromZeroAicy);
-					Log.d(TAG, "disableDefaultMethod改变为: " +  ClassReader.disableDefaultMethod);
+					AppLog.d(TAG, "useReaderClassFromZeroAicy改变为: " +  ClassReader.useReaderClassFromZeroAicy);
+					AppLog.d(TAG, "disableDefaultMethod改变为: " +  ClassReader.disableDefaultMethod);
 				}
 			};
 			defaultSharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChanged);
@@ -122,7 +123,7 @@ public class ClassReader {
 
 		}
 		catch (Throwable e) {
-			Log.d(TAG, "开关错误", e);
+			AppLog.e(TAG, "开关错误", e);
 		}
 	}
 
@@ -156,7 +157,7 @@ public class ClassReader {
 			}
 		}
 		catch (java.lang.StringIndexOutOfBoundsException e) {
-			Log.d(zipFilePath, className);
+			AppLog.d(zipFilePath, className);
 			e.printStackTrace();
 		}
 		catch (Throwable e) {
@@ -175,7 +176,7 @@ public class ClassReader {
 			return;
 		}
 		isPrintlned = true;
-		Log.d(TAG, "没有发现ReadClassFile库，请向AIDE+中添加class解析库");
+		AppLog.e(TAG, "没有发现ReadClassFile库，请向AIDE+中添加class解析库");
 	}
 
 	private static Reader dynamic_ReadClassFile(String zipFilePath, String className) {
@@ -183,7 +184,7 @@ public class ClassReader {
 			return (Reader)TestReadClassMethod.invoke(null, zipFilePath, className);
 		}
 		catch (java.lang.StringIndexOutOfBoundsException e) {
-			Log.d(zipFilePath, className);
+			AppLog.d(zipFilePath, className);
 			e.printStackTrace();
 		}
 		catch (Throwable e) {}
@@ -224,7 +225,7 @@ public class ClassReader {
 			}
 		}
 		catch (Throwable e) {
-			Log.d(TAG, "hasDefaultMethod2", e);
+			AppLog.e(TAG, "hasDefaultMethod2", e);
 		}
 		return true;
 	}

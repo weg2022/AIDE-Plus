@@ -8,6 +8,7 @@ import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
 import io.github.zeroaicy.aide.ClassReader;
 import io.github.zeroaicy.util.Log;
 import java.io.InputStream;
+import com.aide.common.AppLog;
 
 public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
     final CodeAnalysisEngineService codeAnalysisEngineService;
@@ -31,7 +32,7 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 			return open;
 		}
 		catch (Exception e){
-			Log.println(e);
+			AppLog.e("DebuggerResourceProvider", e);
 			throw new Error(e);
 		}
     }

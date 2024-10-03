@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.io.PrintStream;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import com.aide.common.AppLog;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class D8TaskWrapper {
 
@@ -68,7 +73,11 @@ public class D8TaskWrapper {
 	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
-		new File(r8Path).setWritable(false);
+		File r8ZipFile = new File(r8Path);
+		if (r8ZipFile.canWrite()) {
+			r8ZipFile.setWritable(false);
+		}
+
 		// /system/bin/app_process -Djava.class.path="r8Path" /system/bin --nice-name=R8Task io.github.zeroaicy.r8.R8Task "$@"
 		ArrayList<String> cmdList = new ArrayList<String>();
 		cmdList.add("app_process");
@@ -84,7 +93,12 @@ public class D8TaskWrapper {
 
 		//*
 		String[] args = cmdList.toArray(new String[cmdList.size()]);
-		System.out.println(cmdList);
+		//System.out.println(cmdList);
+		run(className, args, environment, false);
+	}
+
+	private static void run(String className, String[] args, Map<String, String> environment, boolean isExceptionHandling) throws Throwable {
+
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
 		processBuilder.environment().putAll(environment);
 
@@ -93,70 +107,108 @@ public class D8TaskWrapper {
 		Process process = processBuilder.start();
 
 		// 读取错误流
-		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream());
-		Thread thread = new Thread(errorStreamReader);
-		thread.start();
+		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), true);
+		Thread errorStreamReaderThread = new Thread(errorStreamReader);
+		errorStreamReaderThread.start();
 
 		// 读取输出流
 		D8TaskWrapper.ProcessStreamReader inputStreamReader = new ProcessStreamReader(process.getInputStream());
 		Thread inputStreamReaderThread = new Thread(inputStreamReader);
 		inputStreamReaderThread.start();		
 
-		try {
-			// 等待 r8进程运行完
-			// 再此之前必须读取输出流和错误流
-			// 否则缓存池用完会阻塞
-			process.waitFor();
-
+		// 等待 r8进程运行完
+		// 再此之前必须读取输出流和错误流
+		// 否则缓存池用完会阻塞
+		process.waitFor();
+		int exitValue = process.exitValue();
+		// 正常退出
+		if (exitValue == 0) {
+			return;
 		}
-		catch (Throwable e) {
-			e.printStackTrace();
+		// 异常处理 可能会再次运行
+		//已经是在处理异常了 及时退出否则死递归了
+		if (!isExceptionHandling 
+			&& (exitValue == 139)) {
+			// 扩容库储存
+			// 禁用扩容
+			ZeroAicySetting.disableEnableEnsureCapacity();
+			environment.remove("EnsureCapacity");
+			// 再次运行 以处理异常的方式
+			run(className, args, environment, true);
 		}
 
 		String error = errorStreamReader.getError();
-		if (process.exitValue() != 0) {
-			if (TextUtils.isEmpty(error)) {
-				error = inputStreamReader.getError();
-			}
-			throw new Error(error);
-		}
-		//*/
+		String output = inputStreamReader.getError();
+
+		String format = String.format(
+			"\nTask: %s -> exited with code %s\nError:\n%s\nLog:\n%s\n", 
+			className, process.exitValue(), error, output);
+		throw new Error(format);
+
 	}
 
-	public static class ProcessStreamReader implements Runnable {
-		BufferedInputStream bufferedInputStream;
-		ByteArrayOutputStream byteArrayOutputStream;
-		public ProcessStreamReader(InputStream inputStream) {
-			this.byteArrayOutputStream = new ByteArrayOutputStream();
 
-			this.bufferedInputStream = new BufferedInputStream(inputStream);
+	public static class ProcessStreamReader implements Runnable {
+		
+		public static String TAG = "ProcessStreamReader";
+		//BufferedInputStream bufferedInputStream;
+		// ByteArrayOutputStream byteArrayOutputStream;
+
+		BufferedReader bufferedReader;
+		StringBuilder stringBuilder = new StringBuilder();
+
+		boolean isErrorStream;
+
+		public ProcessStreamReader(InputStream inputStream) {
+			this(inputStream, false);
 		}
+		
+		public ProcessStreamReader(InputStream inputStream, boolean isErrorStream) {
+			//this.bufferedInputStream = new BufferedInputStream(inputStream);
+			//this.byteArrayOutputStream = new ByteArrayOutputStream();
+			this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+			this.isErrorStream = isErrorStream;
+		}
+
 		String error;
 		public String getError() {
-			try {
-				if (this.error == null) {
-					this.error = new String(this.byteArrayOutputStream.toByteArray());
-				}
-				return this.error;
-			}
-			finally {
-				IOUtils.close(this.byteArrayOutputStream);
-			}
+			return this.error;
 		}
 		@Override
 		public void run() {
+
 			try {
-				byte[] data = new byte[1024 * 100];
-				int count = 0;
-				while ((count = this.bufferedInputStream.read(data)) != -1) {
-					this.byteArrayOutputStream.write(data, 0, count);
+				/*byte[] data = new byte[1024 * 10];
+				 int count = 0;
+				 while ( (count = this.bufferedInputStream.read(data)) != -1 ){
+
+				 this.byteArrayOutputStream.write(data, 0, count);
+
+				 }*/
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
+					// 边运行边打印
+					if (isErrorStream) AppLog.println_e(line);
+					stringBuilder.append(line);
+					stringBuilder.append(System.lineSeparator());
+					
 				}
+
 			}
-			catch (IOException e) {
-				e.printStackTrace();
+			catch (Throwable e) {
+				AppLog.e(TAG, e);
 			}
 			finally {
-				IOUtils.close(this.bufferedInputStream);
+				// 关闭流
+				//IOUtils.close(this.bufferedInputStream);
+				IOUtils.close(this.bufferedReader);
+
+				// 读取错误
+				//this.error = new String(this.byteArrayOutputStream.toByteArray());
+				this.error = stringBuilder.toString();
+
+				// 关闭流
+				//IOUtils.close(this.byteArrayOutputStream);
 			}
 		}
 	}

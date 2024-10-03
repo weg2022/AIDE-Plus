@@ -8,10 +8,11 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Keep;
 import androidx.preference.PreferenceManager;
+import com.aide.common.AppLog;
 import com.aide.engine.EngineSolution;
+import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.IOUtils;
-import io.github.zeroaicy.util.Log;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import com.aide.ui.util.FileSystem;
 
 @Keep
 public class EngineSolutionProject implements Parcelable {
@@ -306,7 +306,7 @@ public class EngineSolutionProject implements Parcelable {
 			return obtain;
 		}
 		catch (Throwable e) {
-			Log.d("EngineSolutionProject", "unZipParcel", e);
+			AppLog.e("EngineSolutionProject", "unZipParcel", e);
 
 			throw new Error(e);
 		}

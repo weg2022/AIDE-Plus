@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipFile;
+import java.io.FileNotFoundException;
 
 
 /**
@@ -153,7 +154,7 @@ public class ScopeTypeQuerier {
 
 	private ScopeTypeMap scopeTypeMap = new ScopeTypeMap();
 
-	public ScopeTypeQuerier( String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle ) throws Error {
+	public ScopeTypeQuerier( String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle ) throws Throwable {
 
 		if ( dependencyLibs == null ) {
 			return;
@@ -173,7 +174,7 @@ public class ScopeTypeQuerier {
 
 			if ( !libFile.exists() ) {
 				//不是依赖库跳过
-				continue;
+				throw new FileNotFoundException(libFilePath + "不存在\n依赖没有下载全，返回桌面，重新进入");
 			}
 
 			String fileName = libFile.getName().toLowerCase();
@@ -186,7 +187,9 @@ public class ScopeTypeQuerier {
 				new ZipFile(libFile);
 			}
 			catch (IOException e) {
-				throw new Error(libFilePath + "不是一个zip文件");
+				// 坏的jar
+				libFile.delete();
+				throw new Error(libFilePath + "不是一个zip文件", e);
 			}
 
 			String libFileNameLowerCase = fileName.toLowerCase();

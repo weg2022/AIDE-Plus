@@ -3,18 +3,15 @@
 //
 package abcd;
 
+import android.text.TextUtils;
+import androidx.annotation.Keep;
 import com.aide.common.MessageBox;
 import com.aide.common.ValueRunnable;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
+import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSystem;
 import java.io.File;
-import com.aide.ui.rewrite.R;
-import androidx.annotation.Keep;
-import android.text.TextUtils;
-import java.util.Map;
-import java.util.List;
-import io.github.zeroaicy.util.Log;
 
 /**
  * 安卓项目 添加xxx文件

@@ -144,12 +144,12 @@ public class ZeroAicyTrainerService extends abcd.mf {
 	}
 
 	// Labcd/gb;[教程]::isVisible
+	
 	@Override
 	public boolean dx() {
 		if (true) {
 			return true;		
 		}
-		
 		// 有点慢
 		return super.dx();
 	}

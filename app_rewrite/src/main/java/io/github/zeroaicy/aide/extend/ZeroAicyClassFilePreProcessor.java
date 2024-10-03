@@ -1,22 +1,21 @@
 package io.github.zeroaicy.aide.extend;
+
+import androidx.annotation.Keep;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
+import com.aide.common.AppLog;
 import io.github.zeroaicy.aide.ClassReader;
+import java.io.File;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipException;
-import io.github.zeroaicy.util.Log;
-import java.util.Collections;
-import java.util.Vector;
-import java.io.File;
-import java.util.Hashtable;
-import androidx.annotation.Keep;
-import java.io.StringReader;
 
 
 /**
@@ -133,7 +132,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			return Arrays.asList(listZipNames.toArray(new String[listZipNames.size()]));
 		}
 		catch (Exception zipException) {
-			Log.d("ZeroAicyClassFilePreProcessor", "zip文件错误: " + zipFilePath);
+			AppLog.e("ZeroAicyClassFilePreProcessor", "zip文件错误: " + zipFilePath);
 			return Collections.emptyList();
 		}
 		catch (Throwable th) {

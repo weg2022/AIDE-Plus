@@ -25,7 +25,12 @@
                 android:key="zero_aicy_enable_follow_system"
                 android:summary="系统是夜间模式时将跟随系统"
                 android:defaultValue="true" />
-
+			<SwitchPreference
+                android:title="详细日志"
+                android:key="zero_aicy_enable_detailed_log"
+                android:summary="是否打印更详细的日志"
+                android:defaultValue="false" />
+			
         </PreferenceCategory>
 
 		<CheckBoxPreference 

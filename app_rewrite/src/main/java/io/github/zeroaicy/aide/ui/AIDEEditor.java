@@ -26,6 +26,7 @@ import com.aide.ui.views.editor.Color;
 import com.aide.ui.rewrite.R;
 import io.github.zeroaicy.aide.highlight.ColorKind;
 import android.graphics.Canvas;
+import com.aide.common.AppLog;
 
 public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	
@@ -184,11 +185,13 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	/**
 	 * 文件路径，也有可能是jar里的class
 	 */
-	//@Override
-	/*protected OpenFileService.OpenFileModel Z1_2(final String filePath) {
+	//*
+	@Override
+	protected OpenFileService.OpenFileModel Z1(final String filePath) {
 		// 先返回，内容异步塞入
 		return new AIDEEditorModel(filePath);
-	}*/
+	}
+	//*/
 
 
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
@@ -254,7 +257,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 					}
 				}
 				catch (Throwable e) {
-					Log.d(TAG, "等待异步加载初始化错误", e);				}
+					AppLog.e(TAG, "等待异步加载初始化错误", e);				}
 			}
 			super.J0(openFile);
 		}
@@ -275,7 +278,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				initReader(reader);
 			}
 			catch (Throwable e) {
-				Log.d(TAG, "异步加载初始化", e);
+				AppLog.e(TAG, "异步加载初始化", e);
 			}
 		}
 		private void initReader(Reader reader) {

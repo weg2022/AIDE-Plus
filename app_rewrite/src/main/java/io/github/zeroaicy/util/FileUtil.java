@@ -179,22 +179,24 @@ public class FileUtil {
 		return readAllBytes;
 	}
 	
+	public static void deleteFolder(String folder) {
+		deleteFolder(new File(folder));
+	}
 	public static void deleteFolder(File folder) {
 		if (folder.isFile()) {
 			folder.delete();
 		}
 		File[] files = folder.listFiles();  
-		if (files == null) {
-			return;
+		if (files != null) {
+			for (File file : files) {  
+				if (file.isDirectory()) {  
+					deleteFolder(file); // 递归删除子文件夹  
+				} else {  
+					file.delete(); // 删除文件  
+				}
+			}  
 		}
-		for (File file : files) {  
-			if (file.isDirectory()) {  
-				deleteFolder(file); // 递归删除子文件夹  
-			} else {  
-				file.delete(); // 删除文件  
-			}
-		}  
-		folder.delete(); // 删除文件夹  
+		folder.delete(); // 删除空文件夹  
     }
 
     public static void copyNotCover(String source, String target) {

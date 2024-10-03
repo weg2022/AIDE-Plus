@@ -11,11 +11,11 @@ public class AaptService$ErrorResult {
 	// hasError
     public boolean hasError;
 	
-    public AaptService$ErrorResult(String str) {
-		this.errorInfo = str;
+    public AaptService$ErrorResult(String error) {
+		this.errorInfo = error;
 	}
-    public AaptService$ErrorResult(boolean z) {
-		this.hasError = z;
+    public AaptService$ErrorResult(boolean hasError) {
+		this.hasError = hasError;
     }
 }
 

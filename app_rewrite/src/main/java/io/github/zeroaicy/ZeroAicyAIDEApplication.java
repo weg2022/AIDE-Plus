@@ -1,10 +1,12 @@
 package io.github.zeroaicy;
 
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.StrictMode;
+import com.aide.common.AppLog;
 import com.aide.ui.AIDEApplication;
 import com.aide.ui.ServiceContainer;
+import io.github.zeroaicy.aide.highlight.CodeTheme;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.shizuku.ShizukuUtil;
 import io.github.zeroaicy.aide.utils.Logger;
@@ -15,13 +17,8 @@ import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import io.github.zeroaicy.aide.highlight.CodeTheme;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
@@ -43,16 +40,18 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		DebugUtil.debug(this, false);
 
 		String crashProcessName = getPackageName() + ":crash";
+		
 		String curProcessName = ContextUtil.getProcessName();
 
 		if (crashProcessName.equals(curProcessName) 
 			|| curProcessName.contains("crash")) {
-			Log.d(TAG, "crash进程: ", curProcessName);
+			AppLog.d(TAG, "crash进程: ", curProcessName);
 			return;
 		}
 
 		//解除反射
-		Log.d(TAG, "解除反射: " + reflectAll);
+		AppLog.d(TAG, "解除反射: " + reflectAll);
+		
 		// 异常显示Activity
 		CrashApphandler.getInstance().onCreated();
 
@@ -78,7 +77,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		}
 
 		// Return if this application is not in debug mode 
-		Log.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
+		AppLog.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
 
 
@@ -175,12 +174,12 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 			String logCatPath = FileUtil.LogCatPath + "_test.txt";
 
 			if (logHold == null) {
-				Log.d(TAG, "LogHold 为 null");
+				AppLog.d(TAG, "LogHold 为 null");
 				logHold = new Log.AsyncOutputStreamHold(logCatPath);
 				ReflectPie.on(Log.class).set("mLogHold", logHold);
 			}
 			if (log = Log.getLog() == null) {
-				Log.d(TAG, "LogHold mLog null");
+				AppLog.d(TAG, "LogHold mLog null");
 				FileOutputStream createOutStream = Log.AsyncOutputStreamHold.createOutStream(logCatPath);
 				Log.AsyncOutputStreamHold.AsyncOutStream asyncOutStream = new Log.AsyncOutputStreamHold.AsyncOutStream(createOutStream);
 				PrintStream mLog = new PrintStream(asyncOutStream);

@@ -5,15 +5,11 @@
 package io.github.zeroaicy.util.reflect;
 
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import io.github.zeroaicy.util.Log;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import android.app.Application;
 
 public class HiddenApiBypass {
 

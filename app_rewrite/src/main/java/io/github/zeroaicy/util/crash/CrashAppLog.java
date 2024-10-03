@@ -1,7 +1,6 @@
 package io.github.zeroaicy.util.crash;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -24,7 +23,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import android.app.Application;
 
 /**
  * Created by mfcx on 2018/10/22.

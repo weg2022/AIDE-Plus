@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.ProviderInfo;
 import io.github.zeroaicy.util.Log;
 import android.os.Bundle;
+import com.aide.common.AppLog;
 
 public class ZeroAicyShizukuProvider extends ShizukuProvider {
 	public static final String TAG = "ZeroAicyShizukuProvider";
@@ -13,9 +14,10 @@ public class ZeroAicyShizukuProvider extends ShizukuProvider {
 	}
 	@Override
 	public void attachInfo(Context context, ProviderInfo info) {
-		Log.d(TAG, "attachInfo");
+		AppLog.d(TAG, "attachInfo");
 		//初始化Shizuku库
 		ShizukuUtil.initialized(context);
+		
 		super.attachInfo(context, info);
 		
 	}
@@ -32,7 +34,7 @@ public class ZeroAicyShizukuProvider extends ShizukuProvider {
 
 	@Override
 	public Bundle call(String method, String arg, Bundle extras) {
-		Log.d(TAG, "call: Shizuku附加远程服务");
+		AppLog.w(TAG, "call: Shizuku附加远程服务");
 		return super.call(method, arg, extras);
 	}
 	
