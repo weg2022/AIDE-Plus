@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.Set;
+import com.aide.common.AppLog;
 
 public abstract class PackagingWorkerWrapper extends ExternalPackagingService.ExternalPackagingServiceWorker {
 
@@ -266,7 +267,7 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		public String getIntermediatesChildDirPath(String childDirName) {
 			File childFile = new File(getDefaultIntermediatesDirPath(), childDirName);
 			if (!childFile.exists() && !childFile.mkdirs()) {
-				Log.d("Could not create dir: " + childFile);
+				AppLog.e("Could not create dir: " + childFile);
 			}
 			return childFile.getAbsolutePath();
 		}
@@ -278,8 +279,8 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 			}
 			catch (Throwable e) {
 				// 将错误信息保存到日志中
-				e.printStackTrace();
-				Log.e("TaskWrapper", "packaging", e);
+				AppLog.e("packaging()", e);
+				
 				if (e instanceof Error) {
 					throw (Error)e;
 				}

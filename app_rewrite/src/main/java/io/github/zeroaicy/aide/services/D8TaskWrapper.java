@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.io.PrintStream;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import com.aide.common.AppLog;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class D8TaskWrapper {
 
@@ -22,7 +25,7 @@ public class D8TaskWrapper {
 
 	public static final String D8BatchTask = "io.github.zeroaicy.r8.D8BatchTask";
 
-	public static void runD8Task( List<String> argList ) throws Throwable {
+	public static void runD8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 
@@ -32,7 +35,7 @@ public class D8TaskWrapper {
 
 	}
 
-	public static void runD8Task( List<String> argList, Map<String, String> environment ) throws Throwable {
+	public static void runD8Task(List<String> argList, Map<String, String> environment) throws Throwable {
 		run(D8Task, argList, environment);
 	}
 	/**
@@ -40,7 +43,7 @@ public class D8TaskWrapper {
 	 * argList 为通用配置 run minsdk android_sdk路径等
 	 * 不可有 --output及输入文件
 	 */
-	public static void runD8BatchTask( List<String> inputFiles, List<String> outputFiles, List<String> argList, Map<String, String> environment ) throws Throwable {
+	public static void runD8BatchTask(List<String> inputFiles, List<String> outputFiles, List<String> argList, Map<String, String> environment) throws Throwable {
 		// 输出
 		argList.add(String.join("|", outputFiles));
 		// 输入
@@ -49,13 +52,13 @@ public class D8TaskWrapper {
 		run(D8BatchTask, argList, environment);
 	}
 
-	public static void runR8Task( List<String> argList ) throws Throwable {
+	public static void runR8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 		run(R8Task, argList, Collections.<String, String>emptyMap());
 
 	}
-	public static void runR8Task( List<String> argList, Map<String, String> environment ) throws Throwable {
+	public static void runR8Task(List<String> argList, Map<String, String> environment) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
 		run(R8Task, argList, environment);
@@ -63,15 +66,15 @@ public class D8TaskWrapper {
 	}
 
 
-	private static void run( String className, List<String> argList ) throws Throwable {
+	private static void run(String className, List<String> argList) throws Throwable {
 		run(className, argList, Collections.<String, String>emptyMap());
 	}
 
-	private static void run( String className, List<String> argList, Map<String, String> environment ) throws Throwable {
+	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
 		File r8ZipFile = new File(r8Path);
-		if ( r8ZipFile.canWrite() ) {
+		if (r8ZipFile.canWrite()) {
 			r8ZipFile.setWritable(false);
 		}
 
@@ -93,8 +96,8 @@ public class D8TaskWrapper {
 		//System.out.println(cmdList);
 		run(className, args, environment, false);
 	}
-	
-	private static void run( String className, String[] args, Map<String, String> environment, boolean isExceptionHandling ) throws Throwable {
+
+	private static void run(String className, String[] args, Map<String, String> environment, boolean isExceptionHandling) throws Throwable {
 
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
 		processBuilder.environment().putAll(environment);
@@ -104,7 +107,7 @@ public class D8TaskWrapper {
 		Process process = processBuilder.start();
 
 		// 读取错误流
-		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream());
+		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), true);
 		Thread errorStreamReaderThread = new Thread(errorStreamReader);
 		errorStreamReaderThread.start();
 
@@ -119,27 +122,13 @@ public class D8TaskWrapper {
 		process.waitFor();
 		int exitValue = process.exitValue();
 		// 正常退出
-		if ( exitValue == 0 ) {
+		if (exitValue == 0) {
 			return;
 		}
-
-		//已经是在处理异常了 及时退出否则死递归了
-		if ( isExceptionHandling ) {
-			String error = errorStreamReader.getError();
-			if ( TextUtils.isEmpty(error) ) {
-				error = inputStreamReader.getError();
-			}
-			error = "\nTask: " 
-				+ className 
-				+ "-> process exitValue = " 
-				+ process.exitValue() 
-				+ "\n\n Error: -> \n"
-				+ error;
-			throw new Error(error);
-		}
-
 		// 异常处理 可能会再次运行
-		if ( exitValue == 139 ) {
+		//已经是在处理异常了 及时退出否则死递归了
+		if (!isExceptionHandling 
+			&& (exitValue == 139)) {
 			// 扩容库储存
 			// 禁用扩容
 			ZeroAicySetting.disableEnableEnsureCapacity();
@@ -147,46 +136,84 @@ public class D8TaskWrapper {
 			// 再次运行 以处理异常的方式
 			run(className, args, environment, true);
 		}
+
+		String error = errorStreamReader.getError();
+		String output = inputStreamReader.getError();
+
+		String format = String.format(
+			"\nTask: %s -> exited with code %s\nError:\n%s\nLog:\n%s\n", 
+			className, process.exitValue(), error, output);
+		throw new Error(format);
+
 	}
 
 
 	public static class ProcessStreamReader implements Runnable {
-		BufferedInputStream bufferedInputStream;
-		ByteArrayOutputStream byteArrayOutputStream;
-		public ProcessStreamReader( InputStream inputStream ) {
-			this.byteArrayOutputStream = new ByteArrayOutputStream();
+		
+		public static String TAG = "ProcessStreamReader";
+		//BufferedInputStream bufferedInputStream;
+		// ByteArrayOutputStream byteArrayOutputStream;
 
-			this.bufferedInputStream = new BufferedInputStream(inputStream);
+		BufferedReader bufferedReader;
+		StringBuilder stringBuilder = new StringBuilder();
+
+		boolean isErrorStream;
+
+		public ProcessStreamReader(InputStream inputStream) {
+			this(inputStream, false);
+		}
+		
+		public ProcessStreamReader(InputStream inputStream, boolean isErrorStream) {
+			//this.bufferedInputStream = new BufferedInputStream(inputStream);
+			//this.byteArrayOutputStream = new ByteArrayOutputStream();
+			this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+			this.isErrorStream = isErrorStream;
 		}
 
 		String error;
-		public String getError( ) {
+		public String getError() {
 			return this.error;
 		}
 		@Override
-		public void run( ) {
+		public void run() {
+
 			try {
-				byte[] data = new byte[1024 * 10];
-				int count = 0;
-				while ( ( count = this.bufferedInputStream.read(data) ) != -1 ) {
-					this.byteArrayOutputStream.write(data, 0, count);
+				/*byte[] data = new byte[1024 * 10];
+				 int count = 0;
+				 while ( (count = this.bufferedInputStream.read(data)) != -1 ){
+
+				 this.byteArrayOutputStream.write(data, 0, count);
+
+				 }*/
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
+					// 边运行边打印
+					if (isErrorStream) AppLog.println_e(line);
+					stringBuilder.append(line);
+					stringBuilder.append(System.lineSeparator());
+					
 				}
+
 			}
 			catch (Throwable e) {
-				e.printStackTrace(new PrintStream(this.byteArrayOutputStream));
+				AppLog.e(TAG, e);
 			}
 			finally {
 				// 关闭流
-				IOUtils.close(this.bufferedInputStream);
+				//IOUtils.close(this.bufferedInputStream);
+				IOUtils.close(this.bufferedReader);
+
 				// 读取错误
-				this.error = new String(this.byteArrayOutputStream.toByteArray());
+				//this.error = new String(this.byteArrayOutputStream.toByteArray());
+				this.error = stringBuilder.toString();
+
 				// 关闭流
-				IOUtils.close(this.byteArrayOutputStream);
+				//IOUtils.close(this.byteArrayOutputStream);
 			}
 		}
 	}
 
-	public static void fillD8Args( List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath ) {
+	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		argsList.add("--thread-count");
 		argsList.add("32");
@@ -195,19 +222,19 @@ public class D8TaskWrapper {
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));
 
-		if ( file_per_class_file ) {
+		if (file_per_class_file) {
 			argsList.add("--file-per-class-file");
 		}
-		if ( intermediate ) {
+		if (intermediate) {
 			argsList.add("--intermediate");
 		}
-		if ( !TextUtils.isEmpty(user_androidjar) ) {
+		if (!TextUtils.isEmpty(user_androidjar)) {
 			argsList.add("--lib");
 			argsList.add(user_androidjar);
 		}
 
-		if ( dependencyLibs != null ) {
-			for ( String librarie : dependencyLibs ) {
+		if (dependencyLibs != null) {
+			for (String librarie : dependencyLibs) {
 				argsList.add("--classpath");
 				argsList.add(librarie);
 			}

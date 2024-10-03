@@ -481,6 +481,10 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 
 						String currentAppHome = ZeroAicySetting.getCurrentAppHome();
+						if( currentAppHome == null ){
+							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "没有打开Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
+							return true;
+						}
 						File gradleProjectRootDir = new File(currentAppHome).getParentFile();
 						launchIntentForPackage.putExtra(work_dir_extra, gradleProjectRootDir.getAbsolutePath());
 						if (cmdline.contains("gradle")) {

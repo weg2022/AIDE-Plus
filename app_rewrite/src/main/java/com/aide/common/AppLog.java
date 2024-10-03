@@ -66,6 +66,10 @@ public class AppLog {
 	public static void d(String TAG, String msg) {
 		if (isPrintLog()) Log.d(TAG, msg);
     }
+	public static void d(String TAG, String msg, Object... args) {
+		if (isPrintLog()) Log.d(TAG, String.format(msg, args));
+    }
+	
 	public static void d(String msg) {
 		if (isPrintLog()) Log.d("AIDE", msg);
     }
@@ -83,12 +87,22 @@ public class AppLog {
 	public static void e(String msg) {
 		Log.e("AIDE", msg);
     }
+	
 	public static void e(String msg, Throwable th) {
 		Log.e("AIDE", msg, th);
     }
 	public static void e(String TAG, String msg, Throwable th) {
 		Log.e(TAG, msg, th);
     }
+	
+	public static void println_e(String msg) {
+		Log.println(msg);
+    }
+	
+	public static void println_d(String msg) {
+		if (isPrintLog()) Log.println(msg);
+    }
+	
 	
 	
 }

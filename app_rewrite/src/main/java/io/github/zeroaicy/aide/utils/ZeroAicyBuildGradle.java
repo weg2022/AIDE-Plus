@@ -319,14 +319,13 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 				}
 
 				if ( url.endsWith("/") ) {
-					int length = url.length() - 2;
+					int length = url.length() - 1;
 					if ( length < 1 ) {
 						break;
 					}
 					// 规范化repositorieURL
 					url = url.substring(0, length);						
 				}
-
 				repositorys.add(new RemoteRepository(ast.getLine(), url));
 				break;
 			case "flatDir.dirs":
