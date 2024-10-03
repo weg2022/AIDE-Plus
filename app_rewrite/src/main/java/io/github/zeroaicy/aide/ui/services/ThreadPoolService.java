@@ -1,7 +1,5 @@
 package io.github.zeroaicy.aide.ui.services;
 
-import java.util.concurrent.*;
-
 import android.os.Handler;
 import android.os.Looper;
 import io.github.zeroaicy.util.Log;
@@ -9,6 +7,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadPoolService implements ExecutorService {
@@ -130,9 +139,14 @@ public class ThreadPoolService implements ExecutorService {
 	private static Handler uiHandler = new Handler(Looper.getMainLooper());
 	private static Thread uiThread = uiHandler.getLooper().getThread();
 	
+
+	public static final boolean post(Runnable r) {
+		return uiHandler.post(r);
+	}
 	public static final boolean postDelayedOfUi(Runnable r, long delayMillis) {
 		return uiHandler.postDelayed(r, delayMillis);
 	}
+	
 	public static final void removeCallbacksOfUi(Runnable r) {
 		uiHandler.removeCallbacks(r);
 	}

@@ -1,8 +1,9 @@
 package io.github.zeroaicy.aide.aapt2;
+
 import android.app.Application;
+import com.aide.common.AppLog;
 import com.aide.ui.services.AssetInstallationService;
 import dalvik.system.DexClassLoader;
-import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.File;
 
@@ -22,10 +23,10 @@ public class GenerateViewBindingTask{
 		
 		ReflectPie.on("ZY.ViewBinding.Utils", viewbindingClassLoader).call("BindingTask", new Object[]{mainProjectResPath, mainProjectGenDir, mainProjectPackageName, isAndroidx});
 		if( false ){
-			Log.d("主项目res目录", mainProjectResPath);
-			Log.d("主项目gen目录", mainProjectGenDir);
-			Log.d("主项目包名", mainProjectPackageName);
-			Log.d("isAndroidx", isAndroidx);
+			AppLog.d("主项目res目录", mainProjectResPath);
+			AppLog.d("主项目gen目录", mainProjectGenDir);
+			AppLog.d("主项目包名", mainProjectPackageName);
+			AppLog.d("isAndroidx", isAndroidx);
 		}
     }
 

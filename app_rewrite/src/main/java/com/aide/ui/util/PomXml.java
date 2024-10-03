@@ -3,23 +3,18 @@
 //
 package com.aide.ui.util;
 
-import com.aide.ui.util.BuildGradle;
-import io.github.zeroaicy.util.Log;
+import com.aide.common.AppLog;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import com.aide.ui.util.BuildGradle.MavenDependency;
-import com.aide.common.AppLog;
+import android.text.TextUtils;
 
 /**
  * 同名覆盖底包中的类
@@ -114,6 +109,11 @@ public class PomXml extends Configuration<PomXml> {
 
 			this.artifact = model.getArtifactId();
 			this.curVersion = model.getVersion();
+			
+			if( this.curVersion ==  null ){
+				this.curVersion = "+";
+			}
+			
 			this.setPackaging(model.getPackaging());
 
 			Parent parent = model.getParent();
@@ -126,7 +126,7 @@ public class PomXml extends Configuration<PomXml> {
 			init(model);
 		}
 		catch (Throwable e) {
-			Log.d(e.getMessage(), e);
+			AppLog.e(e.getMessage(), e);
 			this.isEmpty = true;
 		}
 
@@ -184,16 +184,19 @@ public class PomXml extends Configuration<PomXml> {
 		String groupId = dep.getGroupId();
 		String artifactId = dep.getArtifactId();
 		String version = dep.getVersion();
-
 		String type = dep.getType();
-
+		
 		if (groupId == null) {
 			groupId = "";
 		}
 		if (artifactId == null) {
 			artifactId = "";
 		}
+		if( version == null ){
+			version = "";
+		}
 
+		
 		// 解析变量
 		if (groupId.startsWith("${")) {
 			//${project.groupId}
@@ -212,17 +215,20 @@ public class PomXml extends Configuration<PomXml> {
 				artifactId = model.getProperties().getProperty(artifactId.substring(2, artifactId.length()  - 1));
 			}
 		}
+		
 		if (version == null) {
 			String curGroupIdArtifactId = groupId + ":" + artifactId;
 			for (ArtifactNode depManage : depManages) {
 				if (curGroupIdArtifactId.equals(depManage.getGroupIdArtifactId())) {
-					version = depManage.version;
+					version = depManage.getVersion();
 				}
 			}
 		}
-		if (version == null) {
+		
+		if (TextUtils.isEmpty(version)) {
 			version = "+";
 		}
+		
 		if (version.startsWith("${")) {
 			//${project.version}
 			if ("${project.version}".equals(version)) {
@@ -236,11 +242,11 @@ public class PomXml extends Configuration<PomXml> {
 			&& version.endsWith("]")) {
 			version = version.substring(1, version.length() - 1);
 		}
-
-		ArtifactNode artifactNode = new ArtifactNode();
-		artifactNode.groupId = groupId;
-		artifactNode.artifactId = artifactId;
-		artifactNode.version = version;
+		if (TextUtils.isEmpty(version)) {
+			version = "+";
+		}
+		ArtifactNode artifactNode = new ArtifactNode(groupId, artifactId, version);
+		
 		// 本质是 type
 		artifactNode.packaging = type;
 

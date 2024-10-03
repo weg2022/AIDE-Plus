@@ -7,6 +7,8 @@ import java.util.Map;
 import com.aide.ui.util.BuildGradle.MavenDependency;
 import io.github.zeroaicy.aide.ui.services.ZeroAicyMavenService;
 import androidx.annotation.Keep;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
+import com.aide.ui.ServiceContainer;
 
 /**
  * @Keep为2.2未修的[不知道为啥漏了]
@@ -49,6 +51,8 @@ public class MavenService {
 	public final String u7(BuildGradle.MavenDependency dependency){
 		return this.resolveMavenDepPath(dependency);
 	}
+	
+	@Keep
 	public final String resolveMavenDepPath(BuildGradle.MavenDependency dependency) {
 		return proxy.resolveMavenDepPath(dependency);
 	}
@@ -72,6 +76,7 @@ public class MavenService {
 	}
 
 	// @Override
+	@Keep
 	public final List<String> resolveFullDependencyTree(String depPath) {
 		return proxy.resolveFullDependencyTree(depPath);
 	}
@@ -103,7 +108,7 @@ public class MavenService {
 	}*/
 	@Keep
 	public final void resetDepPathMap() {
-		proxy.resetDepPathMap();
+		proxy.resetDepPathMap();		
 	}
 	
 	/*

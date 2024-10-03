@@ -49,11 +49,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.aide.common.AppLog;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
 
-	private static final String TAG_155784065567 = "ZeroAicyMainActivity";
+	private static final String TAG_15955545567 = "ZeroAicyMainActivity";
 
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
@@ -71,7 +72,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 			showRequestManageExternalStorage();
 		}
 	}
-
+	
 	/**
 	 * 是否启用DrawerLayout
 	 */
@@ -81,7 +82,24 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 
-	public void DWGAsync() {
+
+	public void q7Async() {
+		super.q7();
+	}
+	@Override
+	public void q7() {
+		// -> Jl() -> com.aide.ui.m::FH
+		// -> ImageView.setVisibility
+		runOnUiThread(new Runnable(){
+				@Override
+				public void run() {
+					q7Async();
+				}
+			});
+	}
+
+
+	public void DWAsync() {
 		super.DW();
 	}
 	@Override
@@ -89,7 +107,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		runOnUiThread(new Runnable(){
 				@Override
 				public void run() {
-					DWGAsync();
+					DWAsync();
 				}
 			});
 	}
@@ -586,7 +604,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 				if (parent == null) {
 					continue;
 				}
-				Log.d("RepairBUG", "移除Parent->" + view);
+				AppLog.d("RepairBUG", "移除Parent->" + view);
 				parent.removeView(view);
 
 			}

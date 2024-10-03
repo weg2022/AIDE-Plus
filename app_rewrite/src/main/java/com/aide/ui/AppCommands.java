@@ -2,16 +2,15 @@ package com.aide.ui;
 
 import abcd.*;
 
+import android.util.SparseArray;
+import androidx.annotation.Keep;
+import com.aide.ui.command.KeyStrokeCommand;
+import com.aide.ui.command.MenuItemCommand;
 import io.github.zeroaicy.aide.extend.OpenAideTermux;
 import io.github.zeroaicy.aide.utils.FilesRenameMenu;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import com.aide.ui.command.KeyStrokeCommand;
-import com.aide.ui.command.MenuItemCommand;
-import android.util.SparseArray;
-import androidx.annotation.Keep;
-import io.github.zeroaicy.util.Log;
 
 public class AppCommands {
 

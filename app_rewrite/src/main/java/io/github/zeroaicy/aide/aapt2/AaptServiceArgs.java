@@ -24,13 +24,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.ui.build.android.AaptService$Args;
+import com.aide.ui.build.android.AaptService$Task;
 
 public class AaptServiceArgs {
 
 	AaptService AaptService;
 
-	AaptService$Args args;
+	AaptService$Task task;
 
 	public final String buildBin;
 
@@ -45,7 +45,7 @@ public class AaptServiceArgs {
 	//每个res路径的flat目录
 	public final Set<String> flatDirSet = new HashSet<String>();
 
-	public final PrintStream log;
+	public final PrintStream aaptLog;
 
 	public final int defaultMinSdk;
 	public final int defaultTargetSdk;
@@ -75,8 +75,8 @@ public class AaptServiceArgs {
 
 	public final boolean shrinkResources;
 
-	public AaptServiceArgs(AaptService$Args args) {
-		this.args = args;
+	public AaptServiceArgs(AaptService$Task task) {
+		this.task = task;
 
 		String currentAppHome = getCurrentAppHome();
 
@@ -107,35 +107,35 @@ public class AaptServiceArgs {
 		}
 
 
-		this.isBuildRefresh = 
 		// ((Boolean)argsRef.get("aM")).booleanValue();
-		 args.isBuildRefresh;
+		this.isBuildRefresh = task.isBuildRefresh;
 		 
 		// argsRef.get("Hw");
-		this.androidJar = args.androidSdkFilePath;
+		this.androidJar = task.androidSdkFilePath;
+		
 		//resource.ap_
 		// argsRef.get("gn");
-		this.resourcesApPath = args.resourcesApPath;
+		this.resourcesApPath = task.resourcesApPath;
 		
 		// 构建缓存路径
 		this.buildBin = new File(this.resourcesApPath).getParent();
 		// 日志输出
-		this.log = new PrintStream(Log.AsyncOutputStreamHold.createOutStream(new File(buildBin, "intermediates/aapt_log.log")));
+		this.aaptLog = new PrintStream(Log.AsyncOutputStreamHold.createOutStream(new File(buildBin, "intermediates/aapt_log.log")));
 
 		//gen查找packageName
 		// argsRef.get("EQ");
-		this.genPackageNameMap = args.genPackageNameMap;
+		this.genPackageNameMap = task.genPackageNameMap;
 
 		//gen对应的 res(包含res依赖，[0]为gen所在res)
 		// argsRef.get("tp");
-		this.genResDirsMap = args.genResDirsMap;
+		this.genResDirsMap = task.genResDirsMap;
 
 		// fullCustomVar();
 
 
 		//主项目gen目录
 		// argsRef.get("Zo");
-		this.mainProjectGenDir = args.mainProjectGenDir;
+		this.mainProjectGenDir = task.mainProjectGenDir;
 
 		//主项目res目录
 		List<String> mainResDirs = this.genResDirsMap.get(this.mainProjectGenDir);
@@ -150,10 +150,10 @@ public class AaptServiceArgs {
 
 		//res -> bin的res(正好可以用于DataBinding存放脱糖的xml)
 		// argsRef.get("u7");
-		this.allResourceMap = args.allResourceMap;
+		this.allResourceMap = task.allResDirMap;
 		
 		// argsRef.get("VH");
-		List<String> assetDirPaths = args.assetDirPaths;
+		List<String> assetDirPaths = task.assetDirPaths;
 		if (assetDirPaths != null) {
 			this.assetDirPaths.addAll(assetDirPaths);
 		}
@@ -172,19 +172,19 @@ public class AaptServiceArgs {
 
 		// 子项目的gen目录
 		// argsRef.get("we");
-		this.subProjectGens = args.subProjectGens;
+		this.subProjectGens = task.subProjectGens;
 		
 		// argsRef.get("J0");
-		this.variantManifestPaths = args.variantManifestPaths;
+		this.variantManifestPaths = task.variantManifestPaths;
 		
 		// argsRef.get("J8");
-		this.mergedAManifestMap = args.mergedAManifestMap;
+		this.mergedAndroidManifestMap = task.mergedAndroidManifestMap;
 
 		// argsRef.get("QX");
-		this.injectedAManifestMap = args.injectedAManifestMap;
+		this.injectedAndroidManifestMap = task.injectedAndroidManifestMap;
 		
 		// argsRef.get("Ws");
-		this.aManifestMap = args.aManifestMap;
+		this.androidManifestMap = task.androidManifestMap;
 
 		this.mainPackageName = this.genPackageNameMap.get(this.mainProjectGenDir);
 		
@@ -277,11 +277,11 @@ public class AaptServiceArgs {
 	//所有的variantManifestPaths
 	public final List<String> variantManifestPaths;
 	
-	public final Map<String, String> mergedAManifestMap;
+	public final Map<String, String> mergedAndroidManifestMap;
 
-	public final Map<String, String> injectedAManifestMap;
+	public final Map<String, String> injectedAndroidManifestMap;
 
-	public final Map<String, String> aManifestMap;
+	public final Map<String, String> androidManifestMap;
 
 	/**
 	 * 根据已有数据计算
@@ -292,23 +292,23 @@ public class AaptServiceArgs {
 	 */
 	public void buildRefresh() {
 		// this.argsRef.call("v5");
-		this.args.buildRefresh();
+		this.task.buildRefresh();
 	}
 	public void generateBuildConfigJava() {
 		// this.argsRef.call("Zo");
-		this.args.generateBuildConfigJava();
+		this.task.generateBuildConfigJava();
 		
 	}
 
 	public String getAapt2Error(abcd.wf j62) {
 		// return this.argsRef.call("VH", new Object[] {j62.j6(), j62.DW()}).get();
-		return this.args.getAaptError(j62.j6(), j62.DW());
+		return this.task.getAaptError(j62.j6(), j62.DW());
 	}
 
 	//合并AndroidManifestxml
 	public AaptService$ErrorResult mergedAndroidManifestxml() {
 		// return this.argsRef.call("EQ").get();
-		return this.args.mergedAndroidManifestxml();
+		return this.task.mergedAndroidManifestxml();
 	}
 
 

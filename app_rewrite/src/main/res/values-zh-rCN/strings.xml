@@ -8,6 +8,8 @@
 	<string name="command_run_from_gradle">运行Gradle</string>
 	
 	 <!-- 新增的 -->
+	<string name="trainer_language">zh</string>
+	
 	<string name="preference_category_apk_sign">APK签名</string>
 	<string name="preference_category_c_indent">C++缩进</string>
 	<string name="preference_category_completion">代码补全</string>
@@ -1677,7 +1679,7 @@
 	<string name="dialog_search_message">查找内容：</string>
 	<string name="dialog_set_breakpoint_message">将要切换到构建分支“debug-aide”来进行调试。</string>
 	<string name="dialog_set_breakpoint_title">设置断点</string>
-	<string name="dialog_variants_title">构建分支</string>
+	<string name="dialog_variants_title">构建变体</string>
 	<string name="dialog_whats_new_skip">继续</string>
 	<string name="dialog_whats_new_special">仅限现在：优惠%1$s！</string>
 	<string name="dialog_yes">确定</string>

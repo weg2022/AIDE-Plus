@@ -10,7 +10,6 @@ import com.aide.ui.util.ArtifactNode;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.MavenMetadataXml;
 import com.aide.ui.util.PomXml;
-import io.github.zeroaicy.util.Log;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -176,7 +175,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						}
 					}
 					catch (Throwable e) {
-						AppLog.Hw("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: ", e);
+						AppLog.d("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: ", e);
 
 						continue;
 					}
@@ -235,7 +234,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
-			Log.d(" Maven Download", dependencyString, unused);
+			AppLog.d(" Maven Download", dependencyString, unused);
 			FileUtil.deleteFolder(artifactPath);
 			return false;
 		}

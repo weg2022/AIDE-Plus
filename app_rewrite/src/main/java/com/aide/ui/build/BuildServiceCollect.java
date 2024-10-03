@@ -5,7 +5,6 @@ package com.aide.ui.build;
 
 import abcd.cy;
 import abcd.dy;
-import abcd.ey;
 import abcd.fy;
 import abcd.gy;
 import abcd.iy;
@@ -62,18 +61,5 @@ public class BuildServiceCollect {
 			throw new Error(th);
         }
     }
-
-    @ey(method = 195332233296682200L)
-    public BuildServiceCollect() {
-        try {
-            if (VH) {
-                iy.gn(-917975210852741265L, (Object) null);
-            }
-        } catch (Error th) {
-            throw th;			
-		}
-		catch (Throwable th) {
-			throw new Error(th);
-        }
-    }
+    public BuildServiceCollect() {}
 }

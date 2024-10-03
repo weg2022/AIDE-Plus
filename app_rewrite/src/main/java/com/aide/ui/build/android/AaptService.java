@@ -8,45 +8,38 @@ package com.aide.ui.build.android;
 
 import android.content.Context;
 import android.os.Build;
+import androidx.annotation.Keep;
 import com.aide.common.AppLog;
 import com.aide.engine.SyntaxError;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.services.AssetInstallationService;
+import com.aide.ui.services.ZeroAicyProjectService;
 import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
-import com.aide.ui.services.ZeroAicyProjectService;
-import androidx.annotation.Keep;
+import android.text.TextUtils;
 
 public class AaptService {
 
-    private static boolean v5;
+    private static boolean initedAaptExecutable;
 
-    private AaptService$d DW;
+    private AaptService$FutureTask curFutureTask;
 
-    private e FH;
+    private e callback;
 
-    private Context Hw;
+    private Context context;
 
 	// 只有此类使用 j6 -> 
     private final ThreadPoolService executorsService;
-	
+
     public AaptService(Context context) {
-		this.Hw = context;
+		this.context = context;
 		this.executorsService =  ZeroAicyProjectService.getProjectServiceThreadPoolService();
-    }
-	
-	@Keep
-    static void DW(AaptService aaptService, Map<String, List<SyntaxError>> map) {
-        aaptService.XL(map);
     }
 
     static void FH(AaptService aaptService) {
@@ -57,79 +50,176 @@ public class AaptService {
         aaptService.Ws(th);
     }
 
-	public void putSyntaxError(HashMap<String, List<SyntaxError>> hashMap, String str, String line) {
-		if (!hashMap.containsKey(str)) {
-			hashMap.put(str, new ArrayList<SyntaxError>());
+	private Map<String, List<SyntaxError>> resolvingError(String mainProjectPath, Map<String, String> androidManifestMap, String errorInfo) {
+		HashMap<String, List<SyntaxError>> fileSyntaxErrorsMap = new HashMap<>();
+		try {
+			String[] lines = errorInfo.split("\n");
+
+			for (String errorContent : lines) {
+				if (TextUtils.isEmpty(errorContent)) {
+					// 空行不显示
+					continue;
+				}
+				// 开始解析
+				// /storage/emulated/0/AppProjects1/.ZeroAicy/git/Termux内置版/main/src/main/res/layout/main.xml:6: error: resource string/hello_world2 (aka io.github.zeroaicy.termux:string/hello_world2) not found.\nerror: failed linking file resources.";
+				// 文件路径 : 行数 :空格[error:]空格[错误内容]
+				// [error: ] 错误内容
+				int errorFilePathEnd = errorContent.indexOf(':');
+				if (errorFilePathEnd <= 0) {
+					// 未知格式没有 ':'
+					putSyntaxError(fileSyntaxErrorsMap, mainProjectPath, errorContent);
+					continue;
+				}
+				// 可能不是错误文件路径
+				// 可能是 error: 等其它，所以判断是否是文件
+				String errorFilePath = errorContent.substring(0, errorFilePathEnd);
+				// 不是文件
+				if (!FileSystem.KD(errorFilePath)) {
+					putSyntaxError(fileSyntaxErrorsMap, mainProjectPath, errorContent);
+					continue;
+				}
+				// 是文件 文件后面跟的是行号
+				int errorLineNumberStart = errorFilePathEnd + 1;
+				int errorLineNumberEnd = errorContent.indexOf(':', errorLineNumberStart);
+
+				if (errorLineNumberEnd < 0) {
+					errorLineNumberEnd = errorContent.indexOf(' ', errorLineNumberStart);
+				}
+				if (errorLineNumberEnd < 0) {
+					continue;
+				}
+
+				int errorLineNumber;
+				try {
+					errorLineNumber = Integer.parseInt(errorContent.substring(errorLineNumberStart, errorLineNumberEnd));
+				}
+				catch (NumberFormatException unused) {
+					errorLineNumber = 1;
+				}
+
+				String error = errorContent.substring(errorLineNumberEnd + 1, errorContent.length()).trim();
+
+				while (error.toLowerCase().startsWith("error:")) {
+					error = error.substring("error:".length(), error.length()).trim();
+				}
+
+				if (androidManifestMap.containsKey(errorFilePath)) {
+					// 都添加就知道哪错了
+					String errorFilePath2 = androidManifestMap.get(errorFilePath);
+					String error2 = "in generated file: " + error;
+					int errorLineNumber2 = 1;
+
+					SyntaxError syntaxError2 = makeSyntaxError("aapt", errorLineNumber2, error2);
+					putSyntaxError(fileSyntaxErrorsMap, errorFilePath2, syntaxError2);
+
+				}
+
+				SyntaxError syntaxError = makeSyntaxError("aapt", errorLineNumber, error);
+				putSyntaxError(fileSyntaxErrorsMap, errorFilePath, syntaxError);
+			}
+		}				
+		catch (Exception e) {
+			AppLog.v5(e);
 		}
-		List<SyntaxError> syntaxErrors = hashMap.get(str);
-		syntaxErrors.add(u7("aapt", 1, line));
+		return fileSyntaxErrorsMap;
 	}
 
-    private Map<String, List<SyntaxError>> J0(String str, Map<String, String> map, String str2) {
-        HashMap<String, List<SyntaxError>> hashMap = new HashMap<>();
+	public void putSyntaxError(HashMap<String, List<SyntaxError>> fileSyntaxErrorsMap, String errorFilePath, String line) {
+		if (!fileSyntaxErrorsMap.containsKey(errorFilePath)) {
+			fileSyntaxErrorsMap.put(errorFilePath, new ArrayList<SyntaxError>());
+		}
+		List<SyntaxError> syntaxErrors = fileSyntaxErrorsMap.get(errorFilePath);
+		syntaxErrors.add(makeSyntaxError("aapt", 1, line));
+	}
+
+	public void putSyntaxError(Map<String, List<SyntaxError>> fileSyntaxErrorsMap, String errorFilePath, SyntaxError syntaxError) {
+		if (!fileSyntaxErrorsMap.containsKey(errorFilePath)) {
+			fileSyntaxErrorsMap.put(errorFilePath, new ArrayList<SyntaxError>());
+		}
+		List<SyntaxError> syntaxErrors = fileSyntaxErrorsMap.get(errorFilePath);
+		syntaxErrors.add(syntaxError);
+	}
+
+
+    private Map<String, List<SyntaxError>> resolvingError3(String mainProjectPath, Map<String, String> androidManifestMap, String errorInfo) {
+
+        HashMap<String, List<SyntaxError>> fileSyntaxErrorsMap = new HashMap<>();
+		System.out.println("androidManifestMap " + androidManifestMap);
 		try {
+			// errorInfo.replace("\nerror:", "error:");
+			String[] lines = errorInfo.split("\n");
 
-			String[] lines = str2.split("\n");
-			int i2 = 0;
-			for (String line : lines) {
+			for (String errorContent : lines) {
 
-				if (line == null || line.length() == 0) {
-					putSyntaxError(hashMap, str, line);
+				if (TextUtils.isEmpty(errorContent)) {
+					// 空行
+					putSyntaxError(fileSyntaxErrorsMap, mainProjectPath, errorContent);
 					continue;
 				}
 
 				try {
-					int indexOf = line.indexOf(':');
+					// ':' 所在偏移量
+					int colonIndex = errorContent.indexOf(':');
 
-					if (indexOf <= 0) {
-						putSyntaxError(hashMap, str, line);
+					if (colonIndex <= 0) {
+						// 未知错误类型
+						putSyntaxError(fileSyntaxErrorsMap, mainProjectPath, errorContent);
 						continue;
 					}
 
-					String substring = line.substring(i2, indexOf);
-					if (FileSystem.KD(substring)) {
-						putSyntaxError(hashMap, str, line);
+					String errorFilePath = errorContent.substring(0, colonIndex);
+					// 是文件
+					if (!FileSystem.KD(errorFilePath)) {
+						putSyntaxError(fileSyntaxErrorsMap, mainProjectPath, errorContent);
 						continue;
 					}
 
-					int i4 = indexOf + 1;
-					int indexOf2 = line.indexOf(':', i4);
+					// 第二个 ':'起点偏移量
+					int secondColonStart = colonIndex + 1;
+					int secondColonIndex = errorContent.indexOf(':', secondColonStart);
 
-					if (indexOf2 < 0) {
-						indexOf2 = line.indexOf(' ', i4);
+					if (secondColonIndex < 0) {
+						secondColonIndex = errorContent.indexOf(' ', secondColonStart);
 					}
-					int i;
-
-					if (indexOf2 > 0) {
-						try {
-							i = Integer.parseInt(line.substring(i4, indexOf2));
-						}
-						catch (NumberFormatException unused) {
-							i = 1;
-						}
-						String line2 = line.substring(indexOf2 + 1, line.length()).trim();
-
-						while (line2.toLowerCase().startsWith("error:")) {
-							line2 = line2.substring(6, line2.length()).trim();
-						}
-
-						if (map.containsKey(substring)) {
-							substring = map.get(substring);
-							line2 = "in generated file: " + line2;
-							i = 1;
-						}
-						SyntaxError u7 = u7("aapt", i, line2);
-						if (!hashMap.containsKey(substring)) {
-							hashMap.put(substring, new ArrayList<SyntaxError>());
-						}
-						hashMap.get(substring).add(u7);
+					if (secondColonIndex < 0) {
+						continue;
 					}
+
+					int errorLineNumber;
+					try {
+						errorLineNumber = Integer.parseInt(errorContent.substring(secondColonStart, secondColonIndex));
+					}
+					catch (NumberFormatException unused) {
+						errorLineNumber = 1;
+					}
+
+					String error = errorContent.substring(secondColonIndex + 1, errorContent.length()).trim();
+
+					while (error.toLowerCase().startsWith("error:")) {
+						error = error.substring("error:".length(), error.length()).trim();
+					}
+
+					if (androidManifestMap.containsKey(errorFilePath)) {
+						errorFilePath = androidManifestMap.get(errorFilePath);
+						error = "in generated file: " + error;
+						errorLineNumber = 1;
+					}
+
+					SyntaxError syntaxError = makeSyntaxError("aapt", errorLineNumber, error);
+					if (!fileSyntaxErrorsMap.containsKey(errorFilePath)) {
+						System.out.println("put errorFilePath " + errorFilePath);
+
+						fileSyntaxErrorsMap.put(errorFilePath, new ArrayList<SyntaxError>());
+					}
+					List<SyntaxError> syntaxErrors = fileSyntaxErrorsMap.get(errorFilePath);
+					syntaxErrors.add(syntaxError);
 				}
 				catch (Exception e) {
 					AppLog.v5(e);
 				}
 			}
-			return hashMap;
+			System.out.println("fileSyntaxErrorsMap keys: " + fileSyntaxErrorsMap.keySet());
+			return fileSyntaxErrorsMap;
 		}
 		catch (Throwable th) {
 			throw new Error(th);
@@ -143,95 +233,191 @@ public class AaptService {
 	 * 
 	 */
     private void J8(boolean z) {
-        if (this.FH != null) {
-			this.FH.vJ(z);
+        if (this.callback != null) {
+			this.callback.vJ(z);
 		}
     }
 
     private void QX() {
 
-		if (this.FH != null) {
-			this.FH.J0();
+		if (this.callback != null) {
+			this.callback.J0();
 		}
     }
 
-    static boolean VH() {
-        return v5;
+    static boolean initedAaptExecutable() {
+        return initedAaptExecutable;
     }
 
     private void Ws(Throwable th) {
 
 		AppLog.v5(th);
-		if (this.FH != null) {
-			this.FH.g3();
+		if (this.callback != null) {
+			this.callback.g3();
 		}
     }
 
     private void XL(Map<String, List<SyntaxError>> map) {
-		if (this.FH != null) {
-			this.FH.Mz(map);
+		if (this.callback != null) {
+			this.callback.Mz(map);
 		}
     }
 
-    static Context Zo(AaptService aaptService) {
-        return aaptService.Hw;
+    static Context getContext(AaptService aaptService) {
+        return aaptService.context;
     }
-	
-	@Keep
-    static boolean gn(boolean z) {
-        v5 = z;
-        return z;
-    }
+
+
 
 	// AaptService$d::done调用
     static void j6(AaptService aaptService, boolean z) {
         aaptService.J8(z);
     }
 
-    private AaptService$Args tp(String str, boolean z, boolean isBuildRefresh, boolean z3, String str2, String str3, String aaptPath) {
-		Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(str);
-		
-		Map<String, String> jO = AndroidProjectSupport.jO(vy, str3);
-		Map<String, String> cT = AndroidProjectSupport.cT(vy, str3);
-		Map<String, String> aq = AndroidProjectSupport.aq(str, vy, str3);
-		Map<String, String> FN = AndroidProjectSupport.FN(vy, str3);
-		Map<String, List<String>> oY = AndroidProjectSupport.oY(vy, str3);
-		Map<String, String> Z1 = AndroidProjectSupport.Z1(vy, str3);
-		return new AaptService$Args(this, aaptPath, str, str3, vy, AndroidProjectSupport.jw(str), AndroidProjectSupport.fY(str, str3), ServiceContainer.getProjectService().getAndroidJarPath(), AndroidProjectSupport.Eq(str), AndroidProjectSupport.yO(str, str2, str3), AndroidProjectSupport.kf(str), jO, cT, aq, FN, oY, Z1, z, isBuildRefresh, z3);
+    private AaptService$Task makeTask(String mainProjectPath, boolean z, boolean isBuildRefresh, boolean z3, String str2, String flavor, String aaptPath) {
+		Map<String, List<String>> resLibraryMap = ServiceContainer.getProjectService().vy(mainProjectPath);
+
+		String resourceApFilePath = AndroidProjectSupport.kf(mainProjectPath);
+		Map<String, String> genPackageNameMap = AndroidProjectSupport.jO(resLibraryMap, flavor);
+		Map<String, String> allResDirMap = AndroidProjectSupport.cT(resLibraryMap, flavor);
+		Map<String, String> injectedAndroidManifestMap = AndroidProjectSupport.aq(mainProjectPath, resLibraryMap, flavor);
+		Map<String, String> mergedAManifestMap = AndroidProjectSupport.FN(resLibraryMap, flavor);
+		Map<String, List<String>> genResDirsMap = AndroidProjectSupport.oY(resLibraryMap, flavor);
+		Map<String, String> androidManifestMap = AndroidProjectSupport.Z1(resLibraryMap, flavor);
+		List<String> subProjectGens = AndroidProjectSupport.jw(mainProjectPath);
+		List<String> variantManifestPaths = AndroidProjectSupport.fY(mainProjectPath, flavor);
+
+		String androidJarPath = ServiceContainer.getProjectService().getAndroidJarPath();
+		String mainProjectGenDir = AndroidProjectSupport.Eq(mainProjectPath);
+		List<String> assetDirPaths = AndroidProjectSupport.yO(mainProjectPath, str2, flavor);
+
+		return new AaptService$Task(
+			this, 
+			aaptPath, mainProjectPath, flavor, 
+			resLibraryMap, subProjectGens, variantManifestPaths, 
+			androidJarPath, mainProjectGenDir, assetDirPaths, 
+			resourceApFilePath, genPackageNameMap, allResDirMap, 
+			injectedAndroidManifestMap, mergedAManifestMap, genResDirsMap, 
+			androidManifestMap, z, isBuildRefresh, z3);
     }
 
-    private SyntaxError u7(String str, int i, String str2) {
+    private SyntaxError makeSyntaxError(String errorType, int errorLineNumber, String error) {
 		SyntaxError syntaxError = new SyntaxError();
-		syntaxError.jw = i;
+		syntaxError.jw = errorLineNumber;
 		syntaxError.fY = 1;
-		syntaxError.qp = i;
+		syntaxError.qp = errorLineNumber;
 		syntaxError.k2 = 1000;
-		syntaxError.zh = str + ": " + str2;
+		syntaxError.zh = errorType + ": " + error;
+
 		return syntaxError;
     }
 
-    static Map<String, List<SyntaxError>> v5(AaptService aaptService, String str, Map<String, String> map, String str2) {
-        return aaptService.J0(str, map, str2);
+    static Map<String, List<SyntaxError>> resolvingError(AaptService aaptService, String mainProjectPath, Map<String, String> androidManifestMap, String errorInfo) {
+        return aaptService.resolvingError(mainProjectPath, androidManifestMap, errorInfo);
     }
 
-    private String we() {
+    private String getAaptPath() {
 		if (Build.VERSION.SDK_INT >= 29) {
 			AppLog.DW("Using aapt: " + ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so");
 			return ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so";
 		}
 		return AssetInstallationService.DW("aapt", false);
     }
-	
+
+
+
+    static void DW(AaptService aaptService, Map<String, List<SyntaxError>> map) {
+        aaptService.XL(map);
+    }
+    static boolean setInitedAaptExecutable(boolean initedAaptExecutable) {
+        return AaptService.initedAaptExecutable = initedAaptExecutable;
+    }
+
 	@Keep
-    public void EQ(String str) {
-		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), str);
-		for (String str2 : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
-			String ye = AndroidProjectSupport.ye(str2, str);
+    public void j3(final String mainProjectPath, final String str2, final String flavor, final boolean z, final boolean isRrelease, final boolean z3) {
+        try {
+            final String aaptPath = getAaptPath();
+            if (this.curFutureTask != null) {
+                this.curFutureTask.cancel(true);
+                this.curFutureTask = null;
+            }
+			// 改成异步
+			AaptService$Callable.TaskFactory taskFactory = new AaptService$Callable.TaskFactory(){
+				@Override
+				public List<AaptService$Task> getTasks() {
+					ArrayList<AaptService$Task> arrayList = new ArrayList<>();
+					if (z3) {
+						for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().yS()) {
+							if (mainProjectPath.equals(mainAppOrWearAppPath)) {
+								continue;
+							}
+							arrayList.add(makeTask(mainAppOrWearAppPath, true, false, false, str2, flavor, aaptPath));
+						}
+					}
+					arrayList.add(makeTask(mainProjectPath, false, z, isRrelease, str2, flavor, aaptPath));
+					return arrayList;
+				}
+			};
+            ThreadPoolService executorService = this.executorsService;
+            AaptService$FutureTask task = new AaptService$FutureTask(this, new AaptService$Callable(this, taskFactory));
+            this.curFutureTask = task;
+            executorService.execute(task);
+        }
+		catch (Throwable th2) {
+        }
+    }
+
+	// AndroidProjectBuildService::yO -> Mr
+    @Keep
+	public void Mr(final String flavor) {
+        try {
+            final String aaptPath = getAaptPath();
+            if (this.curFutureTask != null) {
+                this.curFutureTask.cancel(true);
+                this.curFutureTask = null;
+            }
+
+			// 改成异步获取，在主线程获取会导致没有初始化完
+			// 但此线程池用的是项目服务线程池
+			AaptService$Callable.TaskFactory taskFactory = new AaptService$Callable.TaskFactory(){
+				@Override
+				public List<AaptService$Task> getTasks() {
+					ArrayList<AaptService$Task> arrayList = new ArrayList<>();
+					
+					for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().yS()) {
+						boolean isRrelease = false;
+						arrayList.add(makeTask(mainAppOrWearAppPath, true, false, isRrelease, null, flavor, aaptPath));
+					}
+					return arrayList;
+				}
+			};
+            ThreadPoolService executorService = this.executorsService;
+
+            this.curFutureTask = new AaptService$FutureTask(this, new AaptService$Callable(this, taskFactory));
+            executorService.execute(this.curFutureTask);
+        }
+		catch (Throwable th) {
+
+        }
+    }
+
+
+	@Keep
+    public void aM(e eVar) {
+		this.callback = eVar;
+    }
+	@Keep
+    public void EQ(String flavour) {
+		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), flavour);
+		for (String projectPath : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
+			
+			String ye = AndroidProjectSupport.ye(projectPath, flavour);
 			FileSystem.aj(ye);
+			
 			if (Z1.containsKey(ye)) {
 				FileSystem.aj((String) Z1.get(ye));
 			}
-			String Eq = AndroidProjectSupport.Eq(str2);
+			String Eq = AndroidProjectSupport.Eq(projectPath);
 			try {
 				FileSystem.VH(Eq);
 			}
@@ -241,73 +427,5 @@ public class AaptService {
 			new File(Eq).mkdirs();
 		}
 	}
-	
-	// AndroidProjectBuildService::yO -> Mr
-    @Keep
-	public void Mr(final String str) {
-        try {
-            final String we = we();
-            if (this.DW != null) {
-                this.DW.cancel(true);
-                this.DW = null;
-            }
-			
-			// 改成异步获取，在主线程获取会导致没有初始化完
-			// 但此线程池用的是项目服务线程池
-			AaptService$a.TaskFactory taskFactory = new AaptService$a.TaskFactory(){
-				@Override
-				public List<AaptService$Args> getTasks() {
-					ArrayList<AaptService$Args> arrayList = new ArrayList<>();
-					for (String next : ServiceContainer.getProjectService().yS()) {
-						arrayList.add(tp(next, true, false, false, null, str, we));
-					}
-					return arrayList;
-				}
-			};
-            ThreadPoolService executorService = this.executorsService;
-            this.DW = new AaptService$d(this, new AaptService$a(this, taskFactory));
-            executorService.execute(this.DW);
-        }
-		catch (Throwable th) {
-        }
-    }
-
-    public void aM(e eVar) {
-		this.FH = eVar;
-    }
-	
-	@Keep
-    public void j3(final String str, final String str2, final String str3, final boolean z, final boolean z2, final boolean z3) {
-        try {
-            final String we = we();
-            if (this.DW != null) {
-                this.DW.cancel(true);
-                this.DW = null;
-            }
-			// 改成异步
-			AaptService$a.TaskFactory taskFactory = new AaptService$a.TaskFactory(){
-				@Override
-				public List<AaptService$Args> getTasks() {
-					ArrayList<AaptService$Args> arrayList = new ArrayList<>();
-					if (z3) {
-						for (String str4 : ServiceContainer.getProjectService().yS()) {
-							if (str.equals(str4)) {
-								continue;
-							}
-							arrayList.add(tp(str4, true, false, false, str2, str3, we));
-						}
-					}
-					arrayList.add(tp(str, false, z, z2, str2, str3, we));
-					return arrayList;
-				}
-			};
-            ThreadPoolService executorService = this.executorsService;
-            AaptService$d dVar = new AaptService$d(this, new AaptService$a(this, taskFactory));
-            this.DW = dVar;
-            executorService.execute(dVar);
-        }
-		catch (Throwable th2) {
-        }
-    }
 }
 

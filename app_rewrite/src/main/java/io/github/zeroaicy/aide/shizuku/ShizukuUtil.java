@@ -15,7 +15,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.widget.Toast;
-import io.github.zeroaicy.util.Log;
+import com.aide.common.AppLog;
+import com.aide.ui.rewrite.R;
+import io.github.zeroaicy.util.IOUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,8 +28,6 @@ import java.util.concurrent.CountDownLatch;
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
 import rikka.shizuku.SystemServiceHelper;
-import com.aide.ui.rewrite.R;
-import android.app.PendingIntent;
 
 public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.OnBinderDeadListener, Shizuku.OnRequestPermissionResultListener {
 
@@ -60,14 +60,14 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 		}
 		this.onBinderReceived = true;
 		//Shizuku建立连接后，立即开始检查权限并申请
-		Log.d(TAG, "onBinderReceived[已建立连接]");
+		AppLog.d(TAG, "onBinderReceived[已建立连接]");
 	}
 
 	@Override
 	public void onBinderDead() {
 		this.onBinderReceived = false;
 		//Shizuku 服务死了
-		Log.d(TAG, "onBinderDead[Shizuku 服务死了]");
+		AppLog.d(TAG, "onBinderDead[Shizuku 服务死了]");
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 	private static ShizukuUtil shizukuListener;
 	//添加监听器
 	public static void initialized(Context context) {
-		Log.d(TAG, "Shizuku初始化");
+		AppLog.d(TAG, "Shizuku初始化");
 		if (ShizukuUtil.shizukuListener != null) {
 			//ShizukuUtil.shizukuListener.removeBinderListener();
 			//ShizukuUtil.shizukuListener.addBinderListener();
@@ -136,7 +136,7 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 			return false;
         }
 		catch (Throwable e) {
-			Log.e(TAG, "checkPermission", e);
+			AppLog.e(TAG, "checkPermission", e);
         }
 
         return false;
@@ -218,11 +218,11 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
         }
 		catch (Throwable tr) {
             infoBuilder.append(tr);
-			Log.e(TAG, "doInstallApk", tr);
+			AppLog.e(TAG, "doInstallApk", tr);
         }
 		finally {
-            closeAutoCloseable(session);
-			Log.d(TAG, infoBuilder.toString().trim());
+            IOUtils.close(session);
+			AppLog.d(TAG, infoBuilder.toString().trim());
         }
 		
 		if (status == 0) {
@@ -243,24 +243,14 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 			}
 		}
 		finally {
-			closeAutoCloseable(is);
-			closeAutoCloseable(os);
+			IOUtils.close(is);
+			IOUtils.close(os);
 		}
 	}
-
-	public static void closeAutoCloseable(AutoCloseable autoCloseable) {
-		if (autoCloseable == null) return;
-		try {
-			autoCloseable.close();
-		}
-		catch (Exception e) {}
-	}
-
 
 	public static IntentSender newInstance(IIntentSender binder) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         return IntentSender.class.getConstructor(IIntentSender.class).newInstance(binder);
     }
-
 
     public static IPackageInstaller getPackageInstaller() throws RemoteException {
 		// 系统服务[package]

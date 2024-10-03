@@ -95,8 +95,9 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			// 从文件夹添加原生库文件，
 			this.nativeLibZipEntryTransformer = new ZipEntryTransformer.NativeLibFileTransformer(getAndroidFxtractNativeLibs());
 			this.libgdxNativesTransformer = new ZipEntryTransformer.LibgdxNativesTransformer(getAndroidFxtractNativeLibs());
-
-			this.environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());
+			if( ZeroAicySetting.isEnableEnsureCapacity()){
+				this.environment.put("EnsureCapacity", getLibEnsureCapacityPathPath());				
+			}
 			// 初始化
 			DexingJarTask.init(this.environment);
 		}
@@ -267,7 +268,7 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 			String dependencyMergerFilePath = getDependencyMergerFilePath();
 			
 			if ( !isMergingJarDexFiles(dependencyLibDexs) ){
-				Log.d(TAG, "缓存文件没有更新，不需要合并");
+				AppLog.d(TAG, "缓存文件没有更新，不需要合并");
 				return dependencyMergerFilePath;
 			}
 			

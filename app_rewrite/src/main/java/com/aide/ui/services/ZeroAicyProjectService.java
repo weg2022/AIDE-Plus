@@ -28,6 +28,7 @@ import java.util.Iterator;
 import com.aide.ui.util.BuildGradle;
 import android.text.TextUtils;
 import java.util.Arrays;
+import com.aide.common.AppLog;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -71,8 +72,9 @@ public class ZeroAicyProjectService extends ProjectService {
 			// 项目路径 -> 所有maven依赖
 			this.libraryMapping = //new HashMap<>();
 				new ConcurrentHashMap<String, List<String>>();
-
+			// mainAppWearApps 主项目和wear app项目
 			this.Hw = new Vector<String>();
+
 			// Debugger必须在主线程中创建
 			// 因为创建了 Handler
 			ServiceContainer.getDebugger();
@@ -191,15 +193,6 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	@Override
 	public synchronized Map<String, List<String>> getLibraryMapping() {
-		/*
-		 //boolean isInited = isInited();
-
-		 Log.println();
-		 Log.d(TAG, "getLibraryMapping() isInited", isInited);
-		 Log.printlnStack();
-		 Log.println();
-		 */
-
 		if (ThreadPoolService.isUiThread()) {
 			if (!isInited() && libraryMappingCopy == null) {
 				return Collections.emptyMap();
@@ -281,15 +274,17 @@ public class ZeroAicyProjectService extends ProjectService {
 	/**
 	 * 返回主项目路径及子项目路径 [签名服务会回调]
 	 */
+	// yS() -> getMainAppWearApps
 	@Override
 	public synchronized List<String> yS() {
 		synchronized (this.Hw) {
-			if (this.Hw.size() == 0 && ! isBuildProjected()) {
-
+			if (this.Hw.size() == 0 
+				&& ! isBuildProjected()) {
 				// 返回一个拉倒
 				return Arrays.<String>asList(new String[]{this.currentAppHome});
 			}
 		}
+
 		// project中所有model文件夹路径
 		return this.Hw;			
 	}
@@ -297,9 +292,10 @@ public class ZeroAicyProjectService extends ProjectService {
 	/**
 	 * 防止 Hw 与 libraryMapping值被覆盖
 	 */
+	// Ws() -> closeProject
 	@Override
 	public void Ws() {
-		
+
 		if (this.currentAppHome == null) {
 			return;
 		}
@@ -311,21 +307,16 @@ public class ZeroAicyProjectService extends ProjectService {
 
 			ServiceContainer.J0().aM();
 			ServiceContainer.getNavigateService().Hw();
-			ServiceContainer.getOpenFileService().Zo();
 
-			// 替换原实现 重置
-			/*
-			synchronized( this.Hw ){
-				this.Hw.clear();
-				this.Hw.add(this.currentAppHome);
-
-				Log.d(TAG, "this.Hw.clear() -> 1");				
-			}
-			//*/
-			
+			// closeFile 有Ui操作
+			ThreadPoolService.post(new Runnable(){
+					@Override
+					public void run() {
+						// 关闭项目 关闭所有已打开文件
+						ServiceContainer.getOpenFileService().Zo();
+					}
+				});
 			this.Hw.clear();
-			Log.d(TAG, "this.Hw.clear() -> 2");
-			
 			this.libraryMapping.clear();
 
 			this.classPathEntrys = null;
@@ -662,27 +653,19 @@ public class ZeroAicyProjectService extends ProjectService {
 	protected void initAsync() {
 		if (isInited()) {
 			// 老是重复初始化
-			Log.println("项目服务, 已初始化: ");
-			//Log.printlnStack();
+			AppLog.d("项目服务, 已初始化: ");
 			return;
 		}
-		// 重置
-		
-		/*
-		synchronized( this.Hw ){
-			this.Hw.clear();
-			this.Hw.add(this.currentAppHome);				
-		}
-		//*/
+
 		this.Hw.clear();
-		Log.d(TAG, "this.Hw.clear() -> 1");
+		// 必须currentAppHome
 		this.libraryMapping.clear();
 
 		this.classPathEntrys = null;
 
 		if (this.currentAppHome != null) {
 			// 填充this.libraryMapping[修改this.libraryMapping中]
-			this.pojectSupport.U2(this.currentAppHome, this.libraryMapping, this.Hw);				
+			this.pojectSupport.U2(this.currentAppHome, this.libraryMapping, this.Hw);
 		}
 		// 已完成初始化，记录当时libraryMapping
 		this.libraryMappingCopy = new HashMap<String, List<String>>(this.libraryMapping);
@@ -804,7 +787,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	public boolean isAndroidProjectInwhat(String filePath) {
 		String currentAppHome = getCurrentAppHome();
-		if( currentAppHome == null ){
+		if (currentAppHome == null) {
 			return false;
 		}
 		if (filePath.startsWith(currentAppHome)) {

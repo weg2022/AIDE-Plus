@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.io.PrintStream;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 public class D8TaskWrapper {
 
@@ -69,7 +70,11 @@ public class D8TaskWrapper {
 	private static void run( String className, List<String> argList, Map<String, String> environment ) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
-		new File(r8Path).setWritable(false);
+		File r8ZipFile = new File(r8Path);
+		if ( r8ZipFile.canWrite() ) {
+			r8ZipFile.setWritable(false);
+		}
+
 		// /system/bin/app_process -Djava.class.path="r8Path" /system/bin --nice-name=R8Task io.github.zeroaicy.r8.R8Task "$@"
 		ArrayList<String> cmdList = new ArrayList<String>();
 		cmdList.add("app_process");
@@ -85,7 +90,12 @@ public class D8TaskWrapper {
 
 		//*
 		String[] args = cmdList.toArray(new String[cmdList.size()]);
-		System.out.println(cmdList);
+		//System.out.println(cmdList);
+		run(className, args, environment, false);
+	}
+	
+	private static void run( String className, String[] args, Map<String, String> environment, boolean isExceptionHandling ) throws Throwable {
+
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
 		processBuilder.environment().putAll(environment);
 
@@ -103,34 +113,42 @@ public class D8TaskWrapper {
 		Thread inputStreamReaderThread = new Thread(inputStreamReader);
 		inputStreamReaderThread.start();		
 
-		try {
-			// 等待 r8进程运行完
-			// 再此之前必须读取输出流和错误流
-			// 否则缓存池用完会阻塞
-			process.waitFor();
-
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-		}
-		if ( process.exitValue() == 0 ) {
+		// 等待 r8进程运行完
+		// 再此之前必须读取输出流和错误流
+		// 否则缓存池用完会阻塞
+		process.waitFor();
+		int exitValue = process.exitValue();
+		// 正常退出
+		if ( exitValue == 0 ) {
 			return;
 		}
 
-		String error = errorStreamReader.getError();
-		if ( TextUtils.isEmpty(error) ) {
-			error = inputStreamReader.getError();
+		//已经是在处理异常了 及时退出否则死递归了
+		if ( isExceptionHandling ) {
+			String error = errorStreamReader.getError();
+			if ( TextUtils.isEmpty(error) ) {
+				error = inputStreamReader.getError();
+			}
+			error = "\nTask: " 
+				+ className 
+				+ "-> process exitValue = " 
+				+ process.exitValue() 
+				+ "\n\n Error: -> \n"
+				+ error;
+			throw new Error(error);
 		}
-		error = "\nTask: " 
-			+ className 
-			+ "-> process exitValue = " 
-			+ process.exitValue() 
-			+ "\n\n Error: -> \n"
-			+ error;
-		throw new Error(error);
 
-		//*/
+		// 异常处理 可能会再次运行
+		if ( exitValue == 139 ) {
+			// 扩容库储存
+			// 禁用扩容
+			ZeroAicySetting.disableEnableEnsureCapacity();
+			environment.remove("EnsureCapacity");
+			// 再次运行 以处理异常的方式
+			run(className, args, environment, true);
+		}
 	}
+
 
 	public static class ProcessStreamReader implements Runnable {
 		BufferedInputStream bufferedInputStream;

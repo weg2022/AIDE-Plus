@@ -16,7 +16,6 @@ package io.github.zeroaicy.util.reflect;
 //package org.joor;
 
 // ...
-import io.github.zeroaicy.util.Log;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

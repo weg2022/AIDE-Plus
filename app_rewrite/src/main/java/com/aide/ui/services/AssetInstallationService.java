@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
+import androidx.annotation.Keep;
 
 public class AssetInstallationService {
 	public static long getResourceSize(String resourceName) {
@@ -68,7 +69,7 @@ public class AssetInstallationService {
 			return null;
 		}
 	}
-
+	
 
     private String DW;
 
@@ -231,7 +232,8 @@ public class AssetInstallationService {
 		}
 		return false;
     }
-
+	
+	@Keep
     public String EQ() {
         String VH2 = getOutputPath("weardebug.keystore", true);
 		if (!new File(VH2).exists()) {
@@ -262,8 +264,8 @@ public class AssetInstallationService {
         if (this.v5 == null) {
 			this.v5 = DW("merger.zip", true);
 		}
-		File mergerZipFile = new File(this.v5);
 		
+		File mergerZipFile = new File(this.v5);
 		// Writable dex file is not allowed.
 		if( mergerZipFile.canWrite()){
 			mergerZipFile.setWritable(false);
@@ -274,16 +276,8 @@ public class AssetInstallationService {
 	
 	ThreadPoolService executorsService = ThreadPoolService.getDefaultThreadPoolService();
 	
-	
+	// 卡[Running aidl...] 原因不在这
     public void we() {
-		//AssetInstallationService.this.DW = getOutputPath("android.jar", true);
-
-		//AssetInstallationService.this.j6 = getOutputPath("JavaScriptAPI.js", true);
-		//AssetInstallationService.this.FH = getOutputPath("annotations.jar", true);
-		
-		// [可能不是这原因], 不同步，首次运行会导致 卡[Running aidl...]
-		//AssetInstallationService.this.Hw = DW("framework.aidl", true);
-
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {

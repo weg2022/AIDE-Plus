@@ -14,8 +14,8 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Build;
 import android.os.Bundle;
+import com.aide.common.AppLog;
 import io.github.zeroaicy.util.ContextUtil;
-import io.github.zeroaicy.util.Log;
 import java.lang.reflect.Field;
 
 /**
@@ -155,7 +155,7 @@ public class iy {
 				if( th instanceof java.lang.InterruptedException){
 					return;
 				}
-				Log.d("iy.aM", obj, th);				
+				AppLog.e("iy.aM", th);				
 			}
         } catch (Throwable th2) {
             b00.VH("Runtime Error", th2);
