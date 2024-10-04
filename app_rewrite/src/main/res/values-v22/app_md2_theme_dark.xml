@@ -63,7 +63,7 @@
         <item name="android:windowBackground">@color/app_background</item>
 		<!-- 窗口透明 -->
 		<!-- newUI变为 false -->
-        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsTranslucent">false</item>
 		<!-- 软件输入模式 -->
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
 		<!-- ActionBar Tab主题 -->
@@ -92,7 +92,7 @@
 		
 		
 		<!-- @color/split_separator -> ?android:colorAccent -->
-        <item name="color_split_separator">@color/split_separator</item>
+        <item name="color_split_separator">?android:colorAccent</item>
 		
         <item name="drawable_header">@drawable/browser_header_material</item>
         <item name="drawable_keybar">@drawable/quickkeybar</item>

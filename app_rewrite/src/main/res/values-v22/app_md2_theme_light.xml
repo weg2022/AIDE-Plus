@@ -57,9 +57,10 @@
         <!-- 安卓框架 -->
 		<!-- 窗口背景 -->
         <item name="android:windowBackground">@color/app_background_light</item>
+		
         <!-- 窗口透明 -->
 		<!-- true -> false -->
-        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsTranslucent">false</item>
 		<!-- 软件输入模式 -->
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
 

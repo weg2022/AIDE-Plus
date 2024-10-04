@@ -25,7 +25,6 @@ import android.webkit.MimeTypeMap;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.legacy.app.ActionBarDrawerToggle;
 import com.aide.common.AndroidHelper;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
@@ -50,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import com.aide.common.AppLog;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
@@ -195,7 +195,7 @@ public class ZeroAicyMainActivity extends MainActivity {
         this.mDrawerToggle =
 			new ActionBarDrawerToggle(this,
 									  mDrawerLayout,
-									  R.drawable.ic_drawer,
+									  // R.drawable.ic_drawer,
 									  R.string.app_name,
 									  R.string.app_name);
 		this.mDrawerLayout.addDrawerListener(mDrawerToggle);
