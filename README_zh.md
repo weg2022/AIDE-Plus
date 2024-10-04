@@ -1,6 +1,9 @@
 
 # AIDE-Plus
 
+- [README of English](README.md)]
+
+
 ## 功能
 
 ### 已实现
