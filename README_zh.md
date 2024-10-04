@@ -1,7 +1,7 @@
 
 # AIDE-Plus
 
-- [README of English](README.md)]
+- [README of English](README.md)
 
 
 ## 功能
