@@ -1,6 +1,6 @@
 # AIDE-Plus
 
-- [README of Chinese](README_zh.md)]
+- [README of Chinese](README_zh.md)
 
 
 ## Features
