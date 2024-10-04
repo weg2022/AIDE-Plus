@@ -18,12 +18,6 @@ public class BaseActivity extends Activity {
 
 		super.onCreate(bundle);
 
-		if (ZeroAicySetting.isLightTheme()) {
-			setTheme(R.style.MyAppThemeLight);
-		} else {
-			setTheme(R.style.MyAppThemeDark);
-		}
-
     }
 
 	@Override

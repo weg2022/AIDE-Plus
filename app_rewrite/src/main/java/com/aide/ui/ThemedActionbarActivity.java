@@ -32,6 +32,18 @@ public class ThemedActionbarActivity extends BaseActivity {
 			setTheme(R.style.MyAppThemeDark);
 		}
     }
+	
+	@Override
+    protected void onCreate(Bundle bundle) {
+		super.onCreate(bundle);
+
+		if (ZeroAicySetting.isLightTheme()) {
+			setTheme(R.style.MyAppThemeLight);
+		} else {
+			setTheme(R.style.MyAppThemeDark);
+		}
+
+    }
 
     
 }
