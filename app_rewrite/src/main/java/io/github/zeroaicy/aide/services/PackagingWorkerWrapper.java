@@ -42,7 +42,13 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 	}
 	
 	public String getUserAndroidJar() {
-		return ZeroAicySetting.getDefaultSpString("user_androidjar", getNoBackupFilesDirPath() + "/.aide/android.jar");
+		String defaultAndroidJar = getNoBackupFilesDirPath() + "/.aide/android.jar";
+		String userAndroidJar = ZeroAicySetting.getDefaultSpString("user_androidjar", noBackupFilesDirPath);
+		
+		if(TextUtils.isEmpty( userAndroidJar ) ){
+			return defaultAndroidJar;
+		}
+		return userAndroidJar;
 	}
 
 	/**
