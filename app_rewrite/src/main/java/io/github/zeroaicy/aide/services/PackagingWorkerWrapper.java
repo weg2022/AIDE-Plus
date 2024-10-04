@@ -46,7 +46,10 @@ public abstract class PackagingWorkerWrapper extends ExternalPackagingService.Ex
 		String userAndroidJar = ZeroAicySetting.getDefaultSpString("user_androidjar", noBackupFilesDirPath);
 		
 		if(TextUtils.isEmpty( userAndroidJar ) ){
-			return defaultAndroidJar;
+			// 确保androidJar文件存在
+			if ( !new File(userAndroidJar).exists()){
+				return defaultAndroidJar;
+			}
 		}
 		return userAndroidJar;
 	}
