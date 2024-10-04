@@ -51,6 +51,7 @@
         <item name="android:actionOverflowMenuStyle">@style/Widget.Material.Light.PopupMenu.Overflow</item>
         <item name="android:colorEdgeEffect">?android:colorAccent</item>
 		
+
 		<!--<item name="color_split_separator_bottom">@drawable/color_split_separator_bottom_light</item>
         <item name="popup_complete">@drawable/popup_complete</item>-->
 		
@@ -61,6 +62,7 @@
         <!-- 窗口透明 -->
 		<!-- true -> false -->
         <item name="android:windowIsTranslucent">false</item>
+		
 		<!-- 软件输入模式 -->
         <item name="android:windowSoftInputMode">adjustResize|stateHidden</item>
 
@@ -77,7 +79,11 @@
 
         <!-- Material变量 -->
         <item name="android:colorPrimary">@color/primary_material_light</item>
-        <item name="android:colorPrimaryDark">@color/primary_dark_material_light</item>
+		
+		<!-- 定义状态栏颜色 -->
+		<!--<item name="android:colorPrimaryDark">@color/primary_dark_material_light</item>-->
+		<item name="android:colorPrimaryDark">?android:colorPrimary</item>
+		
         <item name="android:colorAccent">@color/accent_material_light</item>
 
         <!-- AIDE自定义变量 -->

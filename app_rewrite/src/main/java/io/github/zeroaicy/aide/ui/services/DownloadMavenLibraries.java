@@ -99,7 +99,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		}
 		
 		if ( !dep.version.endsWith("+")
-			&& version.equals(dep.version) ) {
+			&& !version.equals(dep.version) ) {
 			// 不是动态匹配, 必须一致
 			AppLog.d("resolvingMetadataFile", "非动态匹配, 必须一致 metadata version: %s -> dep version %s", version, dep.version);
 			return false;
