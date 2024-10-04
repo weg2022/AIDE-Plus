@@ -17,6 +17,7 @@ import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import com.aide.common.AppLog;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 public class D8TaskWrapper {
 
@@ -100,8 +101,10 @@ public class D8TaskWrapper {
 	private static void run(String className, String[] args, Map<String, String> environment, boolean isExceptionHandling) throws Throwable {
 
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
-		processBuilder.environment().putAll(environment);
-
+		if( environment != null){
+			processBuilder.environment().putAll(environment);
+		}
+	
 
 		// 运行进程
 		Process process = processBuilder.start();
@@ -127,8 +130,9 @@ public class D8TaskWrapper {
 		}
 		// 异常处理 可能会再次运行
 		//已经是在处理异常了 及时退出否则死递归了
+		// int[] exceptionCodes = new int[]{134, 13};
 		if (!isExceptionHandling 
-			&& (exitValue == 139)) {
+			&& ( exitValue == 134 || exitValue == 139 )) {
 			// 扩容库储存
 			// 禁用扩容
 			ZeroAicySetting.disableEnableEnsureCapacity();
