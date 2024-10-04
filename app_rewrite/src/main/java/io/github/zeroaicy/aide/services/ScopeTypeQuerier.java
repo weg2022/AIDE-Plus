@@ -168,20 +168,26 @@ public class ScopeTypeQuerier {
 
 		// 标记依赖并分组
 		HashSet<String> dependencyLibsHashSet = new HashSet<String>(Arrays.asList(dependencyLibs));
-
+		boolean isSingleton = zeroAicyBuildGradle.isSingleton();
+		
 		for ( String libFilePath : dependencyLibsHashSet ) {
 			File libFile = new File(libFilePath);
-
-			if ( !libFile.exists() ) {
-				//不是依赖库跳过
-				throw new FileNotFoundException(libFilePath + "不存在\n依赖没有下载全，返回桌面，重新进入");
-			}
 
 			String fileName = libFile.getName().toLowerCase();
 			// 不是依赖库
 			if ( !fileName.endsWith(".jar") ) {
 				continue;
 			}
+			if( !libFile.exists()){
+				// 非Gradle项目 忽略
+				if( isSingleton){
+					// 
+					continue;
+				}
+				//不是依赖库跳过
+				throw new FileNotFoundException(libFilePath + "不存在\n依赖没有下载全，返回桌面，重新进入");				
+			}
+			
 			try {
 				//嗅探一下，d8打不开zip，不报路径😭
 				new ZipFile(libFile);
@@ -207,10 +213,11 @@ public class ScopeTypeQuerier {
 			/**
 			 * 非gradle项目 兼容旧方案
 			 */
-			if ( zeroAicyBuildGradle.isSingleton() ) {
+			if ( isSingleton ) {
 				addDexingLib(libFilePath);
 				continue;
 			}
+			
 			// 查询库类型
 			ScopeType type = getScopeType(libFilePath);
 			switch ( type ) {
