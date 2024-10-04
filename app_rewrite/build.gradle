@@ -31,7 +31,7 @@ dependencies {
 	
 	api "androidx.core:core:1.13.0"
 	api "androidx.preference:preference:+"
-	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0"
+	api "org.jetbrains.kotlin:kotlin-stdlib:2.0.0"
 	
 	// r8 必须脱糖否则只能安卓13使用
 	api project(':appAideBase')
