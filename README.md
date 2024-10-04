@@ -1,6 +1,7 @@
-以下是该项目介绍的专业英文翻译：
-
 # AIDE-Plus
+
+- [README of Chinese](README_zh.md)]
+
 
 ## Features
 
