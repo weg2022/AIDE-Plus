@@ -32,7 +32,7 @@ import java.util.Base64;
 public class AaptService$Task {
 	// res的依赖map key res_dir_path-> value res_dir_path_list
     public final Map<String, List<String>> resLibraryMap;
-	
+
     public final Map<String, String> genPackageNameMap;
 
 	// aaptPath
@@ -72,7 +72,7 @@ public class AaptService$Task {
     public final String mainProjectPath;
     //gen对应的 res(包含res依赖，[0]为gen所在res)
 	public final Map<String, List<String>> genResDirsMap;
-	
+
     //res -> bin的res(正好可以用于DataBinding存放脱糖的xml)
 	public final Map<String, String> allResDirMap;
 	// v5 -> flavor
@@ -84,16 +84,16 @@ public class AaptService$Task {
 	//被Callable调用
     public AaptService$ErrorResult runTask( ) {
         try {
-			
+
 			if ( ZeroAicySetting.isEnableAapt2() ) {
 				//aapt2实现
 				return Aapt2Task.proxyAapt(this);
 			}
 
             // aapt实现
-			
+
             AndroidProjectSupport.Qq(this.resLibraryMap, this.flavor);
-			
+
             AaptService$ErrorResult mergedAndroidManifestxml = mergedAndroidManifestxml();
             if ( mergedAndroidManifestxml.errorInfo != null ) {
                 return mergedAndroidManifestxml;
@@ -140,7 +140,7 @@ public class AaptService$Task {
 		Map<String, List<String>> map, List<String> subProjectGens, List<String> variantManifestPaths, 
 		String androidJarFilePath, String mainProjectGenDir, List<String> assetDirPaths, 
 		String resourceApFilePath, Map<String, String> genPackageNameMap, Map<String, String> allResDirMap, 
-		
+
 		Map<String, String> injectedAndroidManifestMap, Map<String, String> mergedAManifestMap, Map<String, List<String>> genResDirsMap, 
 		Map<String, String> androidManifestMap, boolean z, boolean isBuildRefresh, boolean z3 ) {
 
@@ -166,7 +166,7 @@ public class AaptService$Task {
         this.isBuildRefresh = isBuildRefresh;
         this.j3 = z3;
         this.injectedAndroidManifestMap = new HashMap<String, String>(injectedAndroidManifestMap);
-		
+
         this.androidManifestMap = new HashMap<>();
         for ( Map.Entry<String, String> entry : androidManifestMap.entrySet() ) {
             this.androidManifestMap.put(entry.getValue(), entry.getKey());
@@ -356,7 +356,9 @@ public class AaptService$Task {
         }
     }
 
-    @ey(method = -917848650515497287L)
+	/**
+	 * aapt 生成R.java
+	 */ 
     private AaptService$ErrorResult generateRJava( String str, List<String> list ) {
         try {
 
@@ -494,7 +496,7 @@ public class AaptService$Task {
 			String error = StreamUtilities.FH(new InputStreamReader(new ByteArrayInputStream(errorBytes)));
 
             error = error.trim();
-			
+
             if ( error.length() == 0 ) {
                 return "aapt exited with code " + i;
             } else if ( i != 1 ) {
@@ -600,10 +602,10 @@ public class AaptService$Task {
 			}
 			if ( Build.VERSION.SDK_INT < 29 && !AaptService.initedAaptExecutable() ) {
 				File aaptFile = new File(this.aaptPath);
-				
+
 				boolean isSetExecutable = aaptFile.setReadable(true, false) 
 					&& aaptFile.setExecutable(true, false);
-				
+
 				if ( !isSetExecutable ) {
 					throw new IOException("Could not make " + this.aaptPath + " executable - exit code ");
 				}
@@ -621,7 +623,7 @@ public class AaptService$Task {
     private void tp( List<String> list ) {
         try {
             StringBuilder sb = new StringBuilder();
-            sb.append("Running aapt ");
+            sb.append("Running aapt2 ");
             for ( int i = 1; i < list.size(); i++ ) {
                 sb.append('\"');
                 sb.append(list.get(i));

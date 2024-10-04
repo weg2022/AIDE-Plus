@@ -109,12 +109,12 @@ public class AaptService {
 					String error2 = "in generated file: " + error;
 					int errorLineNumber2 = 1;
 
-					SyntaxError syntaxError2 = makeSyntaxError("aapt", errorLineNumber2, error2);
+					SyntaxError syntaxError2 = makeSyntaxError("aapt2", errorLineNumber2, error2);
 					putSyntaxError(fileSyntaxErrorsMap, errorFilePath2, syntaxError2);
 
 				}
 
-				SyntaxError syntaxError = makeSyntaxError("aapt", errorLineNumber, error);
+				SyntaxError syntaxError = makeSyntaxError("aapt2", errorLineNumber, error);
 				putSyntaxError(fileSyntaxErrorsMap, errorFilePath, syntaxError);
 			}
 		}				
