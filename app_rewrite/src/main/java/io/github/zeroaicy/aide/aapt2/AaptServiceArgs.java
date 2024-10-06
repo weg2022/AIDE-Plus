@@ -52,6 +52,16 @@ public class AaptServiceArgs {
 
 
 	private DataBindingBuilderProxy dataBindingBuilder;
+	
+	
+	final boolean isEnableViewBinding;
+	public boolean isEnableViewBinding(){
+		return this.isEnableViewBinding;
+	}
+	final boolean useAndroidx;
+	public boolean isUseAndroidx(){
+		return this.useAndroidx;
+	}
 
 	public DataBindingBuilderProxy getDataBindingBuilder() {
 		if (this.dataBindingBuilder == null) {
@@ -94,16 +104,24 @@ public class AaptServiceArgs {
 				// 渠道包 暂时不用渠道包的 minsdk
 				this.defaultMinSdk = parseInt(buildGradle.getMinSdkVersion(null), 14);
 				this.defaultTargetSdk = parseInt(buildGradle.getTargetSdkVersion(null), 28);
+				this.isEnableViewBinding = buildGradle.isViewBindingEnabled();
+				this.useAndroidx = buildGradle.isUseAndroidx();
 			} else {
 				this.defaultMinSdk = 14;
 				this.defaultTargetSdk = 28;
 				this.shrinkResources = false;
+				this.isEnableViewBinding = false;
+				this.useAndroidx = true;
 			}
 		}
 		catch (Throwable e) {
 			this.defaultMinSdk = 14;
 			this.defaultTargetSdk = 28;
 			this.shrinkResources = false;
+			
+			this.isEnableViewBinding = false;
+			this.useAndroidx = true;
+			
 		}
 
 

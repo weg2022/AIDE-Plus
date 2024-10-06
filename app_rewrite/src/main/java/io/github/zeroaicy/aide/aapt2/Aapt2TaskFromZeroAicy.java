@@ -132,7 +132,7 @@ public class Aapt2TaskFromZeroAicy {
 		aaptServiceArgs.aaptLog.println("aapt2 生成R耗时: " + (System.currentTimeMillis() - genRjavaTimeMillis) + "ms");
 
 		// ViewBinding
-		if (ZeroAicySetting.isEnableViewBinding()) {
+		if (aaptServiceArgs.isEnableViewBinding()) {
 			try {
 				// viewbinding
 				GenerateViewBindingTask.run(aaptServiceArgs.mainProjectResPath, aaptServiceArgs.mainProjectGenDir, aaptServiceArgs.mainPackageName, ZeroAicySetting.isViewBindingAndroidX());

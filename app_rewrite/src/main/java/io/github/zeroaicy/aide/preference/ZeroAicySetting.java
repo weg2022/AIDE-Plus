@@ -189,9 +189,19 @@ public class ZeroAicySetting {
 	/**
 	 * 实验室
 	 */
+	 
+	/**
+	 * 默认为true，以后写死
+	 */
 	public static boolean isEnableAapt2( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", true);
 	}
+	
+	/**
+	 * 弃用，通过build.gradle android.buildFeatures控制
+	 * viewBinding true
+	 * useAndroidx true
+	 */
 	public static boolean isEnableViewBinding( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_view_binding", false);
 	}

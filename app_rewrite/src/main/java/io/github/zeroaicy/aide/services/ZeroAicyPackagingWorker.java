@@ -250,7 +250,8 @@ public class ZeroAicyPackagingWorker extends PackagingWorkerWrapper{
 
 				long now = nowTime();
 				
-				ThreadPoolService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 4);
+				// (DexingJarTask.ThreadPoolServiceName, 4);
+				ThreadPoolService threadPoolService = ThreadPoolService.getDefaultThreadPoolService();
 				List<Future<DexingJarTask>> futures = threadPoolService.invokeAll(tasks);
 				for ( Future<DexingJarTask> future : futures ){
 					// // 这会阻塞直到任务完成或抛出异常

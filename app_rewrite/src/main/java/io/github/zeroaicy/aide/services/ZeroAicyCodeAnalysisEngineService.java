@@ -32,6 +32,7 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 	
 	@Override
 	public IBinder onBind(Intent intent){
+		Log.d(TAG, "onBind");
 		return super.onBind(intent);
 	}
 
@@ -52,14 +53,6 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 		if ( notification != null ){
 			notificationManager.cancel(id);
 		}
-		/*
-		Toast.makeText(this, "代码分析器已关闭", 1).show();
-		
-		android.os.Process.killProcess(android.os.Process.myPid());
-		System.exit(0);
-		System.exit(-1000);
-		System.exit(-2000);
-		*/
 	}
 
 	private void setNotificationAndForeground(){

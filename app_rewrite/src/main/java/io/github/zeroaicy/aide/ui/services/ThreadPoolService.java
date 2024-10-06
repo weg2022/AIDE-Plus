@@ -156,11 +156,10 @@ public class ThreadPoolService implements ExecutorService {
 
 	// 默认子线程
 	private static ThreadPoolService defaultThreadPoolService;
-
-	// 默认线程为1
+	// 默认线程为4
 	public static ThreadPoolService getDefaultThreadPoolService() {
 		if (defaultThreadPoolService == null) {
-			defaultThreadPoolService = getThreadPoolService("default", 1);
+			defaultThreadPoolService = getThreadPoolService("default");
 		}
 		return defaultThreadPoolService;
 	}

@@ -156,13 +156,14 @@
 
         <SwitchPreference
 			android:title="启用ViewBinding"
-			android:summary="需要添加databinding-runtime库依赖"
+			android:summary="已弃用，请在build.gradle中配置如下，在android{}中添加 buildFeatures{\n\tviewBinding true\n}"
 			android:key="test_zero_aicy_enable_view_binding"
 			android:dependency="test_zero_aicy_enable_aapt2"
 			android:defaultValue="false" />
 
 		<SwitchPreference
 			android:title="ViewBinding使用AndroidX"
+			android:summary="已弃用，请在build.gradle中配置如下，在android{}中添加 buildFeatures{\n\tuseAndroidx true\n}"
 			android:key="test_zero_aicy_enable_view_binding_use_androidx"
 			android:dependency="test_zero_aicy_enable_view_binding"
 			android:defaultValue="true" />

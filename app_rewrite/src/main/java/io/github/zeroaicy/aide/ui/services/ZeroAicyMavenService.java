@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.FileOutputStream;
+import io.github.zeroaicy.util.IOUtils;
 
 /**
  * 更新底包时，再优化，那时必须抽离出修改点，只保留底包对其引用的api
@@ -53,11 +55,11 @@ public class ZeroAicyMavenService {
 				.append("/maven-metadata.xml")
 				.toString();
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 	// 返回Artifact的url
@@ -111,11 +113,11 @@ public class ZeroAicyMavenService {
         try {
             return FileSystem.yS() + "/.aide/maven";
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -131,13 +133,14 @@ public class ZeroAicyMavenService {
 
             return notExistsLocalCache;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
+	
 	// 递归查找依赖缓存，不存在时加入list
     private void getNotExistsLocalCache(Map<String, String> flatRepoPathMap, ArtifactNode curArtifactNode, List<BuildGradle.MavenDependency> dependencyList, int depth) {
         try {
@@ -177,11 +180,11 @@ public class ZeroAicyMavenService {
 
 			}
 		}
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-			throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
 		}
     }
 
@@ -215,11 +218,11 @@ public class ZeroAicyMavenService {
 					}
 				});
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -246,7 +249,7 @@ public class ZeroAicyMavenService {
 
     }
 
-	private void test() {
+	/*private void test() {
 		BuildGradle.MavenDependency mavenDependency = new BuildGradle.MavenDependency(0);
 		mavenDependency.groupId = "androidx.customview";
 		mavenDependency.artifactId = "customview";
@@ -262,7 +265,7 @@ public class ZeroAicyMavenService {
 		System.out.println(this.depManager);
 		System.out.println();
 		System.out.println();
-	}
+	}*/
 
 
 
@@ -273,11 +276,11 @@ public class ZeroAicyMavenService {
         try {
             this.depPathMapping.clear();
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -291,11 +294,11 @@ public class ZeroAicyMavenService {
 			//解析并填充此依赖
             resolvingDependency(makeUpdateDep(dependency), defaultDepth);
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 	// 递归，耗时操作
@@ -343,11 +346,11 @@ public class ZeroAicyMavenService {
 			}
 
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -364,11 +367,11 @@ public class ZeroAicyMavenService {
         try {
             return resolveFullDependencyTree(flatRepositoryPathMap, resolveMavenDepPath(flatRepositoryPathMap, makeUpdateDep(dep)));
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -381,11 +384,11 @@ public class ZeroAicyMavenService {
         try {
             return resolveMavenDepPath(null, makeUpdateDep(dependency));
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -399,11 +402,11 @@ public class ZeroAicyMavenService {
         try {
             return resolveFullDependencyTree(null, depPath);
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -417,11 +420,11 @@ public class ZeroAicyMavenService {
         try {
             return resolveMavenDepPath(flatRepoPathMap, makeUpdateDep(dependency)) != null;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 	/**
@@ -501,7 +504,7 @@ public class ZeroAicyMavenService {
 	 * 返回此依赖的 jar(jar) | aar(aar) | pom(bom) 文件路径
 	 */
 	//计算缓存路径
-	private String getArtifactCachePath(String repositoriePath, String groupId, String artifactId, String version, String packaging) {
+	/*private String getArtifactCachePath(String repositoriePath, String groupId, String artifactId, String version, String packaging) {
         String artifactIdDir = repositoriePath + "/" + groupId.replace(".", "/") + "/" + artifactId;
 
 		if (!FileSystem.isDirectory(artifactIdDir)) {
@@ -537,17 +540,17 @@ public class ZeroAicyMavenService {
             return artifactIdVersionDir + ".exploded.aar";
         }
         return null;
-    }
+    }*/
 
 	/**
 	 * 谨慎使用 会强制覆盖
 	 */
 	private void putArtifactNode(ArtifactNode artifactNode) {
 
-		ArtifactNode oldArtifactNode = this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
+		// ArtifactNode oldArtifactNode = this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
 		
-		String groupIdArtifactId = artifactNode.getGroupIdArtifactId();
-		AppLog.d(String.format("[key: %s] %s -> %s ", groupIdArtifactId, String.valueOf(oldArtifactNode), String.valueOf(artifactNode)));
+		// String groupIdArtifactId = artifactNode.getGroupIdArtifactId();
+		// AppLog.d(String.format("[key: %s] %s -> %s ", groupIdArtifactId, String.valueOf(oldArtifactNode), String.valueOf(artifactNode)));
 	}
     // 查询是否已有依赖或者版本控制
 	// 即所有依赖引用都在这，方便更新版本
@@ -693,26 +696,47 @@ public class ZeroAicyMavenService {
         }
     }
 
-
-
+	
+	private static byte[] emptyZipBytes = new byte[]{
+		0x50, 0x4B, 0x05, 0x06, 
+	00, 00, 00, 00, 
+	00, 00, 00, 00, 
+	00, 00, 00, 00, 
+	00, 00, 00, 00, 
+	00, 00};
     private void extractedAar(String aarPath, String outDir) {
         try {
             if (P8(aarPath, outDir)) {
                 return;
             }
             try {
+				// GradleTools isAarEexplodedPath判断的条件是
+				// 必须有 AndroidManifest.xml 和 classes.jar
+				// 但 androidx.graphics:graphics-shapes:1.0.1没有
+				// 所以解压完成后检查一下
                 FileSystem.u7(new FileInputStream(aarPath), outDir, true);
+				if( !GradleTools.isAarEexplodedPath(outDir)){
+					// 写入一个空classes.jar，共22b
+					FileOutputStream classesJarOutputStream = null;
+					try{
+					classesJarOutputStream = new FileOutputStream(GradleTools.j6(outDir));
+					classesJarOutputStream.write(emptyZipBytes);
+					classesJarOutputStream.close();
+					}finally{
+						IOUtils.close(classesJarOutputStream);
+					}
+				}
                 AppLog.DW("Extracted AAR " + aarPath);
             }
 			catch (IOException e) {
                 e.printStackTrace();
             }
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -728,12 +752,12 @@ public class ZeroAicyMavenService {
 			resolveFullDependencyTree(flatRepositoryPathMap, depPath, depPaths, defaultDepth);
 
             return depPaths;
-        }
-		catch (Error th) {
-			throw th;
-		}
+}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -744,11 +768,11 @@ public class ZeroAicyMavenService {
             String[] split = str.split("/");
             return split[split.length - 2];
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -773,11 +797,11 @@ public class ZeroAicyMavenService {
 			String artifactIdDir = FileSystem.getName(FileSystem.getParent(depPath));
 			return depPath + "/" + artifactIdDir + "-" + versionDir + ".pom";
 		}
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -794,11 +818,11 @@ public class ZeroAicyMavenService {
             }
             return null;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -813,11 +837,12 @@ public class ZeroAicyMavenService {
             arrayList.add(getDefaulRepositoriePath());
             return arrayList;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
+			
         }
     }
 	private static MavenMetadataXml mavenMetadataXml = new MavenMetadataXml();
@@ -849,11 +874,11 @@ public class ZeroAicyMavenService {
             }
             return version;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -884,11 +909,11 @@ public class ZeroAicyMavenService {
 			return null;
 
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -899,11 +924,11 @@ public class ZeroAicyMavenService {
         try {
             return dependency.artifactId.contains("android-all");
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
         }
     }
 
@@ -947,11 +972,12 @@ public class ZeroAicyMavenService {
 
 			return depPath;
         }
-		catch (Error th) {
-			throw th;
-		}
 		catch (Throwable th) {
-            throw new Error(th);
+			if( th instanceof Error) 
+				throw (Error)th;
+            else
+				throw new Error(th);
+			
         }
     }
 
