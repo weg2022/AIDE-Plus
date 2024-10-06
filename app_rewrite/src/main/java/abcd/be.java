@@ -131,8 +131,8 @@ public class be {
 		if( TextUtils.isEmpty(dirPath) ){
 			return false;
 		}
-		if( dirPath.contains("java/")
-			|| dirPath.contains("aidl/")){
+		if( dirPath.contains("java")
+			|| dirPath.contains("aidl")){
 			return true;
 		}
 		return false;
