@@ -24,7 +24,7 @@ public class PomXml extends Configuration<PomXml> {
 
 	
     public static PomXml empty = new PomXml(true);
-	private final boolean isEmpty;
+	private boolean isEmpty;
 	public boolean isEmpty() {
 		return this.isEmpty;
 	}
@@ -98,7 +98,6 @@ public class PomXml extends Configuration<PomXml> {
 				this.isEmpty = true;
 				return;
 			}
-			this.isEmpty = false;
 
 			FileInputStream inputStream = new FileInputStream(file);
 			// pom文件模型
@@ -122,14 +121,14 @@ public class PomXml extends Configuration<PomXml> {
 					this.group = parent.getGroupId();
 				}
 			}
-
 			init(model);
+			this.isEmpty = false;
 		}
 		catch (Throwable e) {
 			AppLog.e(e.getMessage(), e);
 			this.isEmpty = true;
+			return;
 		}
-
 	}
 
 	private void init(Model model) {

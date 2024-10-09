@@ -176,7 +176,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
 			for ( AST ast = groovyRecognizer.getAST(); ast != null; ast = getNextSibling(ast) ){
 				nw(ast, "");
 			}
-			
+
 			// 添加 viewBinding运行时库
 			if ( this.viewBindingEnabled ){
 				String groupId;
@@ -854,7 +854,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
 		String astValue = getText(getNextSibling(getFirstChild(getFirstChild(ast))));
 
 		if ( "viewBinding".equals(nodeSimpleName) ){
-		
+
 			AppLog.println_d("%s  %s", nodeName, astValue);
 			this.viewBindingEnabled = "true".equals(astValue);
 		}

@@ -4,13 +4,11 @@
 package com.aide.engine.service;
 
 import android.content.res.AssetManager;
-import com.aide.codemodel.api.abstraction.DebuggerResourceProvider;
-import io.github.zeroaicy.aide.ClassReader;
-import io.github.zeroaicy.util.Log;
-import java.io.InputStream;
 import com.aide.common.AppLog;
+import io.github.zeroaicy.aide.ClassReader;
+import java.io.InputStream;
 
-public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
+public class CodeAnalysisEngineService$a extends com.aide.codemodel.api.abstraction.DebuggerResourceProvider{
     final CodeAnalysisEngineService codeAnalysisEngineService;
 	
 	public CodeAnalysisEngineService$a(CodeAnalysisEngineService codeAnalysisEngineService){
@@ -21,7 +19,7 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 	 * 拦截调试器，动态修改调试器宿主包名
 	 */
 	@Override
-    public InputStream getResourceInputStream(String fileName){
+    public java.io.InputStream getResourceInputStream(java.lang.String fileName){
         try{
 			AssetManager assets = this.codeAnalysisEngineService.getAssets();
 			InputStream open = assets.open(fileName);
@@ -31,9 +29,9 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 			}
 			return open;
 		}
-		catch (Exception e){
+		catch (java.lang.Exception e){
 			AppLog.e("DebuggerResourceProvider", e);
-			throw new Error(e);
+			throw new java.lang.Error(e);
 		}
     }
 	
@@ -41,7 +39,7 @@ public class CodeAnalysisEngineService$a extends DebuggerResourceProvider{
 	 * 调试器注入包名
 	 */
 	@Override
-    public String getHostPackageName(){
+    public java.lang.String getHostPackageName(){
 		return this.codeAnalysisEngineService.getPackageName();
     }
 }

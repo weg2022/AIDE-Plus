@@ -13,6 +13,7 @@ import com.sdklite.aapt.SymbolParser;
 import com.sdklite.aapt.Symbols;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.utils.AndroidManifestParser;
+import io.github.zeroaicy.aide.utils.Utils;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.MD5Util;
@@ -589,8 +590,8 @@ public class Aapt2TaskFromZeroAicy {
 
 		AndroidManifestParser androidManifestRead = AndroidManifestParser.get(androidManifestXml);
 
-		int min = AaptServiceArgs.parseInt(androidManifestRead.getMinSdkVersion(), aaptServiceArgs.defaultMinSdk);
-		int target = AaptServiceArgs.parseInt(androidManifestRead.getTargetSdkVersion(), aaptServiceArgs.defaultTargetSdk);
+		int min = Utils.parseInt(androidManifestRead.getMinSdkVersion(), aaptServiceArgs.defaultMinSdk);
+		int target = Utils.parseInt(androidManifestRead.getTargetSdkVersion(), aaptServiceArgs.defaultTargetSdk);
 
 		/*****/
 		List<String> args = new ArrayList<>();

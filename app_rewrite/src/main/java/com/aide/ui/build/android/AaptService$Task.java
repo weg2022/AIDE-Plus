@@ -334,9 +334,9 @@ public class AaptService$Task {
 				}
 
 				String genDir = entry.getKey();
-				List<String> resDir = entry.getValue();
+				List<String> resDirs = entry.getValue();
 				if ( !genDir.equals(this.mainProjectGenDir) ) {
-					AaptService$ErrorResult J8 = generateRJava(genDir, resDir);
+					AaptService$ErrorResult J8 = generateRJava(genDir, resDirs);
 					if ( J8.errorInfo != null ) {
 						return J8;
 					}
@@ -344,9 +344,9 @@ public class AaptService$Task {
 
             }
             if ( this.XL ) {
-                AaptService$ErrorResult J82 = generateRJava(this.mainProjectGenDir, this.genResDirsMap.get(this.mainProjectGenDir));
-                if ( J82.errorInfo != null ) {
-                    return J82;
+                AaptService$ErrorResult generateRJavaErrorResult = generateRJava(this.mainProjectGenDir, this.genResDirsMap.get(this.mainProjectGenDir));
+                if ( generateRJavaErrorResult.errorInfo != null ) {
+                    return generateRJavaErrorResult;
                 }
             }
             return new AaptService$ErrorResult(false);
@@ -359,10 +359,10 @@ public class AaptService$Task {
 	/**
 	 * aapt 生成R.java
 	 */ 
-    private AaptService$ErrorResult generateRJava( String str, List<String> list ) {
+    private AaptService$ErrorResult generateRJava( String genDir, List<String> list ) {
         try {
 
-            String str2 = this.injectedAndroidManifestMap.get(str);
+            String str2 = this.injectedAndroidManifestMap.get(genDir);
             ArrayList<File> arrayList = new ArrayList<>();
             for ( String str3 : list ) {
                 Hw(new File(str3), null, arrayList);
@@ -376,23 +376,23 @@ public class AaptService$Task {
             }
 
             ArrayList<File> arrayList2 = new ArrayList<>();
-            Hw(new File(str), "R.java", arrayList2);
+            Hw(new File(genDir), "R.java", arrayList2);
             if ( !this.isBuildRefresh && !arrayList2.isEmpty() && u7(arrayList, arrayList2) ) {
-                AppLog.DW("Omitting aapt call to regenerate R.java in " + str + " (is uptodate)");
+                AppLog.DW("Omitting aapt call to regenerate R.java in " + genDir + " (is uptodate)");
                 return new AaptService$ErrorResult(false);
             }
             ArrayList<String> arrayList3 = new ArrayList<>();
-            if ( str.equals(this.mainProjectGenDir) ) {
-                arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
+            if ( genDir.equals(this.mainProjectGenDir) ) {
+                arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--auto-add-overlay", "-m", "-J", genDir, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             } else {
-                arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", str, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
+                arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", genDir, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             }
             for ( String str4 : list ) {
                 if ( new File(str4).exists() ) {
                     arrayList3.addAll(Arrays.asList(new String[]{"-S", str4}));
                 }
             }
-            if ( str.equals(this.mainProjectGenDir) ) {
+            if ( genDir.equals(this.mainProjectGenDir) ) {
                 String gn = gn();
                 if ( gn.length() != 0 ) {
                     arrayList3.add("--extra-packages");

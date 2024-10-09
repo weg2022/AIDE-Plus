@@ -33,6 +33,8 @@ public class CodeEditText extends com.aide.ui.views.CodeEditText {
 	public boolean isLightTheme(){
 		return super.sG();
 	}
+	com.aide.ui.views.CodeEditText.EditorView 测试;
+	
 	public class EditorView extends com.aide.ui.views.CodeEditText.EditorView {
 		CodeEditText codeEditText = CodeEditText.this;
 		public EditorView(Context context) {

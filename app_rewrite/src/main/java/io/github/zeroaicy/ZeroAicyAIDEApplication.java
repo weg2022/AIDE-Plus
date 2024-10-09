@@ -35,7 +35,6 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
 		// 更改日志路径
 		DebugUtil.debug(this, false);
 

@@ -8,7 +8,7 @@ public class DebugUtil{
 	public static void debug(){
 		debug(ContextUtil.getContext(), false);
 	}
-
+	
 	public static void debug(Context context){
 		debug(context, true);
 	}

@@ -3,12 +3,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import com.aide.ui.build.android.AaptService;
 import com.aide.ui.build.android.AaptService$ErrorResult;
+import com.aide.ui.build.android.AaptService$Task;
 import com.aide.ui.services.AssetInstallationService;
 import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.utils.Utils;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.Log;
-import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,9 +25,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.ui.build.android.AaptService$Task;
 
-public class AaptServiceArgs {
+public class AaptServiceArgs{
 
 	AaptService AaptService;
 
@@ -52,8 +52,8 @@ public class AaptServiceArgs {
 
 
 	private DataBindingBuilderProxy dataBindingBuilder;
-	
-	
+
+
 	final boolean isEnableViewBinding;
 	public boolean isEnableViewBinding(){
 		return this.isEnableViewBinding;
@@ -63,17 +63,17 @@ public class AaptServiceArgs {
 		return this.useAndroidx;
 	}
 
-	public DataBindingBuilderProxy getDataBindingBuilder() {
-		if (this.dataBindingBuilder == null) {
+	public DataBindingBuilderProxy getDataBindingBuilder(){
+		if ( this.dataBindingBuilder == null ){
 			this.dataBindingBuilder = new DataBindingBuilderProxy(this);
 		}
 		return this.dataBindingBuilder;
 	}
 
-	public static SharedPreferences getProjectService() {
+	public static SharedPreferences getProjectService(){
         return ContextUtil.getContext().getSharedPreferences("ProjectService", Context.MODE_PRIVATE);
     }
-    public static String getCurrentAppHome() {
+    public static String getCurrentAppHome(){
         return getProjectService().getString("CurrentAppHome", null);
     }
 
@@ -85,56 +85,52 @@ public class AaptServiceArgs {
 
 	public final boolean shrinkResources;
 
-	public AaptServiceArgs(AaptService$Task task) {
+	public AaptServiceArgs(AaptService$Task task){
 		this.task = task;
 
 		String currentAppHome = getCurrentAppHome();
 
-		try {
-			String buildGradlePath = currentAppHome + "/build.gradle";
+		String buildGradlePath = currentAppHome + "/build.gradle";
 
-			if (FileSystem.exists(buildGradlePath)) {
+		ZeroAicyBuildGradle buildGradle = ZeroAicyBuildGradle.getSingleton();
+		try{
+			if ( FileSystem.exists(buildGradlePath) ){
 				isGradleProject = true;
-				ZeroAicyBuildGradle buildGradle = ZeroAicyBuildGradle.getSingleton();
 				buildGradle = buildGradle.getConfiguration((buildGradlePath));
-				
-				// 混淆代码
-				this.shrinkResources = buildGradle.isShrinkResources();
-				
-				// 渠道包 暂时不用渠道包的 minsdk
-				this.defaultMinSdk = parseInt(buildGradle.getMinSdkVersion(null), 14);
-				this.defaultTargetSdk = parseInt(buildGradle.getTargetSdkVersion(null), 28);
-				this.isEnableViewBinding = buildGradle.isViewBindingEnabled();
-				this.useAndroidx = buildGradle.isUseAndroidx();
-			} else {
-				this.defaultMinSdk = 14;
-				this.defaultTargetSdk = 28;
-				this.shrinkResources = false;
-				this.isEnableViewBinding = false;
-				this.useAndroidx = true;
 			}
 		}
-		catch (Throwable e) {
+		catch (Throwable e){}
+
+		if ( !buildGradle.isSingleton() ){
+			// 混淆代码
+			this.shrinkResources = buildGradle.isShrinkResources();
+
+			// 渠道包 暂时不用渠道包的 minsdk
+			this.defaultMinSdk = Utils.parseInt(buildGradle.getMinSdkVersion(null), 14);
+			this.defaultTargetSdk = Utils.parseInt(buildGradle.getTargetSdkVersion(null), 28);
+			this.isEnableViewBinding = buildGradle.isViewBindingEnabled();
+			this.useAndroidx = buildGradle.isUseAndroidx();
+			
+		}else{
+			this.shrinkResources = false;
+
 			this.defaultMinSdk = 14;
 			this.defaultTargetSdk = 28;
-			this.shrinkResources = false;
-			
 			this.isEnableViewBinding = false;
 			this.useAndroidx = true;
-			
 		}
 
 
 		// ((Boolean)argsRef.get("aM")).booleanValue();
 		this.isBuildRefresh = task.isBuildRefresh;
-		 
+
 		// argsRef.get("Hw");
 		this.androidJar = task.androidSdkFilePath;
-		
+
 		//resource.ap_
 		// argsRef.get("gn");
 		this.resourcesApPath = task.resourcesApPath;
-		
+
 		// 构建缓存路径
 		this.buildBin = new File(this.resourcesApPath).getParent();
 		// 日志输出
@@ -157,10 +153,10 @@ public class AaptServiceArgs {
 
 		//主项目res目录
 		List<String> mainResDirs = this.genResDirsMap.get(this.mainProjectGenDir);
-		for (String resDir : mainResDirs) {
+		for ( String resDir : mainResDirs ){
 			//有时mainResDirs.get(0)是generated
 			//本着不修改AIDE给的所有数据，在此过滤
-			if (resDir.endsWith("/res")) {
+			if ( resDir.endsWith("/res") ){
 				this.mainProjectResPath = resDir;
 				break;
 			}
@@ -169,10 +165,10 @@ public class AaptServiceArgs {
 		//res -> bin的res(正好可以用于DataBinding存放脱糖的xml)
 		// argsRef.get("u7");
 		this.allResourceMap = task.allResDirMap;
-		
+
 		// argsRef.get("VH");
 		List<String> assetDirPaths = task.assetDirPaths;
-		if (assetDirPaths != null) {
+		if ( assetDirPaths != null ){
 			this.assetDirPaths.addAll(assetDirPaths);
 		}
 
@@ -191,58 +187,58 @@ public class AaptServiceArgs {
 		// 子项目的gen目录
 		// argsRef.get("we");
 		this.subProjectGens = task.subProjectGens;
-		
+
 		// argsRef.get("J0");
 		this.variantManifestPaths = task.variantManifestPaths;
-		
+
 		// argsRef.get("J8");
 		this.mergedAndroidManifestMap = task.mergedAndroidManifestMap;
 
 		// argsRef.get("QX");
 		this.injectedAndroidManifestMap = task.injectedAndroidManifestMap;
-		
+
 		// argsRef.get("Ws");
 		this.androidManifestMap = task.androidManifestMap;
 
 		this.mainPackageName = this.genPackageNameMap.get(this.mainProjectGenDir);
-		
+
 	}
 
 	/**
 	 * 填充自定义变量
 	 */
-	private void fullCustomVar() {
+	private void fullCustomVar(){
 		this.resDirGenDir = new HashMap<>();
 		this.packageDependencieMap = new HashMap<>();
 
 		//res查找gen
-		for (Map.Entry<String, List<String>> entry : this.genResDirsMap.entrySet()) {
+		for ( Map.Entry<String, List<String>> entry : this.genResDirsMap.entrySet() ){
 
 			String genDir = entry.getKey();
 
 			boolean isGradleProject = genDir.endsWith("/build/gen");
 			String projectDir;
 			int endIndex;
-			if (isGradleProject) {
+			if ( isGradleProject ){
 				endIndex = genDir.length() - "build/gen".length();
-			} else {
+			}else{
 				endIndex = genDir.length() - "gen".length();
 			}
 			projectDir = genDir.substring(0, endIndex);
 
 			//初始化自定义
-			for (String resDir :  entry.getValue()) {
+			for ( String resDir :  entry.getValue() ){
 				//排除 generated
-				if (resDir.endsWith("/generated")) {
+				if ( resDir.endsWith("/generated") ){
 					continue;
 				}
-				if (resDir.startsWith(projectDir)) {
+				if ( resDir.startsWith(projectDir) ){
 					this.resDirGenDir.put(resDir, genDir);
 				}
 			}
 		}
 
-		for (Map.Entry<String, List<String>> entry : genResDirsMap.entrySet()) {
+		for ( Map.Entry<String, List<String>> entry : genResDirsMap.entrySet() ){
 			String genDir = entry.getKey();
 			String packageName  = genPackageNameMap.get(genDir);
 			//packageName依赖的子包名
@@ -251,9 +247,9 @@ public class AaptServiceArgs {
 			List<String> childResDirs = entry.getValue();
 
 			//0是当前项目res
-			for (int i = 1; i < childResDirs.size(); i++) {
+			for ( int i = 1; i < childResDirs.size(); i++ ){
 				String childResDir = childResDirs.get(i);
-				if (childResDir.endsWith("/generated")) {
+				if ( childResDir.endsWith("/generated") ){
 					continue;
 				}
 
@@ -294,7 +290,7 @@ public class AaptServiceArgs {
 	public final List<String> subProjectGens;
 	//所有的variantManifestPaths
 	public final List<String> variantManifestPaths;
-	
+
 	public final Map<String, String> mergedAndroidManifestMap;
 
 	public final Map<String, String> injectedAndroidManifestMap;
@@ -308,83 +304,83 @@ public class AaptServiceArgs {
 	/**
 	 * 反射调用元方法
 	 */
-	public void buildRefresh() {
+	public void buildRefresh(){
 		// this.argsRef.call("v5");
 		this.task.buildRefresh();
 	}
-	public void generateBuildConfigJava() {
+	public void generateBuildConfigJava(){
 		// this.argsRef.call("Zo");
 		this.task.generateBuildConfigJava();
-		
+
 	}
 
-	public String getAapt2Error(abcd.wf j62) {
+	public String getAapt2Error(abcd.wf j62){
 		// return this.argsRef.call("VH", new Object[] {j62.j6(), j62.DW()}).get();
 		return this.task.getAaptError(j62.j6(), j62.DW());
 	}
 
 	//合并AndroidManifestxml
-	public AaptService$ErrorResult mergedAndroidManifestxml() {
+	public AaptService$ErrorResult mergedAndroidManifestxml(){
 		// return this.argsRef.call("EQ").get();
 		return this.task.mergedAndroidManifestxml();
 	}
 
 
-	public String getIntermediates() {
-		if (!this.intermediates.exists()) {
+	public String getIntermediates(){
+		if ( !this.intermediates.exists() ){
 			this.intermediates.mkdirs();
 		}
 		return this.intermediates.getAbsolutePath();
 	}
 
 
-	public String getAaptRulesPath() {
+	public String getAaptRulesPath(){
 		return new File(this.intermediates, "aapt_rules.txt").getAbsolutePath();
 	}
 	//aapt2输出目录
-	public File getResOutFile() {
-		if (!this.resDirOut.exists()) {
+	public File getResOutFile(){
+		if ( !this.resDirOut.exists() ){
 			this.resDirOut.mkdirs();
 		}
 		return this.resDirOut;
 	}
 
 	//资源编译输出目录
-	public File getFlatDirFile() {
-		if (!compileDirFile.exists()) {
+	public File getFlatDirFile(){
+		if ( !compileDirFile.exists() ){
 			compileDirFile.mkdirs();
 		}
 		// intermediates/res/flat
 		return compileDirFile;
 	}
-	public String getCompileDirPath() {
+	public String getCompileDirPath(){
 
 		return getFlatDirFile().getAbsolutePath();
 	}
 	//资源合并输出目录
-	public File getMergedDirFile() {
-		if (!this.mergedDirFile.exists()) {
+	public File getMergedDirFile(){
+		if ( !this.mergedDirFile.exists() ){
 			this.mergedDirFile.mkdirs();
 		}
 		return this.mergedDirFile;
 	}
-	public String getMergedDirPath() {
+	public String getMergedDirPath(){
 		return getMergedDirFile().getAbsolutePath();
 	}
 
 	// 取得Aapt2路径
-	public static String getAapt2Path2() {
+	public static String getAapt2Path2(){
 		//会从assets自动解压
 		String aapt2Path = AssetInstallationService.DW("aapt2", true);
 		File aapt2File = new File(aapt2Path);
-		if (!aapt2File.canExecute()) {
+		if ( !aapt2File.canExecute() ){
 			aapt2File.setReadable(true, false);
 			aapt2File.setExecutable(true, false);
 		}
 		return aapt2Path;
     }
 
-	public static String getAapt2Path() {
+	public static String getAapt2Path(){
 		return ContextUtil.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt2.so";
 	}
 
@@ -428,61 +424,53 @@ public class AaptServiceArgs {
 
 
 
-	public static List<String> listLine(File file) {
+	public static List<String> listLine(File file){
 		List<String> list = new ArrayList<String>();
 
 		InputStream in = null;
 		BufferedReader br = null;
-		try {
+		try{
 			in = new FileInputStream(file);
 			br = new BufferedReader(new InputStreamReader(in));
 			String line;
-			while ((line = br.readLine()) != null) {
+			while ( (line = br.readLine()) != null ){
 				list.add(line);
 			}
 			br.close();
 		}
-		catch (IOException e) {
+		catch (IOException e){
 			e.printStackTrace();
-		}finally{
-			try {
-				if (in != null) in.close();
+		}
+		finally{
+			try{
+				if ( in != null ) in.close();
 			}
-			catch (IOException e) {}
+			catch (IOException e){}
 
-			try {
-				if (br != null) br.close();
+			try{
+				if ( br != null ) br.close();
 			}
-			catch (IOException e) {}
+			catch (IOException e){}
 		}
 		return list;
 	}
 
-	public static void writeLines(File outFile, List<String> lines) {
+	public static void writeLines(File outFile, List<String> lines){
 		File parentFile = outFile.getParentFile();
-		if (!parentFile.exists()) {
+		if ( !parentFile.exists() ){
 			parentFile.mkdirs();
 		}
-		try {
+		try{
 			PrintWriter printWriter = new PrintWriter(outFile);
 			int size = lines.size();
-			for (int i = 0; i < size; i++) {
+			for ( int i = 0; i < size; i++ ){
 				printWriter.println(lines.get(i));
 			}
 			printWriter.flush();
 			printWriter.close();
 		}
-		catch (Throwable e) {
+		catch (Throwable e){
 			e.printStackTrace();
-		}
-	}
-	
-	public static int parseInt(String parseInt, int defaultValue){
-		try {
-			return Integer.parseInt(parseInt);
-		}
-		catch (NumberFormatException e) {
-			return defaultValue;
 		}
 	}
 

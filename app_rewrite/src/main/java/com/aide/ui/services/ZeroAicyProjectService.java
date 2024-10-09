@@ -29,8 +29,6 @@ import com.aide.ui.util.BuildGradle;
 import android.text.TextUtils;
 import java.util.Arrays;
 import com.aide.common.AppLog;
-import com.aide.ui.services.ProjectService.e;
-import com.aide.ui.services.ProjectService.f;
 
 public class ZeroAicyProjectService extends ProjectService{
 	/**
@@ -528,7 +526,7 @@ public class ZeroAicyProjectService extends ProjectService{
 		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("ProjectService", Context.MODE_PRIVATE);
 
 		if ( !ServiceContainer.isTrainerMode() 
-			&& ServiceContainer.getMainActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ){
+			&& ServiceContainer.getMainActivity().isSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ){
 			if ( projectPath != null ){
 				saveCurrentAppHome(SI(projectPath));
 			}else{
@@ -646,7 +644,7 @@ public class ZeroAicyProjectService extends ProjectService{
 	/**
 	 * 异步重载
 	 */
-	public void reloadingProjectAsync(){
+	public void reloadingProjectAsync(final Runnable e, final Runnable f){
 		// 刷新, 需要初始化
 		setUnInited();
 
@@ -665,9 +663,6 @@ public class ZeroAicyProjectService extends ProjectService{
 				public void run(){
 					MainActivity mainActivity = ServiceContainer.getMainActivity();
 					// ProjectService$e -> ProjectService.DW() -> init 
-					ProjectService.e e = new ProjectService.e();
-					
-					ProjectService.f f = new ProjectService.f();
 					String title = "Reloading project...";
 					ServiceContainer.sy(mainActivity, title, e, f);
 				}
@@ -675,10 +670,13 @@ public class ZeroAicyProjectService extends ProjectService{
 	}
 	@Override
 	public void reloadingProject(){
+		final ProjectService.e e = new ProjectService.e();
+		final ProjectService.f f = new ProjectService.f();
+		
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run(){
-					reloadingProjectAsync();
+					reloadingProjectAsync(e, f);
 				}
 			});
 	}

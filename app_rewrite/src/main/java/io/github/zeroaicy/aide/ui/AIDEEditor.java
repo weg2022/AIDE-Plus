@@ -105,7 +105,16 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		removeAllViews();
 		addView(new AIDEEditor.EditorView(getContext()));
 	}
-
+	public static class 测试 extends CodeEditText{
+		public 测试(){
+			super(null);
+		}
+		@Override
+		protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
+			return super.getOEditorView();
+		}
+	}
+	
 	@Override
 	protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
 		return super.getOEditorView();

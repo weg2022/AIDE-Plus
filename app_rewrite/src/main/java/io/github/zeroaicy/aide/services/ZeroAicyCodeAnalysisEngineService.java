@@ -9,6 +9,7 @@ import android.widget.Toast;
 import com.aide.engine.service.CodeAnalysisEngineService;
 import com.aide.ui.rewrite.R;
 import io.github.zeroaicy.util.Log;
+import com.aide.ui.build.packagingservice.ExternalPackagingService;
 
 public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService{
 
@@ -80,4 +81,5 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
             startForeground(id, notification);//startForeground服务前台化，要在5秒内调用成功，否则前台化失败
         }
     }
+	
 }

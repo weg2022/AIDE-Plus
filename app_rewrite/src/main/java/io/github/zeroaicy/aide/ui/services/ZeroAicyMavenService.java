@@ -547,10 +547,11 @@ public class ZeroAicyMavenService {
 	 */
 	private void putArtifactNode(ArtifactNode artifactNode) {
 
-		// ArtifactNode oldArtifactNode = this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
+		ArtifactNode oldArtifactNode = this.depManager.put(artifactNode.getGroupIdArtifactId(), artifactNode);
 		
 		// String groupIdArtifactId = artifactNode.getGroupIdArtifactId();
-		// AppLog.d(String.format("[key: %s] %s -> %s ", groupIdArtifactId, String.valueOf(oldArtifactNode), String.valueOf(artifactNode)));
+		
+		//AppLog.d(String.format("[key: %s] %s -> %s ", groupIdArtifactId, String.valueOf(oldArtifactNode), String.valueOf(artifactNode)));
 	}
     // 查询是否已有依赖或者版本控制
 	// 即所有依赖引用都在这，方便更新版本

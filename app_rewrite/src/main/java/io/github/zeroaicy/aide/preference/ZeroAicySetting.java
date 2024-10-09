@@ -5,14 +5,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
+import android.text.TextUtils;
 import androidx.preference.PreferenceManager;
 import com.aide.ui.rewrite.R;
+import io.github.zeroaicy.aide.utils.Utils;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import android.text.TextUtils;
-import android.os.Build;
-import io.github.zeroaicy.util.ContextUtil;
 
 public class ZeroAicySetting {
 
@@ -170,13 +170,7 @@ public class ZeroAicySetting {
 			if ( TextUtils.isEmpty(defValue) ) {
 				defMinSdkLevel = Build.VERSION.SDK_INT;
 			} else {
-				try {
-					defMinSdkLevel = Integer.parseInt(defValue);
-				}
-				catch (NumberFormatException e) {
-					// 值有误 跟随设备
-					defMinSdkLevel = Build.VERSION.SDK_INT;
-				}
+				defMinSdkLevel = Utils.parseInt(defValue, Build.VERSION.SDK_INT);
 			}
 		}
 		if ( defMinSdkLevel < 21 ) {

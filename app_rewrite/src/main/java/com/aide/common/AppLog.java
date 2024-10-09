@@ -24,11 +24,11 @@ public class AppLog{
 	}
 
     public static void FH(String msg){
-		if ( isPrintLog() ) Log.e("AIDE", msg);
+		Log.e("AIDE", msg);
     }
 
     public static void Hw(String str, Throwable th){
-		if ( isPrintLog() ) Log.e("AIDE", str, th);
+		Log.e("AIDE", str, th);
     }
 
     public static void VH(String msg){
@@ -40,16 +40,16 @@ public class AppLog{
     }
 
     public static void gn(String str){
-		if ( isPrintLog() ) Log.w("AIDE", str);
+		Log.w("AIDE", str);
     }
 
     public static void j6(Throwable th){
-		if ( isPrintLog() ) Log.e("AIDE", th.toString(), th);
+		Log.e("AIDE", th.toString(), th);
 
     }
 
     public static void v5(Throwable th){
-        if ( isPrintLog() ) Log.e("AIDE", th.toString(), th);
+        Log.e("AIDE", th.toString(), th);
     }
 
 	public static void d(String TAG, Object... objects){
