@@ -257,9 +257,10 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 					fillDexingJarTasks(needDexingLibs, configuration, taskDoneLister, tasks);
 
 					long now = Utils.nowTime();
-
-					// (DexingJarTask.ThreadPoolServiceName, 4);
-					ThreadPoolService threadPoolService = ThreadPoolService.getDefaultThreadPoolService();
+					
+					// DexingJarTask专用线程
+					ThreadPoolService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 3);
+					
 					List<Future<DexingJarTask>> futures = threadPoolService.invokeAll(tasks);
 					for ( Future<DexingJarTask> future : futures ){
 						// // 这会阻塞直到任务完成或抛出异常

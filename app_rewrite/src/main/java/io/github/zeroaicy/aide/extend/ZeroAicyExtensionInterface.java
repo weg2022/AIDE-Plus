@@ -55,6 +55,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import com.aide.engine.service.CodeAnalysisEngineService;
+import io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService;
 
 /**
  * 1.aapt2
@@ -369,7 +371,13 @@ public class ZeroAicyExtensionInterface{
 	public static Class<? extends MainActivity> getLaunchActivityClass(){
 		return ZeroAicyMainActivity.class;
 	}
-
+	/**
+	 * 替换CodeAnalysisEngineService实现
+	 */
+	public static Class<? extends CodeAnalysisEngineService> getCodeAnalysisEngineServiceClass(){
+		return ZeroAicyCodeAnalysisEngineService.class;
+	}
+	
 	//打包服务替换
 	public static Class<?extends ExternalPackagingService> getExternalPackagingServiceClass(){
 		return ZeroAicyExternalPackagingService.class;

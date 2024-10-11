@@ -198,11 +198,15 @@ public class ThreadPoolService implements ExecutorService {
 		}
 		service = newFixedThreadPool(threadNumber, threadFactory);
 	}
-	public static ThreadPoolExecutor newFixedThreadPool(int nThreads) {
-        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+	public static ThreadPoolExecutor newFixedThreadPool(int maximumPoolSize) {
+        return new ThreadPoolExecutor(maximumPoolSize, maximumPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
-	public static ThreadPoolExecutor newFixedThreadPool(int nThreads, ThreadFactory threadFactory) {
-        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
+	/**
+	 * corePoolSize为最大线程数的一半
+	 */
+	public static ThreadPoolExecutor newFixedThreadPool(int maximumPoolSize, ThreadFactory threadFactory) {
+		int corePoolSize = maximumPoolSize == 1 ? 1 : maximumPoolSize / 2;
+        return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
     }
 
 	/**

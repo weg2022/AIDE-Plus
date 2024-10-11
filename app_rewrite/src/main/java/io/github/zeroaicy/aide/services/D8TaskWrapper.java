@@ -92,8 +92,8 @@ public class D8TaskWrapper {
 		
 		// 方便改变线程数
 		// 都启用多线程dexing ❛˓◞˂̵✧
-		cmdList.add(0, "--thread-count");
-		cmdList.add(0, "16");
+		cmdList.add("--thread-count");
+		cmdList.add("16");
 		
 		// 参数
 		cmdList.addAll(argList);

@@ -117,11 +117,17 @@
 		android:process=":PackagingService" />
 		-->
 
-        <service
+        <!--<service
 			android:name="com.aide.engine.service.CodeAnalysisEngineService"
 			android:exported="false"
-			android:process=":EngineService" />
+			android:process=":EngineService" />-->
 
+		<service
+			android:name="io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService"
+			android:exported="true"
+			android:process=":EngineService" />
+			
+		
         <activity
             android:theme="@style/ActivityPreferencesThemeLight"
             android:label="Settings"
@@ -134,11 +140,6 @@
 			android:name="io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity"
 			android:excludeFromRecents="true"
 			android:screenOrientation="user" />
-
-		<service
-			android:name="io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService"
-			android:exported="true"
-			android:process=":EngineService" />
 
 		<!-- 打包服务 -->
 		<service
