@@ -492,14 +492,23 @@ public class ZeroAicyExtensionInterface{
 				}
 			});
 	}
-
+	/**
+	 * 修复更新弹窗
+	 */
+	public static String repairWhatsNewDialog(String appId){
+		if( ServiceContainer.P8.equals(appId)){
+			return ContextUtil.getPackageName();
+		}
+		return appId;
+	}
 	/**
 	 * Lcom/aide/engine/Engine$c;->Ws
 	 */
 	@Keep
 	public static SyntaxStyleType getSyntaxStyleType(Syntax syntax, int syntaxTag){
         try{
-            if ( syntax.isOperator(syntaxTag) ){
+           /*
+		   if ( syntax.isOperator(syntaxTag) ){
                 return SyntaxStyleType.OPERATOR;
             }
             if ( syntax.isSeparator(syntaxTag) ){
@@ -532,7 +541,6 @@ public class ZeroAicyExtensionInterface{
 			/*if( syntax instanceof JavaSyntax){
 			 AppLog.d("getSyntaxStyleType: ", syntax.getString(syntaxTag), "\n");
 			 }*/
-
             return null;
         }
 		catch (Throwable th){

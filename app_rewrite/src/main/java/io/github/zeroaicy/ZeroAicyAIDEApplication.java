@@ -20,7 +20,7 @@ import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
-public class ZeroAicyAIDEApplication extends AIDEApplication {
+public class ZeroAicyAIDEApplication extends AIDEApplication{
 
 	private static final String TAG = "ZeroAicyAIDEApplication ";
 
@@ -32,43 +32,64 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		DebugUtil.debug();
 	}
 
+
+	public boolean handleCrashProcess(){
+		// 计算Crash进程名
+		String crashProcessName = this.getPackageName() + ":crash";
+		// 当前进程名
+		String curProcessName = ContextUtil.getProcessName();
+
+		boolean isCrashProcess = crashProcessName.equals(curProcessName)                            
+			|| curProcessName.endsWith(":crash");
+
+		if ( !isCrashProcess ){
+			return false;
+		}
+		// Crash进程不做任何初始化
+		AppLog.d(TAG, "crash进程: ", curProcessName);
+
+		return isCrashProcess;
+	}
 	@Override
-	public void onCreate() {
+	public void onCreate(){
 		super.onCreate();
+
+		// 查看 是否解除反射限制
+		AppLog.d(TAG, "解除反射限制: " + reflectAll);
+
 		// 更改日志路径
 		DebugUtil.debug(this, false);
 
-		String crashProcessName = getPackageName() + ":crash";
-		
-		String curProcessName = ContextUtil.getProcessName();
+		// ZeroAicy Log附加Android Log
+		// attachLogcat();
+		// 处理Crash进程
+		handleCrashProcess();
 
-		if (crashProcessName.equals(curProcessName) 
-			|| curProcessName.contains("crash")) {
-			AppLog.d(TAG, "crash进程: ", curProcessName);
-			return;
-		}
-
-		//解除反射
-		AppLog.d(TAG, "解除反射: " + reflectAll);
-		
-		// 异常显示Activity
+		// 捕获异常后在Activity显示
 		CrashApphandler.getInstance().onCreated();
 
 		//初始化ZeroAicy设置
 		ZeroAicySetting.init(this);
-		// 自定义CodeTheme初始化
+
+		// 自定义CodeTheme初始化 [ 已考虑多进程 ]
 		CodeTheme.init(this);
-		//初始化Shizuku库
+
+		//初始化Shizuku库 [ 已考虑多进程 ]
 		ShizukuUtil.initialized(this);
 
-		// 更新加密库
+		// 更新加密库[ 原则上近主进程与打包进程需要]
 		JksKeyStore.initBouncyCastleProvider();
 
-		// 防止App的context为null
-		ServiceContainer.sh(this);
+		if ( ContextUtil.isMainProcess() ){
+			// JavaConsole进程不需要
 
-		// 判断是否显示AIDE-WhatsNewDialog
-		if (ZeroAicySetting.isReinstall()) {
+			// 防止App的context为null
+			ServiceContainer.sh(this);
+		}
+
+		// 是否显示AIDE-WhatsNewDialog
+		if ( ZeroAicySetting.isReinstall() ){
+			//重装后显示
 			SharedPreferences sharedPreferences = getSharedPreferences("WhatsNew", 0);
 			SharedPreferences.Editor edit = sharedPreferences.edit();
 			// 重置
@@ -79,14 +100,20 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		AppLog.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
 
-
+	private void attachLogcat(){
+		// 附加AndroidLog
+		Logger logger = Logger.getLogger();
+		// 会向ZeroAicyLog打印
+		logger.addDefaultLogListener();
+		logger.start();
+	}
 	// 共存版发送logcat log
-	private void method2() {
-		if (ContextUtil.isMainProcess()) {
-			if ("io.github.zeroaicy.aide".equals(getPackageName())) {
+	private void method2(){
+		if ( ContextUtil.isMainProcess() ){
+			if ( "io.github.zeroaicy.aide".equals(getPackageName()) ){
 				// 
 				Logger.onContext(this, "io.github.zeroaicy.aide1");	
-			} else {
+			}else{
 				Logger.onContext(this, "io.github.zeroaicy.aide");	
 			}
 			// 附加AndroidLog
@@ -124,11 +151,11 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	/**
 	 * 严苛模式
 	 */
-	private void method() {
+	private void method(){
 		ApplicationInfo appInfo = getApplicationInfo(); 
 		int appFlags = appInfo.flags; 
 
-		if (false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {     
+		if ( false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0 ){     
 			Log.d(TAG, "启用严苛模式: ");
 			// 监测当前线程（UI线程）上的网络、磁盘读写等耗时操作
 			StrictMode.setThreadPolicy(
@@ -164,20 +191,20 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	 * 当日志系统崩溃时,，进行修复，以便测试
 	 * 此实现依赖反射，使用时注意检查
 	 */
-	private void testLog() {
+	private void testLog(){
 
 		boolean log = Log.getLog() == null;
 
-		if (log) {
+		if ( log ){
 			Log.AsyncOutputStreamHold logHold = Log.getLogHold();
 			String logCatPath = FileUtil.LogCatPath + "_test.txt";
 
-			if (logHold == null) {
+			if ( logHold == null ){
 				AppLog.d(TAG, "LogHold 为 null");
 				logHold = new Log.AsyncOutputStreamHold(logCatPath);
 				ReflectPie.on(Log.class).set("mLogHold", logHold);
 			}
-			if (log = Log.getLog() == null) {
+			if ( log = Log.getLog() == null ){
 				AppLog.d(TAG, "LogHold mLog null");
 				FileOutputStream createOutStream = Log.AsyncOutputStreamHold.createOutStream(logCatPath);
 				Log.AsyncOutputStreamHold.AsyncOutStream asyncOutStream = new Log.AsyncOutputStreamHold.AsyncOutStream(createOutStream);

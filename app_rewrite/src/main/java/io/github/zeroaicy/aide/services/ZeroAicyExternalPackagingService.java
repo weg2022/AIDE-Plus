@@ -115,19 +115,19 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 
 				long now = packagingStart;
 				this.initBuildEnvironment();
-				AppLog.d(TAG, "initBuildEnvironment: %s ms" + (Utils.nowTime() - now));
+				AppLog.d(TAG, "initBuildEnvironment: %s ms", (Utils.nowTime() - now));
 
 				// 混淆
 				if ( isMinify() ){
 					now = Utils.nowTime();
 					packagingAndroidMinify();
-					AppLog.d(TAG, "packaging: %s ms" + (Utils.nowTime() - now));
+					AppLog.d(TAG, "packaging: %s ms" , (Utils.nowTime() - now));
 					return;
 				}
 
 				now = Utils.nowTime();
 				List<String> classesDexZipList = getClassesDexZipList();
-				AppLog.d(TAG, "Dexing: %s ms" + (Utils.nowTime() - now));
+				AppLog.d(TAG, "Dexing: %s ms", (Utils.nowTime() - now));
 
 				now = Utils.nowTime();
 				//Java工程
@@ -137,9 +137,9 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 					//打包安卓项目
 					packagingAndroidProject(classesDexZipList);
 				}
-				AppLog.d(TAG, "output file build: %s ms" + (Utils.nowTime() - now));
+				AppLog.d(TAG, "output file build: %s ms", (Utils.nowTime() - now));
 
-				AppLog.d(TAG, "packaging: %s ms" + (Utils.nowTime() - now));
+				AppLog.d(TAG, "packaging: %s ms", (Utils.nowTime() - now));
 			}
 
 			/**

@@ -134,7 +134,7 @@ public class EngineSolutionProject implements Parcelable{
 
 	/*
 	 * 纯smali实现  需要替换 writeToParcelOriginal所在类名
-	 * 需要将原始writeToParcel- > writeToParcelOriginal
+	 * 需要将原始writeToParcel -> writeToParcelOriginal
 	 */
 	@Override
 	public void writeToParcel(Parcel dest, int flags){
@@ -169,50 +169,40 @@ public class EngineSolutionProject implements Parcelable{
 
 
     public EngineSolutionProject(Parcel dest){
-		try{
-			this.projectName = dest.readString();
-			this.mb = dest.readString();
-			this.jw = dest.readString();
-			this.k2 = dest.readInt() != 0;
-			this.zh = dest.readString();
-			this.AL = dest.readString();
-			this.w9 = dest.readString();
-			this.hK = dest.readString();
-			this.cT = dest.readInt() != 0;
-			this.q7 = dest.readInt() != 0;
-			this.Z1 = dest.readInt() != 0;
+		this.projectName = dest.readString();
+		this.mb = dest.readString();
+		this.jw = dest.readString();
+		this.k2 = dest.readInt() != 0;
+		this.zh = dest.readString();
+		this.AL = dest.readString();
+		this.w9 = dest.readString();
+		this.hK = dest.readString();
+		this.cT = dest.readInt() != 0;
+		this.q7 = dest.readInt() != 0;
+		this.Z1 = dest.readInt() != 0;
 
-			boolean z = true;
-			if ( dest.readInt() == 0 ){
-				z = false;
-			}
-			this.n5 = z;
-			this.Q6 = dest.readString();
-			ArrayList<String> arrayList = new ArrayList<>();
-			this.qp = arrayList;
-			dest.readList(arrayList, getClass().getClassLoader());
+		this.n5 = dest.readInt() != 0;
+		this.Q6 = dest.readString();
 
-			ArrayList<String> arrayList2 = new ArrayList<>();
-			this.kf = arrayList2;
-			dest.readList(arrayList2, getClass().getClassLoader());
+		ArrayList<String> arrayList = new ArrayList<>();
+		this.qp = arrayList;
+		dest.readList(arrayList, getClass().getClassLoader());
 
-			ArrayList<String> arrayList3 = new ArrayList<>();
-			this.Jl = arrayList3;
-			dest.readList(arrayList3, getClass().getClassLoader());
+		ArrayList<String> arrayList2 = new ArrayList<>();
+		this.kf = arrayList2;
+		dest.readList(arrayList2, getClass().getClassLoader());
 
-			ArrayList<String> arrayList4 = new ArrayList<>();
-			this.iW = arrayList4;
-			dest.readList(arrayList4, getClass().getClassLoader());
+		ArrayList<String> arrayList3 = new ArrayList<>();
+		this.Jl = arrayList3;
+		dest.readList(arrayList3, getClass().getClassLoader());
 
-			ArrayList<EngineSolution.File> arrayList5 = new ArrayList<EngineSolution.File>();
-			this.fY = arrayList5;
-			dest.readList(arrayList5, getClass().getClassLoader());
+		ArrayList<String> arrayList4 = new ArrayList<>();
+		this.iW = arrayList4;
+		dest.readList(arrayList4, getClass().getClassLoader());
 
-		}
-		catch (Throwable e){
-			AppLog.e("EngineSolutionProject", "解压", e);
-			throw new Error(e);
-		}
+		ArrayList<EngineSolution.File> arrayList5 = new ArrayList<EngineSolution.File>();
+		this.fY = arrayList5;
+		dest.readList(arrayList5, getClass().getClassLoader());
     }	
 }
 

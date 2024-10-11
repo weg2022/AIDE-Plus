@@ -16,7 +16,7 @@ import android.app.Application;
 /**
  * Created by mfcx on 2018/10/22.
  */
-public class CrashApphandler extends CrashAppLog{
+public class CrashApphandler extends CrashAppLog implements CrashAppLog.OnCrashListener{
 	public static final String CrashActivityKey = "crash_log";
 
     public static CrashApphandler mCrashApphandler = null;
@@ -32,35 +32,42 @@ public class CrashApphandler extends CrashAppLog{
     }
 
 	public void onCreated(){
-		if ( this.onCrashListener == null && this.mContext != null ){
-			setOnCrashListener(new OnCrashListener(){
-					@Override
-					public void onCrash(String crashInfo){
-						if(CrashActivity.getErrorLog() != null){
-							return; 
-						}
-						Context context = CrashApphandler.this.mContext;
-						if ( !(context instanceof Application) ){
-							context = CrashApplication.mCrashApplication;
-						}
-						if ( context == null ){
-							context = ContextUtil.getContext();
-						}
-
-						Intent intent = new Intent(context, io.github.zeroaicy.util.crash.CrashActivity.class);
-						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						intent.putExtra(CrashApphandler.CrashActivityKey, crashInfo);
-						//启动活动
-						context.startActivity(intent);
-						//退出活动，因为退出了所以启动活动前仍会走Application
-						//如果错误点在Application则会重复启动
-						android.os.Process.killProcess(android.os.Process.myPid());
-						System.exit(-1);
-						
-					}
-				});
+		if ( this.onCrashListener == null 
+			&& this.mContext != null ){
+			setOnCrashListener(this);
 		}
 	}
+	public boolean isHandle = false;
+	@Override
+	public void onCrash(String crashInfo){
+		if ( CrashActivity.getErrorLog() != null ){
+			return; 
+		}
+
+		if ( isHandle ){
+			return;
+		}
+		isHandle = true;
+		
+		Context context = CrashApphandler.this.mContext;
+		if ( !(context instanceof Application) ){
+			context = CrashApplication.mCrashApplication;
+		}
+		if ( context == null ){
+			context = ContextUtil.getContext();
+		}
+		Intent intent = new Intent(context, io.github.zeroaicy.util.crash.CrashActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra(CrashApphandler.CrashActivityKey, crashInfo);
+		//启动活动
+		context.startActivity(intent);
+		//退出活动，因为退出了所以启动活动前仍会走Application
+		//如果错误点在Application则会重复启动
+		android.os.Process.killProcess(android.os.Process.myPid());
+		System.exit(-1);
+
+	}
+
     @Override
     public void sendCrashLogToServer(File folder, File file){
 		Log.e("*********", "文件夹:" + folder.getAbsolutePath() + " - " + file.getAbsolutePath() + "");

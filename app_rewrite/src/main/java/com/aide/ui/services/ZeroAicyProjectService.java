@@ -172,7 +172,7 @@ public class ZeroAicyProjectService extends ProjectService{
 		return super.tp(string);
 	}
 	/**
-	 * 返回所有model路径
+	 * 返回所有model[子项目]路径
 	 */
 	@Override
 	public List<String> P8(){

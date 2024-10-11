@@ -28,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import rikka.shizuku.Shizuku;
 import rikka.shizuku.ShizukuBinderWrapper;
 import rikka.shizuku.SystemServiceHelper;
+import io.github.zeroaicy.util.ContextUtil;
 
 public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.OnBinderDeadListener, Shizuku.OnRequestPermissionResultListener {
 
@@ -83,6 +84,9 @@ public class ShizukuUtil implements Shizuku.OnBinderReceivedListener, Shizuku.On
 	private static ShizukuUtil shizukuListener;
 	//添加监听器
 	public static void initialized(Context context) {
+		if( !ContextUtil.isMainProcess()){
+			return;
+		}
 		AppLog.d(TAG, "Shizuku初始化");
 		if (ShizukuUtil.shizukuListener != null) {
 			//ShizukuUtil.shizukuListener.removeBinderListener();

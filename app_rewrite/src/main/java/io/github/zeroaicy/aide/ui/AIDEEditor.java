@@ -105,15 +105,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		removeAllViews();
 		addView(new AIDEEditor.EditorView(getContext()));
 	}
-	public static class 测试 extends CodeEditText{
-		public 测试(){
-			super(null);
-		}
-		@Override
-		protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
-			return super.getOEditorView();
-		}
-	}
+	
 	
 	@Override
 	protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
@@ -193,8 +185,9 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 	/**
 	 * 文件路径，也有可能是jar里的class
+	 * 有很大的闪退风险
 	 */
-	//*
+	/*
 	@Override
 	protected OpenFileService.OpenFileModel Z1(final String filePath) {
 		// 先返回，内容异步塞入
@@ -324,6 +317,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 				// 通知代码分析进程 内容填充完毕
 				EngineService engineService = ServiceContainer.getEngineService();
+				// 解除代码分析进程阻塞
 				engineService.ef();
 				engineService.ei();
 
