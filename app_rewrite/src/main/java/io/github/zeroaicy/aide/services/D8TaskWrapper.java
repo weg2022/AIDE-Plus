@@ -85,10 +85,17 @@ public class D8TaskWrapper {
 		cmdList.add("-Djava.class.path=" + r8Path);
 		cmdList.add("/system/bin");
 		cmdList.add("--nice-name=D8Task");
+		
 
 		// 需要运行的类
 		cmdList.add(className);
-
+		
+		// 方便改变线程数
+		// 都启用多线程dexing ❛˓◞˂̵✧
+		cmdList.add(0, "--thread-count");
+		cmdList.add(0, "16");
+		
+		// 参数
 		cmdList.addAll(argList);
 
 
@@ -110,7 +117,7 @@ public class D8TaskWrapper {
 		Process process = processBuilder.start();
 
 		// 读取错误流
-		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), true);
+		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), false);
 		Thread errorStreamReaderThread = new Thread(errorStreamReader);
 		errorStreamReaderThread.start();
 
@@ -142,11 +149,12 @@ public class D8TaskWrapper {
 		}
 
 		String error = errorStreamReader.getError();
-		String output = inputStreamReader.getError();
+		
+		//String output = inputStreamReader.getError();
 
 		String format = String.format(
-			"\nTask: %s -> exited with code %s\nError:\n%s\nLog:\n%s\n", 
-			className, process.exitValue(), error, output);
+			"\nTask: %s -> exited with code %s\nError:\n%s\n", 
+			className, process.exitValue(), error);
 		throw new Error(format);
 
 	}
@@ -162,7 +170,6 @@ public class D8TaskWrapper {
 		StringBuilder stringBuilder = new StringBuilder();
 
 		boolean isErrorStream;
-
 		public ProcessStreamReader(InputStream inputStream) {
 			this(inputStream, false);
 		}
@@ -180,24 +187,15 @@ public class D8TaskWrapper {
 		}
 		@Override
 		public void run() {
-
 			try {
-				/*byte[] data = new byte[1024 * 10];
-				 int count = 0;
-				 while ( (count = this.bufferedInputStream.read(data)) != -1 ){
-
-				 this.byteArrayOutputStream.write(data, 0, count);
-
-				 }*/
 				String line;
 				while ((line = bufferedReader.readLine()) != null) {
 					// 边运行边打印
 					if (isErrorStream) AppLog.println_e(line);
+					
 					stringBuilder.append(line);
 					stringBuilder.append(System.lineSeparator());
-					
 				}
-
 			}
 			catch (Throwable e) {
 				AppLog.e(TAG, e);
@@ -206,22 +204,13 @@ public class D8TaskWrapper {
 				// 关闭流
 				//IOUtils.close(this.bufferedInputStream);
 				IOUtils.close(this.bufferedReader);
-
-				// 读取错误
-				//this.error = new String(this.byteArrayOutputStream.toByteArray());
 				this.error = stringBuilder.toString();
-
-				// 关闭流
-				//IOUtils.close(this.byteArrayOutputStream);
 			}
 		}
 	}
 
 	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
-		argsList.add("--thread-count");
-		argsList.add("32");
-
 		argsList.add("--min-api");
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));

@@ -678,8 +678,6 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 				minSdk = minSdk < 21 ? 21 : minSdk;
 
 				List<String> argsList = new ArrayList<>();
-				argsList.add("--thread-count");
-				argsList.add("32");
 
 				argsList.add("--lib");
 				argsList.add(getUserAndroidJar());

@@ -172,9 +172,6 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 
 		// 通用参数
 		List<String> argsList = new ArrayList<>();
-		// 都启用多线程dexing ❛˓◞˂̵✧
-		argsList.add("--thread-count");
-		argsList.add("32");
 
 		//待跟随minSDK
 		argsList.add("--min-api");
