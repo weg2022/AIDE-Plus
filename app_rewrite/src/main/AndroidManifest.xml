@@ -14,7 +14,9 @@
 	<!-- Shizuku -->
 	<uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
-
+    <!-- 运行前台服务 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	
 	<!-- 修改或删除您共享存储空间中的内容 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- 拥有完全的网络访问权限 -->

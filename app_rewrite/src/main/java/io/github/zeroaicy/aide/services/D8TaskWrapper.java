@@ -117,7 +117,7 @@ public class D8TaskWrapper {
 		Process process = processBuilder.start();
 
 		// 读取错误流
-		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), false);
+		D8TaskWrapper.ProcessStreamReader errorStreamReader = new ProcessStreamReader(process.getErrorStream(), ZeroAicySetting.isEnableDetailedLog());
 		Thread errorStreamReaderThread = new Thread(errorStreamReader);
 		errorStreamReaderThread.start();
 
@@ -134,6 +134,9 @@ public class D8TaskWrapper {
 		// 正常退出
 		if (exitValue == 0) {
 			return;
+		}
+		if( exitValue == 137 ){
+			throw new OutOfMemoryError("r8 task exited code 137");
 		}
 		// 异常处理 可能会再次运行
 		//已经是在处理异常了 及时退出否则死递归了
@@ -191,7 +194,7 @@ public class D8TaskWrapper {
 				String line;
 				while ((line = bufferedReader.readLine()) != null) {
 					// 边运行边打印
-					if (isErrorStream) AppLog.println_e(line);
+					if (isErrorStream) AppLog.println_d(line);
 					
 					stringBuilder.append(line);
 					stringBuilder.append(System.lineSeparator());

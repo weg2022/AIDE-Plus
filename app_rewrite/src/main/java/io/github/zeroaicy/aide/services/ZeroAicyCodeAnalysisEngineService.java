@@ -17,11 +17,10 @@ import androidx.core.app.NotificationManagerCompat;
 import com.aide.common.AppLog;
 import androidx.core.app.NotificationChannelCompat.Builder;
 
-public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService{
+public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService {
 
 	private NotificationChannelCompat notificationChannel;
 
-	String CHANNEL_ID = "engine";
 	private static int id = 0x26f5;
 
 	private static final String TAG = "ZeroAicyCodeAnalysisEngineService";
@@ -33,7 +32,7 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 
 	//*
 	@Override
-	public void onCreate(){
+	public void onCreate() {
 		super.onCreate();
 		setNotificationAndForeground();
 
@@ -42,16 +41,13 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 
 
 	@Override
-	public IBinder onBind(Intent intent){
+	public IBinder onBind(Intent intent) {
 		AppLog.d(TAG, "onBind");
-
-		setNotificationAndForeground();
-
 		return super.onBind(intent);
 	}
 
 	@Override
-	public boolean onUnbind(Intent intent){
+	public boolean onUnbind(Intent intent) {
 		AppLog.d(TAG, "onUnbind");
 
 		return super.onUnbind(intent);
@@ -59,28 +55,31 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 
 
 	@Override
-	public void onDestroy(){
+	public void onDestroy() {
 		super.onDestroy();
-		if ( notificationManager == null ){
-			notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		if (this.notificationManager == null) {
+			this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		}
-		if ( notification != null ){
-			notificationManager.cancel(id);
+		if (this.notification != null) {
+			this.notification = null;
+			this.notificationManager.cancel(id);
 		}
 	}
 
-	private void setNotificationAndForeground(){
-		try{
+	private void setNotificationAndForeground() {
+		String CHANNEL_ID = "engine";
+		
+		try {
 			/*
-			 if ( this.notificationChannel == null ){
-			 NotificationChannelCompat.Builder builder = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
+			if (this.notificationChannel == null) {
+				NotificationChannelCompat.Builder builder = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH);
 
-			 this.notificationChannel = builder.build();
-			 NotificationManagerCompat from = NotificationManagerCompat.from(this);
-			 from.createNotificationChannel(this.notificationChannel);	
-			 }*/
+				this.notificationChannel = builder.build();
+				NotificationManagerCompat from = NotificationManagerCompat.from(this);
+				from.createNotificationChannel(this.notificationChannel);	
+			}//*/
 
-			if ( this.notification == null ){
+			if (this.notification == null) {
 				PendingIntent pendingIntent = MainActivity.sy(this);
 				NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
 				builder.setWhen(System.currentTimeMillis());
@@ -97,7 +96,7 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 
 			}
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			AppLog.e(TAG, e);
 		}
 	}
