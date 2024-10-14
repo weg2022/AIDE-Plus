@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.io.Reader;
 import com.aide.codemodel.api.util.SyntaxTreeUtils;
+import java.util.concurrent.ExecutorService;
 
 public class v7{
 
@@ -317,7 +318,7 @@ public class v7{
 		}
 
 		try{	
-			ThreadPoolService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
+			ExecutorService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
 			for ( Future<Void> future : defaultThreadPoolService.invokeAll(tasks) ){
 				try{
 					future.get();

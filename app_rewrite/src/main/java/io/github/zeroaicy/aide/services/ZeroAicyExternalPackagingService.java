@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
 
 public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 	@Override
@@ -259,7 +260,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 					long now = Utils.nowTime();
 					
 					// DexingJarTask专用线程
-					ThreadPoolService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 3);
+					ExecutorService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 3);
 					
 					List<Future<DexingJarTask>> futures = threadPoolService.invokeAll(tasks);
 					for ( Future<DexingJarTask> future : futures ){

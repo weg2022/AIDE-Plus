@@ -2,6 +2,7 @@ package io.github.zeroaicy.aide.ui.services;
 
 import android.os.Handler;
 import android.os.Looper;
+import com.aide.common.AppLog;
 import io.github.zeroaicy.util.Log;
 import java.util.Collection;
 import java.util.HashMap;
@@ -124,7 +125,8 @@ public class ThreadPoolService implements ExecutorService {
 
 	private static final String TAG = "ExecutorsService";
 	private static final int maxThreadNumber = 8;
-
+	private static Map<String, ThreadPoolService> executorsNameMap = new HashMap<>();
+	
 	private static ThreadFactory threadFactory = new ThreadFactory(){
 		private final AtomicInteger poolNumber = new AtomicInteger();
 		@Override
@@ -157,6 +159,7 @@ public class ThreadPoolService implements ExecutorService {
 	// 默认子线程
 	private static ThreadPoolService defaultThreadPoolService;
 	// 默认线程为4
+	// 使用默认线程的有
 	public static ThreadPoolService getDefaultThreadPoolService() {
 		if (defaultThreadPoolService == null) {
 			defaultThreadPoolService = getThreadPoolService("default");
@@ -164,13 +167,11 @@ public class ThreadPoolService implements ExecutorService {
 		return defaultThreadPoolService;
 	}
 
-	private static Map<String, ThreadPoolService> executorsNameMap = new HashMap<>();
-
 	/**
 	 * 默认线程数为 4
 	 */
 	public static ThreadPoolService getThreadPoolService(String executorsName) {
-		return getThreadPoolService(executorsName, 4);
+		return getThreadPoolService(executorsName, 1);
 	}
 
 	public static ThreadPoolService getThreadPoolService(String executorsName, int threadNumber) {
@@ -252,21 +253,21 @@ public class ThreadPoolService implements ExecutorService {
 		public void run() {
 			if (isDebug && isPrint) {
 
-				Log.println("\n******************************************************");
-				Log.println(stackTrace);
+				AppLog.println_e("\n******************************************************");
+				AppLog.println_e(stackTrace);
 			}
 			long now = System.currentTimeMillis();
 			try {
 				this.runnable.run();
 			}
 			catch (Throwable e) {
-				Log.e("异步错误", this.stackTrace, e);
+				AppLog.e("异步错误", this.stackTrace, e);
 			}
 			now = System.currentTimeMillis() - now;
 			if (isDebug && isPrint) {
-				Log.d("ExecutorsService", "耗时 ", (now) + "ms");
-				Log.println(stackTraces);
-				Log.println("******************************************************\n");
+				AppLog.d("ExecutorsService", "耗时 ", (now) + "ms");
+				AppLog.println_e(stackTraces);
+				AppLog.println_e("******************************************************\n");
 				
 			}
 			

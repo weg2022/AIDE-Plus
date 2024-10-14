@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import androidx.annotation.Keep;
+import java.util.concurrent.ExecutorService;
 
 public class AssetInstallationService {
 	public static long getResourceSize(String resourceName) {
@@ -274,7 +275,7 @@ public class AssetInstallationService {
 		return this.v5;
     }
 	
-	ThreadPoolService executorsService = ThreadPoolService.getDefaultThreadPoolService();
+	ExecutorService executorsService = ThreadPoolService.getDefaultThreadPoolService();
 	
 	// 卡[Running aidl...] 原因不在这
     public void init() {

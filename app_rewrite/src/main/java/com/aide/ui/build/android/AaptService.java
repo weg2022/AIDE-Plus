@@ -8,6 +8,7 @@ package com.aide.ui.build.android;
 
 import android.content.Context;
 import android.os.Build;
+import android.text.TextUtils;
 import androidx.annotation.Keep;
 import com.aide.common.AppLog;
 import com.aide.engine.SyntaxError;
@@ -16,13 +17,12 @@ import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.services.AssetInstallationService;
 import com.aide.ui.services.ZeroAicyProjectService;
 import com.aide.ui.util.FileSystem;
-import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import android.text.TextUtils;
+import java.util.concurrent.ExecutorService;
 
 public class AaptService {
 
@@ -35,11 +35,11 @@ public class AaptService {
     private Context context;
 
 	// 只有此类使用 j6 -> 
-    private final ThreadPoolService executorsService;
+    private final ExecutorService executorsService;
 
     public AaptService(Context context) {
 		this.context = context;
-		this.executorsService =  ZeroAicyProjectService.getProjectServiceThreadPoolService();
+		this.executorsService =  ZeroAicyProjectService.getProjectServiceExecutorService();
     }
 
     static void FH(AaptService aaptService) {
@@ -358,7 +358,7 @@ public class AaptService {
 					return arrayList;
 				}
 			};
-            ThreadPoolService executorService = this.executorsService;
+            ExecutorService executorService = this.executorsService;
             AaptService$FutureTask task = new AaptService$FutureTask(this, new AaptService$Callable(this, taskFactory));
             this.curFutureTask = task;
             executorService.execute(task);
@@ -391,7 +391,7 @@ public class AaptService {
 					return arrayList;
 				}
 			};
-            ThreadPoolService executorService = this.executorsService;
+            ExecutorService executorService = this.executorsService;
 
             this.curFutureTask = new AaptService$FutureTask(this, new AaptService$Callable(this, taskFactory));
             executorService.execute(this.curFutureTask);

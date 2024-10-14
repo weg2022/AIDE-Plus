@@ -27,9 +27,10 @@ import com.aide.ui.rewrite.R;
 import io.github.zeroaicy.aide.highlight.ColorKind;
 import android.graphics.Canvas;
 import com.aide.common.AppLog;
+import java.util.concurrent.ExecutorService;
 
 public class AIDEEditor extends com.aide.ui.AIDEEditor {
-	
+
 	public class EditorView extends CodeEditText.EditorView {
 
 		private boolean jn = true;
@@ -105,8 +106,8 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		removeAllViews();
 		addView(new AIDEEditor.EditorView(getContext()));
 	}
-	
-	
+
+
 	@Override
 	protected com.aide.ui.views.CodeEditText.EditorView getOEditorView() {
 		return super.getOEditorView();
@@ -187,7 +188,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	 * 文件路径，也有可能是jar里的class
 	 * 有很大的闪退风险
 	 */
-	/*
+	//*
 	@Override
 	protected OpenFileService.OpenFileModel Z1(final String filePath) {
 		// 先返回，内容异步塞入
@@ -195,7 +196,8 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	}
 	//*/
 
-
+	static ExecutorService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
+	
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
 
 		private static final String TAG = "AIDEEditorModel";
@@ -215,10 +217,12 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 			// 延迟加载内容
 			Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
-			textBuffers.addElement(new TextBuffer("异步加载中....".toCharArray()));
+			synchronized (textBuffers) {
+				textBuffers.addElement(new TextBuffer("异步加载中....".toCharArray()));
+			}
 
 			// 异步
-			ThreadPoolService.getDefaultThreadPoolService().submit(
+			defaultThreadPoolService.submit(
 				new Runnable(){
 					@Override
 					public void run() {
@@ -231,7 +235,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		@Override
 		public void j6() {
 			// 异步
-			ThreadPoolService.getDefaultThreadPoolService().submit(
+			defaultThreadPoolService.submit(
 				new Runnable(){
 					@Override
 					public void run() {
@@ -271,9 +275,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		}
 		// 为了等待
 		private final Object lock = new Object();
-
 		private final AtomicBoolean initing = new AtomicBoolean(true);
-
 		public void initAsync(Reader reader) {
 			try {
 				// 读取
@@ -285,43 +287,44 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		}
 		private void initReader(Reader reader) {
 			synchronized (this) {
-				// k1()
-				this.cb = com.aide.engine.service.CodeModelFactory.findCodeModel(filePath, ServiceContainer.Hw());
-
 				Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
-				// 需要对textBuffers操作，防止并发
-				//synchronized (textBuffers) {
-				// 重置
-				textBuffers.clear();
+				synchronized (textBuffers) {
+					// k1()
+					this.cb = com.aide.engine.service.CodeModelFactory.findCodeModel(filePath, ServiceContainer.Hw());
 
-				char[] bufferPool = new char[0x8000];
-				com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
-				IOUtils.close(reader);
+					// 需要对textBuffers操作，防止并发
+					//synchronized (textBuffers) {
+					// 重置
+					textBuffers.clear();
 
-				// 没有内容
-				if (textBuffers.size() == 0) {
-					textBuffers.addElement(new TextBuffer());
+					char[] bufferPool = new char[0x8000];
+					com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
+					IOUtils.close(reader);
+
+					// 没有内容
+					if (textBuffers.size() == 0) {
+						textBuffers.addElement(new TextBuffer());
+					}
+					textBuffers.trimToSize();
+
+					this.initing.set(false);
+
+					synchronized (this.lock) {
+						// 通知代码分析进程
+						this.lock.notifyAll();
+					}
+
+					final CodeEditText.EditorView oEditorView = getOEditorView();
+					oEditorView.invalidateLayoutTask.DW();
+					oEditorView.indexingLayoutTask.DW();
+
+					// 通知代码分析进程 内容填充完毕
+					EngineService engineService = ServiceContainer.getEngineService();
+					// 解除代码分析进程阻塞
+					engineService.ef();
+					engineService.ei();
+
 				}
-				textBuffers.trimToSize();
-
-				this.initing.set(false);
-
-				synchronized (this.lock) {
-					// 通知代码分析进程
-					this.lock.notifyAll();
-				}
-
-				final CodeEditText.EditorView oEditorView = getOEditorView();
-				oEditorView.invalidateLayoutTask.DW();
-				oEditorView.indexingLayoutTask.DW();
-
-				// 通知代码分析进程 内容填充完毕
-				EngineService engineService = ServiceContainer.getEngineService();
-				// 解除代码分析进程阻塞
-				engineService.ef();
-				engineService.ei();
-
-				//}
 
 			}
 		}

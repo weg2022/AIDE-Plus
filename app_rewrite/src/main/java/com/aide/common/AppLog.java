@@ -11,7 +11,11 @@ import io.github.zeroaicy.aide.preference.ZeroAicySetting;
  * AIDE日志类
  */
 public class AppLog{
-    public AppLog(){}
+    public AppLog() {}
+
+	public static void println_e(StackTraceElement[] stackTraces) {
+		Log.println(stackTraces);
+	}
 	// (所有)共存版作为测试版本 日志全开ε٩(๑> ₃ <)۶з
 	//public static boolean isPrintLog = !ContextUtil.getPackageName().equals("io.github.zeroaicy.aide");
 
