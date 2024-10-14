@@ -21,7 +21,7 @@ public class AidlLanguage implements Language {
 
 	@Override
 	public Set<? extends FormatOption> getFormatOptionSet() {
-		return JavaFormatOption.j6();
+		return JavaFormatOption.getJavaFormatOptionSet();
 	}
 
 	@Override

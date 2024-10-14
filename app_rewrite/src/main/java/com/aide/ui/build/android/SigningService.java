@@ -83,7 +83,7 @@ public class SigningService {
             }
         }
 
-        public /* bridge */ void j6(String obj) {
+        public /* bridge */ void acceptValue(String obj) {
             DW(obj);
         }
     }
@@ -111,7 +111,7 @@ public class SigningService {
             }
         }
 
-        public /* bridge */ void j6(String obj) {
+        public /* bridge */ void acceptValue(String obj) {
             DW(obj);
         }
     }
@@ -184,7 +184,7 @@ public class SigningService {
 	
 	// -> makeJksKeyStore
 	@Keep
-	public boolean Hw(String storePath, String password, String aliasName, String aliasPassword, Date notBefore, Date notAfter, BigInteger serialNumber, String commonName, String organization, String organizationalUnit, String cityOrLocality, String stateOrProvince, String countryCode) {
+	public boolean makeJksKeyStore(String storePath, String password, String aliasName, String aliasPassword, Date notBefore, Date notAfter, BigInteger serialNumber, String commonName, String organization, String organizationalUnit, String cityOrLocality, String stateOrProvince, String countryCode) {
         try {
 			JksKeyStoreInfo info = new JksKeyStoreInfo();
 			info.setCommonName(commonName);
@@ -334,7 +334,7 @@ public class SigningService {
 	@Keep
     public void u7(Activity activity) {
         try {
-            MessageBox.gW(activity, new ed(FileSystem.vy() + "/AppProjects/debug.keystore", "androiddebugkey", "android", new d(activity)));
+            MessageBox.showDialog(activity, new ed(FileSystem.getExternalStorageDirectory() + "/AppProjects/debug.keystore", "androiddebugkey", "android", new d(activity)));
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -350,7 +350,7 @@ public class SigningService {
         public void j6(boolean z, String str) {
             try {
                 if (z) {
-                    AppPreferences.I(str);
+                    AppPreferences.setUserKeystore(str);
                     Activity activity = this.activity;
                     MessageBox.ei(activity, "Create keystore", "Keystore file " + str + " has been created and set as default.", (Runnable) null);
                     return;
@@ -369,7 +369,7 @@ public class SigningService {
         try {
 			if (keyStoreFilePath == null || keyStoreFilePath.length() <= 0) {
 				// 会AndroidProjectBuildService.dx() 索引越界
-				synchronized( ServiceContainer.getProjectService().yS() ){
+				synchronized( ServiceContainer.getProjectService().getMainAppWearApps() ){
 					signingRunnable.j6("", "", "", "");
 				}
 				
@@ -394,7 +394,7 @@ public class SigningService {
 				throw new Exception("no androiddebugkey");
 			}
 			catch (Exception unused) {
-				if (ServiceContainer.getLicenseService().VH(ServiceContainer.gn(), "custom_keystore")) {
+				if (ServiceContainer.getLicenseService().showFeaturePremium(ServiceContainer.getCurrentActivity(), "custom_keystore")) {
 					VH(keyStoreFilePath, "", signingRunnable);
 					return;
 				}

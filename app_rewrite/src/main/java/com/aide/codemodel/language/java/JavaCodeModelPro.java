@@ -1,6 +1,6 @@
 package com.aide.codemodel.language.java;
 import com.aide.codemodel.api.Model;
-import com.aide.codemodel.api.abstraction.Compiler;
+import com.aide.codemodel.api.abstraction.CodeCompiler;
 import com.aide.codemodel.api.abstraction.Syntax;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import com.aide.codemodel.api.EntitySpace;
@@ -9,11 +9,11 @@ import com.aide.codemodel.api.IdentifierSpace;
 import io.github.zeroaicy.util.reflect.ReflectPieException;
 
 public class JavaCodeModelPro extends JavaCodeModel {
-	//ECJJavaCodeCompiler ecjJavaCodeCompiler;
+	//ECJJavaCodeCodeCompiler ecjJavaCodeCodeCompiler;
 	public JavaCodeModelPro(Model model) {
 		super(model);
 		if (model != null) {
-			//ecjJavaCodeCompiler = new ECJJavaCodeCompiler(getLanguages().get(0), model);
+			//ecjJavaCodeCodeCompiler = new ECJJavaCodeCodeCompiler(getLanguages().get(0), model);
 			if (model != null) {
 				ReflectPie that = ReflectPie.on(this);
 
@@ -47,8 +47,8 @@ public class JavaCodeModelPro extends JavaCodeModel {
 	}
 
 	@Override
-	public Compiler getCompiler() {
-		return super.getCompiler();
+	public CodeCompiler getCodeCompiler() {
+		return super.getCodeCompiler();
 	}
 
 

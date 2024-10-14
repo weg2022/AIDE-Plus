@@ -9,7 +9,6 @@ import com.aide.ui.services.FileBrowserService;
 import java.io.File;
 import com.aide.ui.command.KeyStrokeCommand;
 import com.aide.ui.command.MenuCommand;
-import abcd.tf;
 import androidx.annotation.Keep;
 import android.content.ComponentName;
 
@@ -120,7 +119,7 @@ public class OpenAideTermux implements KeyStrokeCommand, MenuCommand {
 	@Override
 	public boolean isVisible(boolean p) {
 		if (isEnabled()) {
-			if (!"com.aide.web".equals(ServiceContainer.P8)) {
+			if (!"com.aide.web".equals(ServiceContainer.appId)) {
 				return true;
 			}
 		}

@@ -112,7 +112,7 @@ public class SmaliCodeModel implements CodeModel {
         if (map.containsKey(language)) {
             SyntaxTree syntaxTree = map.get(language);
             if (syntaxTree != null)
-				syntaxTree.U2(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
+				syntaxTree.declareContent(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
 			//syntaxTree.DW(syntaxTree.j6(0, true, new int[0], 0, 0, 1, 1));
         }
     }
@@ -131,10 +131,10 @@ public class SmaliCodeModel implements CodeModel {
     }
 
 
-	// ja -> Compiler
-	// u7() ->getCompiler
+	// ja -> CodeCompiler
+	// u7() ->getCodeCompiler
     @Override
-    public com.aide.codemodel.api.abstraction.Compiler getCompiler() {
+    public com.aide.codemodel.api.abstraction.CodeCompiler getCodeCompiler() {
         return null;
     }
 

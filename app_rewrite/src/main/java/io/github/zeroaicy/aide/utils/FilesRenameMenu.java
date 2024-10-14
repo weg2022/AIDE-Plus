@@ -21,7 +21,7 @@ public class FilesRenameMenu extends zb {
 				if( new File(path).exists()){
 					return true;
 				}
-				if (!FileSystem.sh(path)) {
+				if (!FileSystem.hasParent(path)) {
 					return true;
 				}
 			}
@@ -47,8 +47,8 @@ public class FilesRenameMenu extends zb {
 			}
 			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.dialog_rename_title, R.string.dialog_rename_message, FileSystem.getName(FH), new ValueRunnable<String>(){
 					@Override
-					public void j6(String t){
-						ServiceContainer.getMainActivity().w9();
+					public void acceptValue(String t){
+						ServiceContainer.getMainActivity().delayedShowAnalyzingProgressDialog();
 						ServiceContainer.getEngineService().SI(FH, t);
 					}
 				});

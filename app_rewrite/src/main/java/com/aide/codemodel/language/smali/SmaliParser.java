@@ -12,7 +12,7 @@ public class SmaliParser extends Parser {
 	}
 	
 	@Override
-	public void j6() {
+	public void parser() {
 		
 	}
 

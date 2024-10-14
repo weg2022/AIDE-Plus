@@ -16,7 +16,7 @@ import com.aide.codemodel.api.collections.SetOf;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
 import com.aide.codemodel.language.java.JavaTypeSystem;
 import java.util.Arrays;
-import abcd.e4;
+import com.aide.codemodel.api.excpetions.UnknownEntityException;
 
 public class SyntaxTreeUtils {
 
@@ -37,7 +37,7 @@ public class SyntaxTreeUtils {
 	/**
 	 * 计算局部变量使用 var 的变量类型[Java]
 	 */
-	public static Entity getVarAttrType(JavaCodeAnalyzer.a javaCodeAnalyzer$a, int varNode) throws e4 {
+	public static Entity getVarAttrType(JavaCodeAnalyzer.a javaCodeAnalyzer$a, int varNode) throws UnknownEntityException {
 		SyntaxTree syntaxTree = JavaCodeAnalyzer.a.er(javaCodeAnalyzer$a);
 		// 不是var
 		if (!syntaxTree.isIdentifierNode(varNode)) {
@@ -72,7 +72,7 @@ public class SyntaxTreeUtils {
 			SyntaxTreeUtils.addSemanticError(syntaxTree, errorNode, errorMsg);
 
 			// UnknownEntityException
-			throw new abcd.e4();
+			throw new UnknownEntityException();
 		}
 
 		if (SyntaxTreeUtils.isVariableDeclaration(syntaxTree, varRootNode)) {
@@ -126,7 +126,7 @@ public class SyntaxTreeUtils {
 			SyntaxTreeUtils.addError(syntaxTree, errorNode, errorMsg);
 
 			// UnknownEntityException
-			throw new abcd.e4();
+			throw new UnknownEntityException();
 		}
 
 		// foreach语句
@@ -172,7 +172,7 @@ public class SyntaxTreeUtils {
 							Model model = syntaxTree.getModel();
 							EntitySpace entitySpace = model.entitySpace;
 							Namespace zh = entitySpace.zh("java", "lang");
-							return zh.sG(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(javaCodeAnalyzer$a).lg());
+							return zh.accessMemberClassType(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(javaCodeAnalyzer$a).lg());
 
 						} else if (absoluteArgumentTypes.length == 1) {
 							expressionNodeType = absoluteArgumentTypes[0];
@@ -180,7 +180,7 @@ public class SyntaxTreeUtils {
 							int errorNode = expressionNode;
 							ErrorTable errorTable = syntaxTree.getModel().errorTable;
 							// addSemanticError
-							errorTable.Mr(syntaxTree.getFile(), 
+							errorTable.addSemanticError(syntaxTree.getFile(), 
 										  syntaxTree.getLanguage(), 
 										  syntaxTree.getStartLine(errorNode), 
 										  syntaxTree.getStartColumn(errorNode), 
@@ -188,7 +188,7 @@ public class SyntaxTreeUtils {
 										  syntaxTree.getEndColumn(errorNode), 
 										  "具有多个泛型类型 </C>" + syntaxTree.getIdentifierString(errorNode) + "<//C>", 20);
 							// UnknownEntityException
-							throw new abcd.e4();
+							throw new UnknownEntityException();
 						}
 					} else if (expressionNodeType.isClassType()) {
 						// 提前处理 ANONYMOUS_CLASS_CREATION了
@@ -197,7 +197,7 @@ public class SyntaxTreeUtils {
 						 expressionNodeType = classType.getSuperType();
 						 }*/
 						SetOf allSuperTypes = ((ClassType) expressionNodeType).getAllSuperTypes();
-						SetOf.Iterator default_Iterator = allSuperTypes.DEFAULT_ITERATOR;
+						SetOf.Iterator default_Iterator = allSuperTypes.default_Iterator;
 						default_Iterator.init();
 						JavaTypeSystem javaTypeSystem = JavaCodeAnalyzer.a.yS(javaCodeAnalyzer$a);
 						while (default_Iterator.hasMoreElements()) {
@@ -211,7 +211,7 @@ public class SyntaxTreeUtils {
 										Model model = syntaxTree.getModel();
 										EntitySpace entitySpace = model.entitySpace;
 										Namespace zh = entitySpace.zh("java", "lang");
-										expressionNodeType = zh.sG(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(javaCodeAnalyzer$a).lg());
+										expressionNodeType = zh.accessMemberClassType(syntaxTree.getFile(), syntaxTree.getLanguage(), model.identifierSpace.get("Object"), true, 0, JavaCodeAnalyzer.a.Mr(javaCodeAnalyzer$a).lg());
 									}
 									break;
 								}
@@ -227,7 +227,7 @@ public class SyntaxTreeUtils {
 						String errorMsg = "Unknown entity </C>" + expressionNodeType.getFullyQualifiedNameString() + "<//C>";
 						SyntaxTreeUtils.addSemanticError(syntaxTree, errorNode, errorMsg);
 						// UnknownEntityException
-						throw new abcd.e4();
+						throw new UnknownEntityException();
 
 					}
 
@@ -258,14 +258,14 @@ public class SyntaxTreeUtils {
 		System.out.println("未知表达式: ");
 		SyntaxTreeUtils.printNode(syntaxTree, varRootNode);
 
-		throw new abcd.e4();
+		throw new UnknownEntityException();
 	}
 
 	public static void addSemanticError(SyntaxTree syntaxTree, int errorNode, String errorMsg) {
 		
 		ErrorTable errorTable = syntaxTree.getModel().errorTable;
 		// addSemanticError
-		errorTable.Mr(syntaxTree.getFile(), 
+		errorTable.addSemanticError(syntaxTree.getFile(), 
 					  syntaxTree.getLanguage(), 
 					  syntaxTree.getStartLine(errorNode), 
 					  syntaxTree.getStartColumn(errorNode), 
@@ -358,7 +358,7 @@ public class SyntaxTreeUtils {
 		// syntaxTree.sh(node)[getDeclareAttrReferenceKind] declareAttrReferenceKind
 		try {
 			if (syntaxTree.isIdentifierNode(node)) {
-				int attrReferenceKind = syntaxTree.sh(node);
+				int attrReferenceKind = syntaxTree.getAttrReferenceKind(node);
 				if (attrReferenceKind != 0) {
 					System.out.printf(" [attrReferenceKind: %s]", attrReferenceKind);
 				}

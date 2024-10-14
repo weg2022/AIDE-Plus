@@ -3,18 +3,20 @@
 //
 package com.aide.ui.build.android;
 
-import abcd.cy;
-import abcd.dy;
-import abcd.ey;
-import abcd.fy;
-import abcd.gy;
-import abcd.iy;
+import abcd.th;
 import abcd.wf;
 import abcd.xf;
 import android.os.Build;
 import com.aide.common.AppLog;
 import com.aide.common.StreamUtilities;
+import com.aide.ui.build.android.a$b;
 import com.aide.ui.util.FileSystem;
+import com.google.android.gms.internal.ads.iy;
+import com.probelytics.annotation.ExceptionEnabled;
+import com.probelytics.annotation.FieldMark;
+import com.probelytics.annotation.MethodMark;
+import com.probelytics.annotation.ParametersEnabled;
+import com.probelytics.annotation.TypeMark;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,46 +29,42 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@cy(clazz = -1010823170957869711L, container = -1010823170957869711L, user = true)
+@TypeMark(clazz = -1010823170957869711L, container = -1010823170957869711L, user = true)
 class a$b {
 
-    @fy
+    @ParametersEnabled
     private static boolean VH;
 
-    @gy
+    @ExceptionEnabled
     private static boolean gn;
 
-    @dy(field = -1571365023117879528L)
+    @FieldMark(field = -1571365023117879528L)
     private final String DW;
 
-    @dy(field = 6993245178019010064L)
+    @FieldMark(field = 6993245178019010064L)
     private final String FH;
 
-    @dy(field = 6883242355877066451L)
+    @FieldMark(field = 6883242355877066451L)
     private final Map<String, List<String>> Hw;
 
-    @dy(field = 3367034270560319580L)
+    @FieldMark(field = 3367034270560319580L)
     private final boolean Zo;
 
-    @dy(field = -3295612150393503995L)
+    @FieldMark(field = -3295612150393503995L)
     private final String j6;
 
-    @dy(field = -590303393023326637L)
+    @FieldMark(field = -590303393023326637L)
     private final List<String> v5;
-
-    static {
-        iy.Zo(a$b.class);
-    }@ey(method = -1082841311919215507L)
+	
+	
+	@MethodMark(method = -1082841311919215507L)
     static String DW(a$b a_b) {
         return a_b.j6;
     }
 
-    @ey(method = -7172434805806024095L)
+    @MethodMark(method = -7172434805806024095L)
     public a$b(a aVar, String str, String str2, String str3, Map<String, List<String>> map, List<String> list, boolean z) {
         try {
-            if (VH) {
-                iy.QX(3214648395559082475L, (Object) null, new Object[]{aVar, str, str2, str3, map, list, new Boolean(z)});
-            }
             this.j6 = str2;
             this.DW = str;
             this.FH = str3;
@@ -74,20 +72,14 @@ class a$b {
             this.v5 = list;
             this.Zo = z;
         } catch (Throwable th) {
-            if (gn) {
-                iy.rN(th, 3214648395559082475L, (Object) null, new Object[]{aVar, str, str2, str3, map, list, new Boolean(z)});
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = 227909245881707665L)
+    @MethodMark(method = 227909245881707665L)
     private boolean FH(String str, String str2, File file) {
         try {
-            if (VH) {
-                iy.we(-3458551520156971000L, this, str, str2, file);
-            }
             if (this.Zo) {
                 return true;
             }
@@ -97,23 +89,17 @@ class a$b {
             }
             return true;
         } catch (Throwable th) {
-            if (gn) {
-                iy.U2(th, -3458551520156971000L, this, str, str2, file);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = 3007469703513941775L)
+    @MethodMark(method = 3007469703513941775L)
     private String Hw(byte[] bArr, int i) {
         try {
-            if (VH) {
-                iy.EQ(-243216308866317500L, this, bArr, new Integer(i));
-            }
             String str = "";
             try {
-                str = StreamUtilities.FH(new InputStreamReader(new ByteArrayInputStream(bArr)));
+                str = StreamUtilities.readTextReader(new InputStreamReader(new ByteArrayInputStream(bArr)));
             } catch (Exception unused) {
             }
             String trim = str.trim();
@@ -122,21 +108,16 @@ class a$b {
             }
             return "aidl exited with code " + i;
         } catch (Throwable th) {
-            if (gn) {
-                iy.Mr(th, -243216308866317500L, this, bArr, new Integer(i));
-            }
+            
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = 6318680938885244092L)
+    @MethodMark(method = 6318680938885244092L)
     private String VH(String str, List<String> list, String str2, File file) {
         String u7;
         try {
-            if (VH) {
-                iy.J0(3137138981857114929L, this, str, list, str2, file);
-            }
             File[] listFiles = file.listFiles();
             if (listFiles == null) {
                 return null;
@@ -158,20 +139,14 @@ class a$b {
             }
             return null;
         } catch (Throwable th) {
-            if (gn) {
-                iy.a8(th, 3137138981857114929L, this, str, list, str2, file);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = -2659660403972098180L)
+    @MethodMark(method = -2659660403972098180L)
     private void Zo(List<String> list) {
         try {
-            if (VH) {
-                iy.tp(667480604707229169L, this, list);
-            }
             StringBuilder sb = new StringBuilder();
             sb.append("Running aidl ");
             for (int i = 1; i < list.size(); i++) {
@@ -182,23 +157,17 @@ class a$b {
                     sb.append(" ");
                 }
             }
-            AppLog.DW(sb.toString());
+            AppLog.d(sb.toString());
         } catch (Throwable th) {
-            if (gn) {
-                iy.j3(th, 667480604707229169L, this, list);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = -653427425690642280L)
+    @MethodMark(method = -653427425690642280L)
     private void j6() {
         wf j6 = null;
         try {
-            if (VH) {
-                iy.gn(-4342550339235996755L, this);
-            }
             if (!Thread.interrupted()) {
                 if (Build.VERSION.SDK_INT < 29 && !a.Zo()) {
                     try {
@@ -219,20 +188,14 @@ class a$b {
             }
             throw new InterruptedException();
         } catch (Throwable th) {
-            if (gn) {
-                iy.aM(th, -4342550339235996755L, this);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = -1068951146983634135L)
+    @MethodMark(method = -1068951146983634135L)
     private String u7(String str, List<String> list, String str2, String str3) {
         try {
-            if (VH) {
-                iy.J0(852721122439843020L, this, str, list, str2, str3);
-            }
             ArrayList arrayList = new ArrayList();
             arrayList.add(this.DW);
             arrayList.add("-p" + this.FH);
@@ -252,7 +215,7 @@ class a$b {
             wf j6 = xf.j6(arrayList, (String) null, (Map) null, true, (OutputStream) null, (byte[]) null);
             if (j6.DW() != 0) {
                 if (j6.DW() == 11) {
-                    AppLog.DW("aidl exited with code 11");
+                    AppLog.d("aidl exited with code 11");
                 } else {
                     return Hw(j6.j6(), j6.DW());
                 }
@@ -268,23 +231,17 @@ class a$b {
             if (!FH(str2, str3, new File(str))) {
                 return null;
             }
-            FileSystem.aj(v5);
+            FileSystem.ensureUpdatedFileLastModified(v5);
             return null;
         } catch (Throwable th) {
-            if (gn) {
-                iy.a8(th, 852721122439843020L, this, str, list, str2, str3);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = 4750742892298729216L)
+    @MethodMark(method = 4750742892298729216L)
     private String v5(String str, String str2, String str3) {
         try {
-            if (VH) {
-                iy.we(2599628142088396647L, this, str, str2, str3);
-            }
             if (!str2.endsWith(File.separator)) {
                 str2 = str2 + File.separator;
             }
@@ -293,20 +250,14 @@ class a$b {
             }
             throw new IllegalArgumentException();
         } catch (Throwable th) {
-            if (gn) {
-                iy.U2(th, 2599628142088396647L, this, str, str2, str3);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }
     }
 
-    @ey(method = 1969741082957069825L)
+    @MethodMark(method = 1969741082957069825L)
     public String gn() {
         try {
-            if (VH) {
-                iy.gn(1744742762930795880L, this);
-            }
             for (String str : this.Hw.keySet()) {
                 if (!new File(str).exists()) {
                     new File(str).mkdirs();
@@ -348,9 +299,6 @@ class a$b {
             }
             return null;
         } catch (Throwable th) {
-            if (gn) {
-                iy.aM(th, 1744742762930795880L, this);
-            }
             if( th instanceof Error) throw (Error) th;
             throw new Error(th);
         }

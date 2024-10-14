@@ -15,7 +15,6 @@ import java.util.Map;
 import com.aide.common.ValueRunnable;
 import com.aide.engine.EngineSolution;
 import com.aide.ui.services.TemplateService.TemplateGroup;
-import com.aide.ui.trainer.c.c;
 import com.aide.ui.services.TemplateService;
 import com.aide.ui.util.ClassPath;
 import com.aide.ui.ServiceContainer;
@@ -63,7 +62,7 @@ public class EclipseJavaProjectSupport implements ProjectSupport {
 	}
 
 	@Override
-	public List<com.aide.ui.trainer.c.c> XL() {
+	public List<com.aide.ui.trainer.Course.File> XL() {
 		// TODO: Implement this method
 		return null;
 	}
@@ -345,7 +344,7 @@ public class EclipseJavaProjectSupport implements ProjectSupport {
 			List<ClassPath.Entry> classPathEntries = configureFile.Zo;
 			for (ClassPath.Entry entry : classPathEntries) {
 				if (entry.isLibKind()) {
-					list.add(entry.VH(path));
+					list.add(entry.resolveFilePath(path));
 				}
 			}
 		} catch (Exception e) {
@@ -443,7 +442,7 @@ public class EclipseJavaProjectSupport implements ProjectSupport {
 	private SolutionProject createAppProject(String rootPath, List<ClassPathEntry> entries) {
 		String debugPath = getBuildPath(rootPath, "debug") + "/classes";
 		String releasePath = getBuildPath(rootPath, "release") + "/classes";
-		boolean isDebug = getProjectService().getBuildVariant().equals("debug");
+		boolean isDebug = getProjectService().getFlavor().equals("debug");
 
 		var files = new ArrayList<SolutionFile>();
 		var list = new ArrayList<String>();

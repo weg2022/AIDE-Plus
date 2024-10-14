@@ -20,14 +20,14 @@ public class KotlinCodeModel implements CodeModel {
     private final KotlinLanguage myLanguage;
     private final Highlighter myHighlighter;
 	
-	private KotlinCodeCompiler kotlinCodeCompiler;
+	private KotlinCodeCompiler KotlinCodeCompiler;
     public KotlinCodeModel(Model model) {
         this.model = model;
         myLanguage = new KotlinLanguage(this);
         myHighlighter = new Highlighter(kotlinLexer);
 		
 		if( model != null ){
-			kotlinCodeCompiler = new KotlinCodeCompiler(model, myLanguage);
+			KotlinCodeCompiler = new KotlinCodeCompiler(model, myLanguage);
 		}
     }
     @Override
@@ -95,7 +95,7 @@ public class KotlinCodeModel implements CodeModel {
         if (map.containsKey(myLanguage)) {
             SyntaxTree syntaxTree = map.get(myLanguage);
             if (syntaxTree != null)
-				syntaxTree.U2(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
+				syntaxTree.declareContent(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
 			    //sa.DW(sa.j6(0, true, new int[0], 0, 0, 1, 1));
         }
     }
@@ -111,8 +111,8 @@ public class KotlinCodeModel implements CodeModel {
     }
 
 	@Override
-    public com.aide.codemodel.api.abstraction.Compiler getCompiler() {
-        return this.kotlinCodeCompiler;
+    public com.aide.codemodel.api.abstraction.CodeCompiler getCodeCompiler() {
+        return this.KotlinCodeCompiler;
     }
 
     @Override

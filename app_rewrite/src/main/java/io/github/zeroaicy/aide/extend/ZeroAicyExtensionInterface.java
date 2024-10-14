@@ -4,7 +4,6 @@
 package io.github.zeroaicy.aide.extend;
 
 
-import abcd.e4;
 import android.app.Activity;
 import android.os.Parcel;
 import android.text.TextUtils;
@@ -57,6 +56,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import com.aide.engine.service.CodeAnalysisEngineService;
 import io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService;
+import com.aide.codemodel.api.excpetions.UnknownEntityException;
+import com.aide.ui.services.TrainerService;
 
 /**
  * 1.aapt2
@@ -298,7 +299,7 @@ public class ZeroAicyExtensionInterface{
 	 * 尝试支持 var [Java]
 	 */
 	@Keep
-	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws e4{
+	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws UnknownEntityException{
 		return SyntaxTreeUtils.getVarAttrType(JavaCodeAnalyzer$a, varNode);
 	}
 
@@ -345,7 +346,7 @@ public class ZeroAicyExtensionInterface{
 	@Keep
 	public static boolean isInterfaceAbstractMethod(EntitySpace entitySpace, SyntaxTree syntaxTree, int nodeIndex){
 		// code 分析器 
-		Member method = entitySpace.jw(syntaxTree.getFile(), syntaxTree.getLanguage(), syntaxTree.getDeclarationNumber(nodeIndex));
+		Member method = entitySpace.getMember(syntaxTree.getFile(), syntaxTree.getLanguage(), syntaxTree.getDeclarationNumber(nodeIndex));
 		// 此方法没有 abstract
 		return method != null && method.isAbstract();
 	}
@@ -359,10 +360,10 @@ public class ZeroAicyExtensionInterface{
 		if ( ZeroAicySetting.isEnableAdjustApkBuildPath() ){
 			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 			if ( currentAppHome != null ){
-				return GradleTools.Hw(currentAppHome) + "/" + FileSystem.getName(projectPath) + ".apk";
+				return GradleTools.getBinPath(currentAppHome) + "/" + FileSystem.getName(projectPath) + ".apk";
 			}
 		}
-		return FileSystem.aM() + "/apk/" + FileSystem.getName(projectPath) + ".apk";
+		return FileSystem.getSafeCacheDirPath() + "/apk/" + FileSystem.getName(projectPath) + ".apk";
 	}
 	/**
 	 * 返回入口Activity类
@@ -451,7 +452,7 @@ public class ZeroAicyExtensionInterface{
 	 * 优化冷启动
 	 */
 	@Keep
-	public static abcd.mf getTrainerService(){
+	public static TrainerService getTrainerService(){
 		return ZeroAicyTrainerService.getSingleton();
 	}
 
@@ -470,7 +471,7 @@ public class ZeroAicyExtensionInterface{
 		}
 
 		// 渠道包
-		String buildVariant = ServiceContainer.getProjectService().getBuildVariant();
+		String buildVariant = ServiceContainer.getProjectService().getFlavor();
 
 		//Log.d("getFlavorDependencies", "buildVariant", buildVariant);
 		if ( TextUtils.isEmpty(buildVariant) ){
@@ -504,7 +505,7 @@ public class ZeroAicyExtensionInterface{
 	 * 修复更新弹窗
 	 */
 	public static String repairWhatsNewDialog(String appId){
-		if( ServiceContainer.P8.equals(appId)){
+		if( ServiceContainer.appId.equals(appId)){
 			return ContextUtil.getPackageName();
 		}
 		return appId;

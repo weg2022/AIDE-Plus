@@ -31,7 +31,7 @@ import static javax.tools.StandardLocation.PLATFORM_CLASS_PATH;
 /**
  * javax tools
  */
-public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.Compiler {
+public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.CodeCompiler {
 
 	private Language language;
 	private final Model model;
@@ -72,19 +72,19 @@ public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.C
         boolean addedClassPaths = true;
 
 		// contains -> Hw
-        int assembly = fileEntry.gn();
-		if (caches.Hw(assembly)) {
+        int assembly = fileEntry.getAssembly();
+		if (caches.contains(assembly)) {
 			// get -> v5
-            platformClassPaths.addAll(myPlatformClassPaths.v5(assembly));
-            classPaths.addAll(myClassPaths.v5(assembly));
+            platformClassPaths.addAll(myPlatformClassPaths.get(assembly));
+            classPaths.addAll(myClassPaths.get(assembly));
             addedClassPaths = false;
         }
 
         if (addedClassPaths) {
 			SetOfFileEntry files = model.fileSpace.getSolutionFiles();
-            files.j6.init();
-            while (files.j6.hasMoreElements()) {
-				FileEntry file = files.j6.nextKey();
+            files.default_Iterator.init();
+            while (files.default_Iterator.hasMoreElements()) {
+				FileEntry file = files.default_Iterator.nextKey();
                 if (file.isArchiveEntry()) {
                     file = file.getParentArchive();
                 }
@@ -93,7 +93,7 @@ public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.C
 				// getAssembly -> gn
 				String fileName = file.getFullNameString();
 
-                if (assembly == file.gn() 
+                if (assembly == file.getAssembly() 
 					|| model.fileSpace.isReferableFrom(model.fileSpace.getFileEntry(assembly), file)) {
 
                     if (fileName.equals("android.jar") ||
@@ -120,11 +120,11 @@ public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.C
 
 		// getCheckedSolutionFiles -> KD
 		SetOfFileEntry files = model.fileSpace.KD();
-        files.j6.init();
-        while (files.j6.hasMoreElements()) {
-			FileEntry file = files.j6.nextKey();
+        files.default_Iterator.init();
+        while (files.default_Iterator.hasMoreElements()) {
+			FileEntry file = files.default_Iterator.nextKey();
             // getAssembly -> gn
-			if (assembly == file.gn() || model.fileSpace.isReferableFrom(model.fileSpace.getFileEntry(assembly), file)) {
+			if (assembly == file.getAssembly() || model.fileSpace.isReferableFrom(model.fileSpace.getFileEntry(assembly), file)) {
                 if (file.getFullNameString().endsWith(".java")) {
 					File rawFile = new File(file.getPathString());
 					if (!sourcePaths.contains(rawFile)) {
@@ -139,17 +139,17 @@ public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.C
             caches.put(assembly, 0);
 
 			// put -> VH
-            myPlatformClassPaths.VH(assembly, platformClassPaths);
-            myClassPaths.VH(assembly, classPaths);
+            myPlatformClassPaths.put(assembly, platformClassPaths);
+            myClassPaths.put(assembly, classPaths);
         }
     }
 
     public void compile() throws Exception {
 //        
 //		var assembles = myModel.fileSpace.getAssembles();
-//        assembles.DEFAULT_ITERATOR.init();
-//        while (assembles.DEFAULT_ITERATOR.hasMoreElements()) {
-//            compileAssembly(assembles.DEFAULT_ITERATOR.nextKey());
+//        assembles.default_Iterator.init();
+//        while (assembles.default_Iterator.hasMoreElements()) {
+//            compileAssembly(assembles.default_Iterator.nextKey());
 //        }
 
     }

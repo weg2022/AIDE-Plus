@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.io.File;
 //import io.github.aide.kotlin.KotlinK2JVMCompile;
 
-public class KotlinCodeCompiler implements com.aide.codemodel.api.abstraction.Compiler {
+public class KotlinCodeCompiler implements com.aide.codemodel.api.abstraction.CodeCompiler {
 
 	@Override
 	public void init(CodeModel codeModel) {}

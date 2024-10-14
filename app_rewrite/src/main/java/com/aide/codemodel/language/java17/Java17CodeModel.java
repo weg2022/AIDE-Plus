@@ -6,7 +6,7 @@ import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.SyntaxTreeStyles;
 import com.aide.codemodel.api.abstraction.CodeModel;
-import com.aide.codemodel.api.abstraction.Compiler;
+import com.aide.codemodel.api.abstraction.CodeCompiler;
 import com.aide.codemodel.api.abstraction.Debugger;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Preprocessor;
@@ -33,7 +33,7 @@ public class Java17CodeModel implements CodeModel {
 	Java17Language java17Language;
 	List<Language> java17Languages = new ArrayList<>();
 	
-	Java17Compiler java17Compiler;
+	Java17Compiler Java17Compiler;
 	
 	public Java17CodeModel(Model model) {
 		this.model = model;
@@ -44,13 +44,13 @@ public class Java17CodeModel implements CodeModel {
 			this.disable = false;
 			this.java17Language = new Java17Language(this.model);
 			this.java17Languages.add(this.java17Language);
-			this.java17Compiler = new Java17Compiler(this.model);
+			this.Java17Compiler = new Java17Compiler(this.model);
 			
 			this.fileSpace = this.model.fileSpace;
 			this.solutionFiles = this.fileSpace.getSolutionFiles();
 			
 			// get()
-			FileEntry fristFile = solutionFiles.Zo();
+			FileEntry fristFile = solutionFiles.get();
 			this.targetVersion = fileSpace.getTargetVersion(fristFile);
 			
 		}
@@ -68,8 +68,8 @@ public class Java17CodeModel implements CodeModel {
 
 	}
 	@Override
-	public Compiler getCompiler() {
-		return this.java17Compiler;
+	public CodeCompiler getCodeCompiler() {
+		return this.Java17Compiler;
 	}
 
 	@Override

@@ -287,7 +287,7 @@ public class ScopeTypeQuerier {
 		}
 
 		// 当前项目build.gradle路径
-		String curProjectBuildGradle = GradleTools.Zo(curProjectPath);
+		String curProjectBuildGradle = GradleTools.getBuildGradlePath(curProjectPath);
 
 		ZeroAicyBuildGradle childZeroAicyBuildGradle = singleton.getConfiguration(curProjectBuildGradle);
 		if ( childZeroAicyBuildGradle == null ) {

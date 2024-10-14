@@ -193,9 +193,7 @@ public class Aapt2TaskFromZeroAicy {
 					String error = aaptServiceArgs.getAapt2Error(j62);
 					aaptServiceArgs.aaptLog.println("aapt2 错误: -> " + error);
 
-					// if (error != null) {
 					return new AaptService$ErrorResult(error);
-					//}
 				}
 
 			}
@@ -426,6 +424,7 @@ public class Aapt2TaskFromZeroAicy {
 		}
 		// link没出错，启用构建服务
 		AndroidProjectBuildServiceKt.setDisablePackaging(false);
+		
 		return null;
 	}
 

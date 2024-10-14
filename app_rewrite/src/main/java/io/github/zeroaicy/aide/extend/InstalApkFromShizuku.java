@@ -33,7 +33,7 @@ public class InstalApkFromShizuku implements Runnable {
 					if (TextUtils.isEmpty(instalApkError)) {
 						//成功安装，启动应用
 						String gW = ServiceContainer.getProjectService().getCurrentAppHome();
-						String packageName = AndroidProjectSupport.getProjectPackageName(gW, ServiceContainer.getProjectService().getBuildVariant());
+						String packageName = AndroidProjectSupport.getProjectPackageName(gW, ServiceContainer.getProjectService().getFlavor());
 						PackageManager packageManager = context.getPackageManager();
 						Intent launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName);
 

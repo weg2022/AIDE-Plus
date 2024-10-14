@@ -13,18 +13,18 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ZeroAicyTrainerService extends abcd.mf {
-	static abcd.mf mTrainerService;
-	public static abcd.mf getSingleton() {
+public class ZeroAicyTrainerService extends TrainerService {
+	static TrainerService mTrainerService;
+	public static TrainerService getSingleton() {
 		if (mTrainerService == null) {
 			// 异步总是有问题
-			mTrainerService = //new abcd.mf();
+			mTrainerService = //new TrainerService();
 				new ZeroAicyTrainerService();
 		}
 		return mTrainerService;
 	}
 
-	public class cZeroAicy extends com.aide.ui.trainer.c {
+	public class cZeroAicy extends com.aide.ui.trainer.Course {
 		private AtomicBoolean inited = new AtomicBoolean(false);
 		private final Lock lock = new ReentrantLock();
 		private final Condition condition = lock.newCondition();
@@ -35,7 +35,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 			super(false);
 			// 使用父构造器的实现
 			// 并发
-			this.j6 = new Vector<com.aide.ui.trainer.c.b>();
+			this.j6 = new Vector<com.aide.ui.trainer.Course.XmlInfo>();
 			// 异步初始化
 			executorsService.submit(new Runnable(){
 					@Override
@@ -48,7 +48,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 		// 阻塞点
 		// this.EQ = this.tp.P8(this.j6.getCurrentLessonId());
 		@Override
-		public com.aide.ui.trainer.c.b P8(String string) {
+		public com.aide.ui.trainer.Course.XmlInfo P8(String string) {
 			// 没准备好就阻塞[实在没办法了]
 			// 不过卡顿检测并没有检测到耗时
 			if (!inited.get()) {
@@ -88,14 +88,14 @@ public class ZeroAicyTrainerService extends abcd.mf {
 			synchronized (this.j6) {
 				int index = 0;
 				for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
-					List<com.aide.ui.trainer.c.c> XL = projectSupport.XL();
-					if (XL == null) {
+					List<com.aide.ui.trainer.Course.File> trainerCourses = projectSupport.getTrainerCourses();
+					if (trainerCourses == null) {
 						continue;
 					}
-					for (com.aide.ui.trainer.c.c cVar : XL) {
+					for (com.aide.ui.trainer.Course.File cVar : trainerCourses) {
 						index = index + 1;
 						try {
-							com.aide.ui.trainer.c.b vy = vy(cVar.j6, index, cVar);
+							com.aide.ui.trainer.Course.XmlInfo vy = parseCourseXmlFile(cVar.fileName, index, cVar);
 							if (vy.j3()) {
 								this.j6.add(vy);
 							}
@@ -106,7 +106,7 @@ public class ZeroAicyTrainerService extends abcd.mf {
 					}
 
 				}
-				Collections.sort(this.j6, new com.aide.ui.trainer.c.a());
+				Collections.sort(this.j6, new com.aide.ui.trainer.Course.a());
 			}
 			// 采用回调方式调用
 			J0();
@@ -127,20 +127,19 @@ public class ZeroAicyTrainerService extends abcd.mf {
 	public void hz() {
 		mainHandler.postDelayed(new a(), 1000L);
 	}
-
 	@Override
-	public void sG() {
-		this.j6 = new TrainerState();
-		// 替换 com.aide.ui.trainer.c tp 的实现
+	public void init() {
+		this.trainerState = new TrainerState();
+		// 替换 com.aide.ui.trainer.Course tp 的实现
 		this.tp = new cZeroAicy();
 	}
 
 	protected void J0() {
-		String EQ = this.tp.EQ(this.j6.getCurrentLessonId());
-		if (EQ.equals(this.j6.getCurrentLessonId())) {
+		String EQ = this.tp.EQ(this.trainerState.getCurrentLessonId());
+		if (EQ.equals(this.trainerState.getCurrentLessonId())) {
 			return;
 		}
-		this.j6.startLesson(EQ);
+		this.trainerState.startLesson(EQ);
 	}
 
 	// Labcd/gb;[教程]::isVisible

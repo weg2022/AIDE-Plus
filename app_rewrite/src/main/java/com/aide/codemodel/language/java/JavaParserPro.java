@@ -28,6 +28,7 @@ public class JavaParserPro extends JavaParser {
 		super(identifierSpace, errorTable, entitySpace, javaSyntax, p4);
 
 	}
+	
 
 	/*
 	 * 参数类型可以省略，如果需要省略，每个参数的类型都要省略。
@@ -77,15 +78,15 @@ public class JavaParserPro extends JavaParser {
 
 		// u7: currentSyntaxTag we: syntaxTags tp: currentOffset
 
-		int lastNodeOffset = this.j3;
+		int lastNodeOffset = this.currentNodeOffset;
 		try {
 			// PARAMETERS
 			try {
 				System.out.println("解析参数 : " + analyzeParens);
-				System.out.println("开始时 tag: " + this.u7);
+				System.out.println("开始时 tag: " + this.currentSyntaxTag);
 				parserLambdaParameters(analyzeParens);
 
-				System.out.println("结束时tag: " + this.u7);
+				System.out.println("结束时tag: " + this.currentSyntaxTag);
 
 			}
 			catch (Throwable e) {
@@ -94,22 +95,22 @@ public class JavaParserPro extends JavaParser {
 
 			// ARROW: -> 
 
-			if (this.u7 == /* - */ 27) {
-				we(); // -
+			if (this.currentSyntaxTag == /* - */ 27) {
+				declareNodeFormCurrentSyntaxTag(); // -
 			} else {
 				call("g3");
-				J0(27); // -
+				accept(27); // -
 				throw new Parser.a();
 			}
-			if (this.u7 == /* > */ 48) {
-				we(); // >
+			if (this.currentSyntaxTag == /* > */ 48) {
+				declareNodeFormCurrentSyntaxTag(); // >
 			} else {
 				call("g3");
-				J0(48); // >
+				accept(48); // >
 				throw new Parser.a();
 			}
 
-			if (this.u7 == 8) {
+			if (this.currentSyntaxTag == 8) {
 				//解析body
 				// LBRACE : {
 				// lambdaStatement
@@ -120,17 +121,17 @@ public class JavaParserPro extends JavaParser {
 				call("Qq"); // 解析右侧表达式
 			}
 
-			QX(247, 4);
+			declareParentNode(247, 4);
 
 			System.out.println("打印 LAMBDA_EXPRESSION");
-			SyntaxTreeUtils.printNode(this.gn, this.aM[j3]);
+			SyntaxTreeUtils.printNode(this.syntaxTree, this.nodes[this.currentNodeOffset]);
 
 			return true;
 		}
 		catch (Throwable e) {
 			call("g3");
 			// currentNodeOffset
-			this.j3 = lastNodeOffset;
+			this.currentNodeOffset = lastNodeOffset;
 			throw new Parser.a();
 		}				
 
@@ -142,56 +143,56 @@ public class JavaParserPro extends JavaParser {
 			that.call("WB");
 
 		} else if (analyzeParens == ONLY_IMPLICIT_LAMBDA) {
-			we(); // IDENTIFIER
-			QX(191, 1); // PARAMETER
-			QX(190, 1); // PARAMETERS
+			declareNodeFormCurrentSyntaxTag(); // IDENTIFIER
+			declareParentNode(191, 1); // PARAMETER
+			declareParentNode(190, 1); // PARAMETERS
 		} else {
 			// 就必须自己实现了
 			int childCount = 1;
-			we(); // (
+			declareNodeFormCurrentSyntaxTag(); // (
 
 			// 解析PARAMETER 特殊的PARAMETER 仅有 IDENTIFIER
-			while (this.u7 == /* IDENTIFIER */ 1) {
-				we(); // IDENTIFIER
-				QX(191, 1); // PARAMETER
+			while (this.currentSyntaxTag == /* IDENTIFIER */ 1) {
+				declareNodeFormCurrentSyntaxTag(); // IDENTIFIER
+				declareParentNode(191, 1); // PARAMETER
 				childCount++;
 
 				// 处理 ,
-				if (this.u7 == /* , */ 15) {
-					we();
+				if (this.currentSyntaxTag == /* , */ 15) {
+					declareNodeFormCurrentSyntaxTag();
 					childCount++;
-				} else if (this.u7 == /* ) */ 13) {
+				} else if (this.currentSyntaxTag == /* ) */ 13) {
 					// ) 结束
-					we(); // )
+					declareNodeFormCurrentSyntaxTag(); // )
 					childCount++;	
 					break;
 				} else {
 					// 缺少 )
-					J0(13); // )
+					accept(13); // )
 					break;
 				}
 			}
 
 
-			QX(190, childCount); // PARAMETERS
+			declareParentNode(190, childCount); // PARAMETERS
 
 		}
 	}
 
 	public boolean peekToken(int index, int tag) {
-		return index + 1 < this.we.length
-			&& this.we[index + 1] == tag;
+		return index + 1 < this.syntaxTags.length
+			&& this.syntaxTags[index + 1] == tag;
 	}
 
 	public boolean peekToken(int index, int tag1, int tag2) {
-		return index + 2 < this.we.length
-			&& this.we[index + 1] == tag1
-			&& this.we[index + 2] == tag2;
+		return index + 2 < this.syntaxTags.length
+			&& this.syntaxTags[index + 1] == tag1
+			&& this.syntaxTags[index + 2] == tag2;
 	}
 	public boolean peekTokenOr(int index, int tag1, int tag2) {
-		return index + 2 < this.we.length
-			&& (this.we[index + 1] == tag1
-			|| this.we[index + 1] == tag2);
+		return index + 2 < this.syntaxTags.length
+			&& (this.syntaxTags[index + 1] == tag1
+			|| this.syntaxTags[index + 1] == tag2);
 	}
 
 	private int UN_LAMBDA = 0;
@@ -212,14 +213,14 @@ public class JavaParserPro extends JavaParser {
 
 		// 1
 
-		int syntaxTag = this.we[this.tp];
+		int syntaxTag = this.syntaxTags[this.currentOffset];
 
 		if (syntaxTag == /*IDENTIFIER*/ 1 
 			|| syntaxTag == /* assert */ 105 
 			|| syntaxTag == /* enum */107) {
 			// x ->
-			if (peekToken(this.tp , /* - */ 27)) {
-				if (peekToken(this.tp + 1,/* > */ 48)) {
+			if (peekToken(this.currentOffset , /* - */ 27)) {
+				if (peekToken(this.currentOffset + 1,/* > */ 48)) {
 					return ONLY_IMPLICIT_LAMBDA;
 				}
 				return UN_LAMBDA;
@@ -231,8 +232,8 @@ public class JavaParserPro extends JavaParser {
 		if (syntaxTag == /* ( */ 12) {
 			
 			// (int)
-			if (this.j6.isTypeIdentifier(syntaxTag) ) {
-				if (peekToken(this.tp, /* ) */ 13)) {
+			if (this.syntax.isTypeIdentifier(syntaxTag) ) {
+				if (peekToken(this.currentOffset, /* ) */ 13)) {
 					//'(', Type, ')' -> cast
 					
 					System.out.println("cast");
@@ -243,17 +244,17 @@ public class JavaParserPro extends JavaParser {
 			// ( 深度
 			int depth = 1;
 			
-			int lookahead = this.tp + 1;
+			int lookahead = this.currentOffset + 1;
 			// 显示
 			boolean isExplicit = false;
 
-			for (int size = this.we.length; depth > 0; lookahead++) {
+			for (int size = this.syntaxTags.length; depth > 0; lookahead++) {
 					if (lookahead >= size) {
 					// 一直没跳出说明 废了🐶
 					return UN_LAMBDA;
 				}
 				
-				syntaxTag = this.we[lookahead];
+				syntaxTag = this.syntaxTags[lookahead];
 				
 				if (syntaxTag == /* ( */ 12) {
 					depth++;
@@ -301,7 +302,7 @@ public class JavaParserPro extends JavaParser {
 					continue;
 				}
 				// isTypeIdentifier int Identifier
-				if (syntaxTag == 1 || this.j6.isTypeIdentifier(syntaxTag)) {
+				if (syntaxTag == 1 || this.syntax.isTypeIdentifier(syntaxTag)) {
 					// 
 					if (peekTokenOr(lookahead, /* IDENTIFIER */ 1,  /* enum */ 107)) {
 						//Type, Identifier/'_'/'assert'/'enum' -> explicit lambda
@@ -310,7 +311,7 @@ public class JavaParserPro extends JavaParser {
 					}
 				}
 			}
-			syntaxTag = this.we[lookahead];
+			syntaxTag = this.syntaxTags[lookahead];
 			// 检查 -> 
 			if (syntaxTag ==  /* - */ 27 && peekToken(lookahead, /* > */ 48)) {
 				if (isExplicit) {
@@ -326,8 +327,8 @@ public class JavaParserPro extends JavaParser {
 	}
 
 	@Override
-	public void v5(SyntaxTreeStyles syntaxTreeStyles, FileEntry fileEntry, boolean p, SyntaxTree syntaxTree) {
-		super.v5(syntaxTreeStyles, fileEntry, p, syntaxTree);
+	public void init(SyntaxTreeStyles syntaxTreeStyles, FileEntry fileEntry, boolean p, SyntaxTree syntaxTree) {
+		super.init(syntaxTreeStyles, fileEntry, p, syntaxTree);
 
 		SyntaxTreeUtils.printNode(syntaxTree, syntaxTree.getRootNode());
 	}
@@ -335,60 +336,60 @@ public class JavaParserPro extends JavaParser {
 
 	// accept
 	@Override
-	public void FH(int p) {
-		System.out.println("Missing " + this.j6.getString(p));
+	public void addMissingError(int p) {
+		System.out.println("Missing " + this.syntax.getString(p));
 		// Log.printlnStack(5, 18);
 
-		super.FH(p);
+		super.addMissingError(p);
 	}
 
 
 
 	@Override
-	public void we() {
-		//System.out.println("declareCurrentSyntaxTagNode " + this.j6.getString(this.u7));
-		super.we();
+	public void declareNodeFormCurrentSyntaxTag() {
+		//System.out.println("declareCurrentSyntaxTagNode " + this.syntax.getString(this.currentSyntaxTag));
+		super.declareNodeFormCurrentSyntaxTag();
 
 	}
 
 	/*************************[declareParentNode*****************************************/
 	/*
 	 @Override
-	 public void QX(int syntaxTag, int len) {
-	 System.out.println("declareParentNode " + this.j6.getString(syntaxTag) + " len: " + len);
+	 public void declareParentNode(int syntaxTag, int len) {
+	 System.out.println("declareParentNode " + this.syntax.getString(syntaxTag) + " len: " + len);
 	 // Log.printlnStack(5, 18);
 	 System.out.println();
-	 super.QX(syntaxTag, len);
+	 super.declareParentNode(syntaxTag, len);
 	 }//*/
 
 	@Override
-	public void j3(int syntaxTag, boolean synthetic, int len, int declarationNumber) {
-		System.out.println("declareParentNode1 " + this.j6.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len + " declarationNumber: " + declarationNumber);
+	public void declareParentNode(int syntaxTag, boolean synthetic, int len, int declarationNumber) {
+		System.out.println("declareParentNode1 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len + " declarationNumber: " + declarationNumber);
 		// Log.printlnStack(5, 18);
-		super.j3(syntaxTag, synthetic, len, declarationNumber);
+		super.declareParentNode(syntaxTag, synthetic, len, declarationNumber);
 	}
 
 
 	@Override
-	public void XL(int syntaxTag, int previousOffset, int len) {
-		System.out.println("declareParentNode2 " + this.j6.getString(syntaxTag) + " previousOffset: " + previousOffset + " len: " + len);
+	public void declareParentNode(int syntaxTag, int previousOffset, int len) {
+		System.out.println("declareParentNode2 " + this.syntax.getString(syntaxTag) + " previousOffset: " + previousOffset + " len: " + len);
 		// Log.printlnStack(5, 18);
 
-		super.XL(syntaxTag, previousOffset, len);
+		super.declareParentNode(syntaxTag, previousOffset, len);
 	}
 
 
 	@Override
-	public void aM(int syntaxTag, boolean synthetic, int len) {
-		System.out.println("declareParentNode3 " + this.j6.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len);
+	public void declareParentNode(int syntaxTag, boolean synthetic, int len) {
+		System.out.println("declareParentNode3 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len);
 		// Log.printlnStack(5, 18);
-		super.aM(syntaxTag, synthetic, len);
+		super.declareParentNode(syntaxTag, synthetic, len);
 	}
 	/*************************declareParentNode]*****************************************/
 
 
 	@Override
-	public void DW(String errorMsg) {
+	public void addParseError(String errorMsg) {
 		try {
 			String unexpectedDeclaration = "Unexpected end of declaration";
 			if (unexpectedDeclaration.equals(errorMsg)) {
@@ -402,7 +403,7 @@ public class JavaParserPro extends JavaParser {
 		catch (Throwable e) {
 
 		}
-		super.DW(errorMsg);
+		super.addParseError(errorMsg);
 	}
 
 }

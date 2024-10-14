@@ -1,6 +1,5 @@
 package com.aide.ui.build.android;
 
-import abcd.ey;
 import abcd.wf;
 import abcd.xf;
 import android.os.Build;
@@ -9,10 +8,10 @@ import com.aide.common.StreamUtilities;
 import com.aide.ui.build.android.AaptService;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.util.FileSystem;
+import com.probelytics.annotation.MethodMark;
 import io.github.zeroaicy.aide.aapt2.Aapt2Task;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.IOUtils;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Base64;
 
 public class AaptService$Task {
 	// res的依赖map key res_dir_path-> value res_dir_path_list
@@ -236,9 +234,9 @@ public class AaptService$Task {
 				&& !isChangerInputs(manifestPaths, inputInfoFile) 
 				&& u7(manifestPaths, Collections.singletonList(mainProjectMergedManifestFile)) ) {
 				// 省略合并
-				AppLog.DW("Omitting merge " + mainProjectMergedManifestPath);
+				AppLog.d("Omitting merge " + mainProjectMergedManifestPath);
 			} else {
-				AppLog.DW("Merging " + mainProjectMergedManifestPath);
+				AppLog.d("Merging " + mainProjectMergedManifestPath);
 				// 合并
 				String mergedInfo = com.aide.ui.build.android.l.j6(AaptService.getContext(this.aaptService), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
 				if ( mergedInfo != null ) {
@@ -305,7 +303,7 @@ public class AaptService$Task {
         return task.androidManifestMap;
     }
 
-    @ey(method = 2668790741732965889L)
+    @MethodMark(method = 2668790741732965889L)
     private void Hw( File file, String str, List<File> list ) {
         try {
             File[] listFiles = file.listFiles();
@@ -378,7 +376,7 @@ public class AaptService$Task {
             ArrayList<File> arrayList2 = new ArrayList<>();
             Hw(new File(genDir), "R.java", arrayList2);
             if ( !this.isBuildRefresh && !arrayList2.isEmpty() && u7(arrayList, arrayList2) ) {
-                AppLog.DW("Omitting aapt call to regenerate R.java in " + genDir + " (is uptodate)");
+                AppLog.d("Omitting aapt call to regenerate R.java in " + genDir + " (is uptodate)");
                 return new AaptService$ErrorResult(false);
             }
             ArrayList<String> arrayList3 = new ArrayList<>();
@@ -402,11 +400,11 @@ public class AaptService$Task {
             tp(arrayList3);
             long currentTimeMillis = System.currentTimeMillis();
             wf j6 = xf.j6(arrayList3, (String) null, null, true, (OutputStream) null, (byte[]) null);
-            AppLog.DW("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
+            AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
             if ( j6.DW() == 0 ) {
                 for ( File file : arrayList2 ) {
                     if ( file.lastModified() < currentTimeMillis ) {
-                        FileSystem.aj(file.getPath());
+                        FileSystem.ensureUpdatedFileLastModified(file.getPath());
                     }
                 }
                 return new AaptService$ErrorResult(false);
@@ -441,7 +439,7 @@ public class AaptService$Task {
                 Hw(new File(this.mainProjectGenDir), "R.java", arrayList);
                 arrayList.add(new File(this.resourcesApPath));
                 if ( !this.isBuildRefresh && !arrayList.isEmpty() && new File(this.resourcesApPath).exists() && u7(arrayList2, arrayList) ) {
-                    AppLog.DW("Omitting aapt package call (is uptodate)");
+                    AppLog.d("Omitting aapt package call (is uptodate)");
                     return new AaptService$ErrorResult(false);
                 }
                 ArrayList<String> arrayList3 = new ArrayList<>();
@@ -472,11 +470,11 @@ public class AaptService$Task {
                 tp(arrayList3);
                 long currentTimeMillis = System.currentTimeMillis();
                 wf j6 = xf.j6(arrayList3, (String) null, null, true, (OutputStream) null, (byte[]) null);
-                AppLog.DW("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
+                AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
                 if ( j6.DW() == 0 ) {
                     for ( File file : arrayList ) {
                         if ( file.lastModified() < currentTimeMillis ) {
-                            FileSystem.aj(file.getPath());
+                            FileSystem.ensureUpdatedFileLastModified(file.getPath());
                         }
                     }
                     return new AaptService$ErrorResult(true);
@@ -493,7 +491,7 @@ public class AaptService$Task {
     public String getAaptError( byte[] errorBytes, int i ) {
         try {
 
-			String error = StreamUtilities.FH(new InputStreamReader(new ByteArrayInputStream(errorBytes)));
+			String error = StreamUtilities.readTextReader(new InputStreamReader(new ByteArrayInputStream(errorBytes)));
 
             error = error.trim();
 
@@ -526,13 +524,13 @@ public class AaptService$Task {
 					ArrayList<File> arrayList2 = new ArrayList<>();
 					Hw(new File(value), null, arrayList2);
 					if ( u7(arrayList, arrayList2) ) {
-						AppLog.DW("Omitting aapt crunch call (is uptodate)");
+						AppLog.d("Omitting aapt crunch call (is uptodate)");
 					} else {
 						List<String> asList = Arrays.asList(new String[]{this.aaptPath, "crunch", "-S", key, "-C", value, "--no-version-vectors"});
 						tp(asList);
 						long currentTimeMillis = System.currentTimeMillis();
 						wf j6 = xf.j6(asList, (String) null, null, true, (OutputStream) null, (byte[]) null);
-						AppLog.DW("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
+						AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
 						if ( j6.DW() != 0 ) {
 							return new AaptService$ErrorResult(getAaptError(j6.j6(), j6.DW()));
 						}
@@ -632,7 +630,7 @@ public class AaptService$Task {
                     sb.append(" ");
                 }
             }
-            AppLog.DW(sb.toString());
+            AppLog.d(sb.toString());
         }
 		catch (Throwable th) {
             throw new Error(th);
@@ -677,7 +675,7 @@ public class AaptService$Task {
 				String value = entry.getValue();
 				if ( new File(value).exists() ) {
 					try {
-						FileSystem.VH(value);
+						FileSystem.deleteDirectory(value);
 					}
 					catch (Throwable e) {
 

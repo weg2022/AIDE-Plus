@@ -11,6 +11,8 @@ import io.github.zeroaicy.aide.utils.FilesRenameMenu;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import com.aide.ui.command.FileBrowserCommand;
+import com.aide.ui.command.AddToProjectCommand;
 
 public class AppCommands {
 
@@ -60,7 +62,7 @@ public class AppCommands {
 			DW = new sf[]{
 				// 新建项目文件 
 				new s9(), new ib(), new nb(), 
-				new qc(), new a9(), new r9(), 
+				new qc(), new AddToProjectCommand(), new r9(), 
 				new oa(), new oc(), new yc(), 
 				new nc(), new FilesRenameMenu(), new v9(), 
 				new m9(), new q9(), new p9(), 
@@ -169,15 +171,15 @@ public class AppCommands {
 		return dgSparseArray;
 	}
 	
-	private static List<tf> tf = null;
+	private static List<FileBrowserCommand> tf = null;
 	
 	@Keep
-    public static List<tf> FH() {
+    public static List<FileBrowserCommand> getFileBrowserCommands() {
 		if (tf == null) {
 			tf = new ArrayList<>();
 			for (sf sfVar : Hw()) {
-				if (sfVar instanceof tf) {
-					tf.add((tf)sfVar);
+				if (sfVar instanceof FileBrowserCommand) {
+					tf.add((FileBrowserCommand)sfVar);
 				}
 			}
 		}

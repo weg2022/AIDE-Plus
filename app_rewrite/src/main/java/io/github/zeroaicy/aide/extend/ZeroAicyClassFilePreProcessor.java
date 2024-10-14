@@ -42,7 +42,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
 	// -> readZipEntry
 	@Override
-	public Reader QX(String zipFilePath, String className, String str3) {
+	public Reader readZipEntry(String zipFilePath, String className, String str3) {
 		if (className.endsWith(".class")) {
 			Reader readClassFile = ClassReader.Dc_ReadClassFile(zipFilePath, className);
 			if (readClassFile != null) {
@@ -50,27 +50,27 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			}
 			return new StringReader(String.format( "//类解析器错误 -> %s/%s\n", zipFilePath, className));
 		}
-		return super.QX(zipFilePath, className, str3);
+		return super.readZipEntry(zipFilePath, className, str3);
 	}
 
 	//复用 ZipFile
 	// -> getZipFile
 	@Override
-	public ZipFile yS(String string) {
-		return super.yS(string);
+	public ZipFile getZipFile(String string) {
+		return super.getZipFile(string);
 	}
 	
 	
 	// -> listZipEntry
 	@Override
-	public List<String> J8(String zipFilePath, String listZipEntryName) {
+	public List<String> listZipEntry(String zipFilePath, String listZipEntryName) {
 
 		ZipFile zipFile = null;
 		try {
 			// str2 相对于Zip内部的路径
 			Set<String> listZipNames = new HashSet<>();
 
-			zipFile = yS(zipFilePath);
+			zipFile = getZipFile(zipFilePath);
 			//new ZipFile(zipFilePath);
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
@@ -142,7 +142,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
 	// -> collectClassAndJavaFiles
 	@Override
-	public void aM(String str, String str2, Vector<String> vector) {
+	public void collectClassAndJavaFiles(String str, String str2, Vector<String> vector) {
         try {
             if (str2.length() > 0) {
                 str2 = str2 + File.separator;
@@ -154,7 +154,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 			for (String childName : childNames) {
 				String childPath = str + File.separatorChar + childName;
 				if (new File(childPath).isDirectory()) {
-					aM(childPath, str2 + childName, vector);
+					collectClassAndJavaFiles(childPath, str2 + childName, vector);
 				}
 				else if (childName.lastIndexOf(36) == -1 && childName.endsWith(".class")) {
 					vector.add(str2 + childName);
@@ -172,7 +172,7 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
 	// -> collectClassAndJavaFiles
 	@Override
-	public String[] Ws(String str) {
+	public String[] collectClassAndJavaFiles(String str) {
         try {
             Vector<String> vector = new Vector<>();
             try {
@@ -183,10 +183,10 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
                     }
                 }
 				else if (new File(str).isDirectory()) {
-                    aM(str, "", vector);
+                    collectClassAndJavaFiles(str, "", vector);
                 }
 				else {
-                    Enumeration<? extends ZipEntry> entries = yS(str).entries();
+                    Enumeration<? extends ZipEntry> entries = getZipFile(str).entries();
                     while (entries.hasMoreElements()) {
                         ZipEntry nextElement = entries.nextElement();
                         String name = nextElement.getName();

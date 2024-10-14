@@ -175,6 +175,7 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 
 		//待跟随minSDK
 		argsList.add("--min-api");
+		minSdkVersion = Math.max(minSdkVersion, 21);
 		argsList.add(String.valueOf(minSdkVersion));
 
 		argsList.add("--intermediate");

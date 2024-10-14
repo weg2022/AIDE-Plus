@@ -1,6 +1,6 @@
 package io.github.zeroaicy.aide.activity;
 
-import abcd.iy;
+import com.probelytics.Probelytics;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -181,7 +181,6 @@ public class ZeroAicyMainActivity extends MainActivity {
 		super.onBackPressed();
 	}
 
-
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
 	io.github.zeroaicy.aide.ui.views.ZeroAicySplitView zeroAicySplitView;
@@ -221,7 +220,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 				}
 			});
 
-		SplitView splitView = br();
+		SplitView splitView = getSplitView();
 		if (splitView instanceof ZeroAicySplitView) {
 			zeroAicySplitView = (ZeroAicySplitView) splitView;
 			// closeSplit
@@ -308,11 +307,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 	@Override
 	public void setHasEmbeddedTabs() {
 		//ServiceContainer.Mz() && AndroidHelper.u7(this) <= 610.0f
-		AndroidHelper.ei(this, ZeroAicySetting.enableActionBarSpinner() 
+		AndroidHelper.setActionBarHasEmbeddedTabs(this, ZeroAicySetting.enableActionBarSpinner() 
 						 || (ServiceContainer.isTrainerMode() 
-						 && AndroidHelper.u7(this) <= 610.0f));
+						 && AndroidHelper.getScreenWidthInDp(this) <= 610.0f));
 		//绑定监听器
-		AndroidHelper.nw(this);
+		AndroidHelper.setTabSpinnerOnClickListener(this);
 	}
 
 
@@ -347,7 +346,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 		q7();
 		if (z) {
             boolean isLandscape = isLandscape();
-			if (isLandscape && ((com.aide.common.AndroidHelper.Zo(this) > 800.0f || br().isHorizontal() && com.aide.common.AndroidHelper.Zo(this) >= 540.0f))) {
+			if (isLandscape && ((com.aide.common.AndroidHelper.getScreenHeightInDp(this) > 800.0f || getSplitView().isHorizontal() && com.aide.common.AndroidHelper.getScreenHeightInDp(this) >= 540.0f))) {
 				return;
 			}
 			Ws(false);
@@ -372,8 +371,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 
 	@Override
-	public void qp(String str) {
-		String suffixName = FileSystem.XL(str);
+	public void openFile(String str) {
+		String suffixName = FileSystem.getSuffixName(str);
 		String mimeTypeFromExtension = MimeTypeMap.getSingleton().getMimeTypeFromExtension(suffixName);
 
 		if (!suffixName.equals("java") 
@@ -390,7 +389,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 				try {
 					gn(this, intent);
 					startActivity(intent);
-					iy.BT(this, intent);
+					Probelytics.BT(this, intent);
 					return;
 				}
 				catch (ActivityNotFoundException unused) {
@@ -402,17 +401,17 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 			return;
 		}
-		if (FileSystem.ei(str)) {
+		if (FileSystem.isEmptyFile(str)) {
 			return;
 		}
 		aq(new FileSpan(str, 1, 1, 1, 1));
-		ServiceContainer.getProjectService().VH(str);
+		ServiceContainer.getProjectService().openFile(str);
 
     }
 
 	private static void gn(Object obj, Intent intent) {
         ((MainActivity) obj).startActivity(intent);
-        iy.BT(obj, intent);
+        Probelytics.BT(obj, intent);
     }
 
 	@Override

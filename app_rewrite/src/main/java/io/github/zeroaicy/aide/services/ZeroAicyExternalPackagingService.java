@@ -38,7 +38,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 		AppLog.d("ZeroAicyExternalPackagingService", "初始化");
 		try{
 			// 初始化 App
-			ServiceContainer.sh(getApplicationContext());
+			ServiceContainer.setContext(getApplicationContext());
 
 			ExternalPackagingService.ExternalPackagingServiceWorker externalPackagingServiceWorker = getExternalPackagingServiceWorker();
 			if ( externalPackagingServiceWorker != null ){
@@ -676,7 +676,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 				//32线程
 				int minSdk = getMinSdk();
 				//主要是为了兼容AIDE的输出类
-				minSdk = minSdk < 21 ? 21 : minSdk;
+				minSdk = Math.max(minSdk, 21);
 
 				List<String> argsList = new ArrayList<>();
 
@@ -684,6 +684,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 				argsList.add(getUserAndroidJar());
 
 				argsList.add("--min-api");
+				
 				argsList.add(String.valueOf(minSdk));
 
 				// 输出路径
@@ -1299,7 +1300,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 
 						String classFileSubPath = classFilePath.substring(classCacheRootDirPath.length());
 						if ( classFileSet.contains(classFileSubPath) ){
-							//AppLog.DW("忽略重复 .class 文件 " + classFilePath);
+							//AppLog.d("忽略重复 .class 文件 " + classFilePath);
 							continue;
 						}
 						classFileSet.add(classFileSubPath);

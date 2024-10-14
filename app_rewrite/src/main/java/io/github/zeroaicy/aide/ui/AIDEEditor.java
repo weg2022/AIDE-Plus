@@ -51,9 +51,9 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			if (this.ee == null) {
                 return;
             }
-			boolean isLight = this.ee.sG();
+			boolean isLight = this.ee.isLightTheme();
 			// is Material主题
-			if (AndroidHelper.lg(getContext())) {
+			if (AndroidHelper.isMaterialTheme(getContext())) {
                 //this.selectionColor = new Color(getResources().getColor(isLight ? R.color.editor_selection_material_light : R.color.editor_selection_material));
 				this.selectionColor = new Color(io.github.zeroaicy.aide.highlight.ColorKind.EDITOR_SELECTION.getColor(getContext(), isLight));
             } else {
@@ -116,10 +116,10 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	private int getIndentationSize() {
 		String lowerCase = getFilePath().toLowerCase();
 		if (lowerCase.endsWith(".java")) {
-			return AppPreferences.P8();
+			return AppPreferences.getJavaIndentationSize();
 		}
 		if (lowerCase.endsWith(".js")) {
-			return AppPreferences.nw();
+			return AppPreferences.getJsIndentationSize();
 		}
 
 		if (lowerCase.endsWith(".c") 
@@ -128,19 +128,19 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			|| lowerCase.endsWith(".cc") 
 			|| lowerCase.endsWith(".hh") 
 			|| lowerCase.endsWith(".hpp")) {
-			return AppPreferences.VH();
+			return AppPreferences.getCppIndentationSize();
 		}
 
 		if (lowerCase.endsWith(".xml")) {
-			return AppPreferences.XX();
+			return AppPreferences.getXmlIndentationSize();
 		}
 
 		if (lowerCase.endsWith(".html") 
 			|| lowerCase.endsWith(".htm")) {
-			return AppPreferences.rN();
+			return AppPreferences.getHtmlIndentationSize();
 		}
 		if (lowerCase.endsWith(".css")) {
-			return AppPreferences.u7();
+			return AppPreferences.getCssIndentationSize();
 		}
 		return getTabSize();
 
@@ -207,7 +207,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 			this.filePath = filePath;
 
-			this.sh = FileSystem.lg(this.filePath);
+			this.sh = FileSystem.lastModified(this.filePath);
 
 			// 补全 k1参数为null的操作
 			this.dx = filePath;
@@ -222,7 +222,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				new Runnable(){
 					@Override
 					public void run() {
-						initAsync(FileSystem.Mz(AIDEEditorModel.this.filePath));
+						initAsync(FileSystem.readFileOrZipEntry(AIDEEditorModel.this.filePath));
 					}
 				});
 

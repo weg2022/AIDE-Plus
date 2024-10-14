@@ -1,6 +1,6 @@
 package io.github.zeroaicy.aide.preference;
 
-import abcd.iy;
+import com.probelytics.Probelytics;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
@@ -203,7 +203,7 @@ public class ZeroAicyPreferencesActivity extends PreferencesActivity implements 
 		Intent intent = new Intent(activity, ZeroAicyPreferencesActivity.class);
 		intent.putExtra("SHOW_PAGE", i);
 		activity.startActivity(intent);
-		iy.BT(activity, intent);
+		Probelytics.BT(activity, intent);
     }
 }
 

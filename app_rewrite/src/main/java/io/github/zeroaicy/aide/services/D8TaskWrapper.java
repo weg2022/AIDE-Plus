@@ -135,9 +135,6 @@ public class D8TaskWrapper {
 		if (exitValue == 0) {
 			return;
 		}
-		if( exitValue == 137 ){
-			throw new OutOfMemoryError("r8 task exited code 137");
-		}
 		// 异常处理 可能会再次运行
 		//已经是在处理异常了 及时退出否则死递归了
 		// int[] exceptionCodes = new int[]{134, 13};
@@ -158,6 +155,11 @@ public class D8TaskWrapper {
 		String format = String.format(
 			"\nTask: %s -> exited with code %s\nError:\n%s\n", 
 			className, process.exitValue(), error);
+		
+
+		if( exitValue == 137 ){
+			throw new OutOfMemoryError("r8 task exited code 137可能是OOM\n" + format);
+		}
 		throw new Error(format);
 
 	}
@@ -215,6 +217,8 @@ public class D8TaskWrapper {
 	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		argsList.add("--min-api");
+		
+		minSdk = Math.max(minSdk, 21);
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));
 

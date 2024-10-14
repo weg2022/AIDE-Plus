@@ -30,7 +30,7 @@ public class AaptService {
 
     private AaptService$FutureTask curFutureTask;
 
-    private e callback;
+    private AaptRunCallback callback;
 
     private Context context;
 
@@ -119,7 +119,7 @@ public class AaptService {
 			}
 		}				
 		catch (Exception e) {
-			AppLog.v5(e);
+			AppLog.e(e);
 		}
 		return fileSyntaxErrorsMap;
 	}
@@ -215,7 +215,7 @@ public class AaptService {
 					syntaxErrors.add(syntaxError);
 				}
 				catch (Exception e) {
-					AppLog.v5(e);
+					AppLog.e(e);
 				}
 			}
 			System.out.println("fileSyntaxErrorsMap keys: " + fileSyntaxErrorsMap.keySet());
@@ -251,7 +251,7 @@ public class AaptService {
 
     private void Ws(Throwable th) {
 
-		AppLog.v5(th);
+		AppLog.e(th);
 		if (this.callback != null) {
 			this.callback.g3();
 		}
@@ -318,7 +318,7 @@ public class AaptService {
 
     private String getAaptPath() {
 		if (Build.VERSION.SDK_INT >= 29) {
-			AppLog.DW("Using aapt: " + ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so");
+			AppLog.d("Using aapt: " + ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so");
 			return ServiceContainer.getContext().getApplicationInfo().nativeLibraryDir + "/libaapt.so";
 		}
 		return AssetInstallationService.DW("aapt", false);
@@ -334,7 +334,7 @@ public class AaptService {
     }
 
 	@Keep
-    public void j3(final String mainProjectPath, final String str2, final String flavor, final boolean z, final boolean isRrelease, final boolean z3) {
+    public void runAapt(final String mainProjectPath, final String str2, final String flavor, final boolean z, final boolean isRrelease, final boolean z3) {
         try {
             final String aaptPath = getAaptPath();
             if (this.curFutureTask != null) {
@@ -347,7 +347,7 @@ public class AaptService {
 				public List<AaptService$Task> getTasks() {
 					ArrayList<AaptService$Task> arrayList = new ArrayList<>();
 					if (z3) {
-						for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().yS()) {
+						for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().getMainAppWearApps()) {
 							if (mainProjectPath.equals(mainAppOrWearAppPath)) {
 								continue;
 							}
@@ -369,7 +369,7 @@ public class AaptService {
 
 	// AndroidProjectBuildService::yO -> Mr
     @Keep
-	public void Mr(final String flavor) {
+	public void runAapt(final String flavor) {
         try {
             final String aaptPath = getAaptPath();
             if (this.curFutureTask != null) {
@@ -384,7 +384,7 @@ public class AaptService {
 				public List<AaptService$Task> getTasks() {
 					ArrayList<AaptService$Task> arrayList = new ArrayList<>();
 					
-					for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().yS()) {
+					for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().getMainAppWearApps()) {
 						boolean isRrelease = false;
 						arrayList.add(makeTask(mainAppOrWearAppPath, true, false, isRrelease, null, flavor, aaptPath));
 					}
@@ -403,23 +403,23 @@ public class AaptService {
 
 
 	@Keep
-    public void aM(e eVar) {
-		this.callback = eVar;
+    public void setCallback(AaptRunCallback callback) {
+		this.callback = callback;
     }
 	@Keep
-    public void EQ(String flavour) {
+    public void init(String flavour) {
 		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), flavour);
 		for (String projectPath : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
 			
 			String ye = AndroidProjectSupport.ye(projectPath, flavour);
-			FileSystem.aj(ye);
+			FileSystem.ensureUpdatedFileLastModified(ye);
 			
 			if (Z1.containsKey(ye)) {
-				FileSystem.aj((String) Z1.get(ye));
+				FileSystem.ensureUpdatedFileLastModified((String) Z1.get(ye));
 			}
 			String Eq = AndroidProjectSupport.Eq(projectPath);
 			try {
-				FileSystem.VH(Eq);
+				FileSystem.deleteDirectory(Eq);
 			}
 			catch (Throwable e) {
 

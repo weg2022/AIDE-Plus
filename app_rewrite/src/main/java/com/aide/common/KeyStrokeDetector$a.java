@@ -135,8 +135,8 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 			case android.R.id.selectAll:
                 MainActivity rN = ServiceContainer.getMainActivity();
                 if (rN == null) return true;
-                rN.w9();
-                FileSpan currentFileSpan = ServiceContainer.getMainActivity().sh().getCurrentFileSpan();
+                rN.delayedShowAnalyzingProgressDialog();
+                FileSpan currentFileSpan = ServiceContainer.getMainActivity().getAIDEEditorPager().getCurrentFileSpan();
                 ServiceContainer.getEngineService().QX(currentFileSpan.j6, currentFileSpan.DW, currentFileSpan.FH, currentFileSpan.Hw, currentFileSpan.v5);
                 return true;
 
@@ -302,7 +302,7 @@ public class KeyStrokeDetector$a extends BaseInputConnection {
 	 */
     @Override
     public CharSequence getTextBeforeCursor(int length, int flags) {
-		if (AndroidHelper.U2(KeyStrokeDetector.getContext(this.keyStrokeDetector))) {
+		if (AndroidHelper.isInTelevisionMode(KeyStrokeDetector.getContext(this.keyStrokeDetector))) {
 			return super.getTextBeforeCursor(length, flags);
 		}
 		return "";

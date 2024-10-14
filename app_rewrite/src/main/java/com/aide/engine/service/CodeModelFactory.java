@@ -73,7 +73,7 @@ public class CodeModelFactory {
 		return null;
     }
 
-    public static TreeMap<String, List<String>> j6(List<String> list) {
+    public static TreeMap<String, List<String>> findCodeModels(List<String> list) {
 		TreeMap<String, List<String>> treeMap = new TreeMap<>();
 		for (CodeModel codeModel : create(list)) {
 			String[] defaultFilePatterns = codeModel.getDefaultFilePatterns();

@@ -3,7 +3,6 @@ package io.github.zeroaicy.aide.ui.services;
 import android.content.DialogInterface;
 import android.text.TextUtils;
 import androidx.annotation.Keep;
-import androidx.appcompat.app.AlertDialog;
 import com.aide.common.AppLog;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.ServiceContainer;
@@ -30,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import androidx.appcompat.app.AlertDialog;
+import com.aide.ui.services.ZeroAicyProjectService;
 
 /**
  * 更新底包时，再优化，那时必须抽离出修改点，只保留底包对其引用的api
@@ -114,7 +115,7 @@ public class ZeroAicyMavenService{
             return userM2Repositories;
         }
         try{
-            return FileSystem.yS() + "/.aide/maven";
+            return FileSystem.getNoBackupFilesDirPath() + "/.aide/maven";
         }
 		catch (Throwable th){
 			if ( th instanceof Error ) 
@@ -205,7 +206,7 @@ public class ZeroAicyMavenService{
 	@Keep
     public void refreshMavenCache(){
 		// 二级确认弹窗
-		AlertDialog.Builder builder = new AlertDialog.Builder(ServiceContainer.gn());
+		AlertDialog.Builder builder = new AlertDialog.Builder(ServiceContainer.getCurrentActivity());
 		builder.setTitle(R.string.refresh_maven_repository_tips);
 		builder.setMessage(R.string.refresh_maven_repository_tips_message);
 		builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
@@ -222,14 +223,14 @@ public class ZeroAicyMavenService{
 	 */
     public void refreshMavenCache2(){
         try{
-            ServiceContainer.sy(ServiceContainer.gn(), "Refreshing...", new Runnable(){
+            ServiceContainer.showProgressDialog(ServiceContainer.getCurrentActivity(), "Refreshing...", new Runnable(){
 					@Override
 					public void run(){
 						//重置依赖缓存映射
 						resetDepPathMap();
 						try{
 							//删除 maven缓存
-							FileSystem.VH(getDefaulRepositoriePath());
+							FileSystem.deleteDirectory(getDefaulRepositoriePath());
 						}
 						catch (Throwable e){
 
@@ -251,26 +252,17 @@ public class ZeroAicyMavenService{
     }
 
 	private boolean preInitialization = false;
+	
 	//重置当前服务的依赖记录
+	@Keep
 	public synchronized void resetDepMap(){
 		this.depManager.clear();
-
-		ProjectService projectService = ServiceContainer.getProjectService();
-		String currentAppHome = projectService.getCurrentAppHome();
-		if ( currentAppHome == null
-		// isAndroidGradleProject
-			|| !GradleTools.nw(currentAppHome) ){
-			return;
-		}
-		// 提前初始化 maven服务
-		// getBuildVariant() -> getFlavor
-		this.preInitialization = true;
-		List<ClassPath.Entry> classPathEntrys = 
-			AndroidProjectSupport.wc(currentAppHome, projectService.getBuildVariant());
-		//test();
-		this.preInitialization = false;
-
-
+		
+		// 以前只有AndroidProjectSupport使用 MavenService
+		
+		// 提前 解析AndroidGradle项目
+		// 边添加依赖边解析会有问题
+		ZeroAicyProjectService.preResolving();
     }
 
 	/*private void test() {
@@ -739,12 +731,12 @@ public class ZeroAicyMavenService{
 				// 必须有 AndroidManifest.xml 和 classes.jar
 				// 但 androidx.graphics:graphics-shapes:1.0.1没有
 				// 所以解压完成后检查一下
-                FileSystem.u7(new FileInputStream(aarPath), outDir, true);
+                FileSystem.unZip(new FileInputStream(aarPath), outDir, true);
 				if ( !GradleTools.isAarEexplodedPath(outDir) ){
 					// 写入一个空classes.jar，共22b
 					FileOutputStream classesJarOutputStream = null;
 					try{
-						classesJarOutputStream = new FileOutputStream(GradleTools.j6(outDir));
+						classesJarOutputStream = new FileOutputStream(GradleTools.getAarEexplodedClassesJar(outDir));
 						classesJarOutputStream.write(emptyZipBytes);
 						classesJarOutputStream.close();
 					}
@@ -752,7 +744,7 @@ public class ZeroAicyMavenService{
 						IOUtils.close(classesJarOutputStream);
 					}
 				}
-                AppLog.DW("Extracted AAR " + aarPath);
+                AppLog.d("Extracted AAR " + aarPath);
             }
 			catch (IOException e){
                 e.printStackTrace();
@@ -855,7 +847,7 @@ public class ZeroAicyMavenService{
     private List<String> getRepositoriePaths(){
         try{
             ArrayList<String> arrayList = new ArrayList<>();
-            for ( String str : AppPreferences.br().split(";") ){
+            for ( String str : AppPreferences.getUserM2repositories().split(";") ){
                 if ( !str.trim().isEmpty() ){
                     arrayList.add(str.trim());
                 }

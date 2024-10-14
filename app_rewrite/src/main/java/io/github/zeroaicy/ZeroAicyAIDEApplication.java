@@ -84,7 +84,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 			// JavaConsole进程不需要
 
 			// 防止App的context为null
-			ServiceContainer.sh(this);
+			ServiceContainer.setContext(this);
 		}
 
 		// 是否显示AIDE-WhatsNewDialog

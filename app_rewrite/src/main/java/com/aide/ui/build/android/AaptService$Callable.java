@@ -44,7 +44,7 @@ class AaptService$Callable implements Callable<AaptService$ErrorResult> {
 					Map<String, String> androidManifestMap = AaptService$Task.getAndroidManifestMap(task);
 					
 					taskErrorResult.syntaxErrorsMap = AaptService.resolvingError(this.aaptService, mainProjectPath, androidManifestMap, taskErrorResult.errorInfo);
-                    AppLog.DW(taskErrorResult.syntaxErrorsMap.toString());
+                    AppLog.d(taskErrorResult.syntaxErrorsMap.toString());
 					return taskErrorResult;
                 }
             }

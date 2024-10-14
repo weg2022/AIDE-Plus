@@ -205,7 +205,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
 				syntaxError.zh = tokenStreamRecognitionException.toString();
 
 				hashMap.put(filePath, Collections.singletonList(syntaxError));
-				ServiceContainer.J0().EQ("Gradle", hashMap);
+				ServiceContainer.getErrorService().EQ("Gradle", hashMap);
 			}
 			AppLog.e(TAG, e.getMessage(), e);
 
@@ -291,7 +291,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
 			fileWriter.close();
 		}
 		catch (IOException e){
-			AppLog.v5(e);
+			AppLog.e(e);
 		}
     }
 
@@ -888,7 +888,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
 
 			for ( AST firstChild1 = getFirstChild(nextSibling); firstChild1 != null; firstChild1 = getNextSibling(firstChild1) ){
 				if ( getType(firstChild1) == 88 ){
-					String proguardFilePath = FileSystem.Qq(FileSystem.getParent(this.configurationPath), getText(firstChild1));
+					String proguardFilePath = FileSystem.resolveFilePath(FileSystem.getParent(this.configurationPath), getText(firstChild1));
 					proguardFiles.add(proguardFilePath);
 					continue;
 				}
@@ -1007,7 +1007,7 @@ public class ZeroAicyBuildGradle extends BuildGradle{
     }
 
     public void addProjectDependency(String str){
-		String BT = FileSystem.BT(FileSystem.getParent(FileSystem.getParent(((Configuration) this).configurationPath)), str);
+		String BT = FileSystem.getRelativePath(FileSystem.getParent(FileSystem.getParent(((Configuration) this).configurationPath)), str);
 		Hw("api project('" + (":" + BT.replace("/", ":")) + "')");
 
     }

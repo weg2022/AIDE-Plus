@@ -15,40 +15,20 @@ public class AppLog{
 	// (所有)共存版作为测试版本 日志全开ε٩(๑> ₃ <)۶з
 	//public static boolean isPrintLog = !ContextUtil.getPackageName().equals("io.github.zeroaicy.aide");
 
-    public static void DW(String str){
-		if ( isPrintLog() ) Log.d("AIDE", str);
-    }
-
 	private static boolean isPrintLog(){
 		return ZeroAicySetting.isEnableDetailedLog();
 	}
 
-    public static void FH(String msg){
-		Log.e("AIDE", msg);
-    }
-
-    public static void Hw(String str, Throwable th){
-		Log.e("AIDE", str, th);
-    }
-
-    public static void VH(String msg){
-        if ( isPrintLog() ) Log.i("AIDE", msg);
-    }
-
-    public static void Zo(Object obj, String msg){
+    public static void i(Object obj, String msg){
 		if ( isPrintLog() ) Log.i("AIDE", obj.getClass().getName() + "." + msg);
     }
 
-    public static void gn(String str){
-		Log.w("AIDE", str);
-    }
-
-    public static void j6(Throwable th){
+    public static void error(Throwable th){
 		Log.e("AIDE", th.toString(), th);
 
     }
 
-    public static void v5(Throwable th){
+    public static void e(Throwable th){
         Log.e("AIDE", th.toString(), th);
     }
 

@@ -15,7 +15,7 @@ public class Highlighter {
 
     public void highlight(FileEntry fileEntry, Reader reader, SyntaxTreeStyles syntaxTreeStyles) {
         AppLog.i(LOG_TAG, "highlight: " + lexer.getClass().getName());
-        syntaxTreeStyles.DW(); // j6() -> DW()
+        syntaxTreeStyles.clear(); // j6() -> DW()
         try {
             lexer.yyreset(reader);
             lexer.yybegin(lexer.getDefaultState());
@@ -29,13 +29,13 @@ public class Highlighter {
                 int column = lexer.getColumn() + 1;
 
 				// 填充风格
-                syntaxTreeStyles.j6(style, 0, startLine, startColumn, line, column);
+                syntaxTreeStyles.addSyntaxTag(style, 0, startLine, startColumn, line, column);
 
 				style = nextStyle;
                 startLine = line;
                 startColumn = column;
                 if (nextStyle == -1) break;
-                syntaxTreeStyles.j6(0, 0, startLine, startColumn, line, column);
+                syntaxTreeStyles.addSyntaxTag(0, 0, startLine, startColumn, line, column);
             }
         }
 		catch (IOException e) {

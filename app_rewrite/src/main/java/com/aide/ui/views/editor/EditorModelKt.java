@@ -3,6 +3,6 @@ import java.util.Vector;
 
 public class EditorModelKt {
 	public static Vector<TextBuffer> getTextBuffers(EditorModel editorModel) {
-		return EditorModel.ko(editorModel);
+		return EditorModel.getTextBuffers(editorModel);
 	}
 }

@@ -33,10 +33,10 @@ public class AssetInstallationService {
 		}
 	}
 	private static AssetFileDescriptor getResourceAssetFileDescriptor(String resourceName) {
-		if (ServiceContainer.Sf() && Build.VERSION.SDK_INT >= 20) {
+		if (ServiceContainer.isX86() && Build.VERSION.SDK_INT >= 20) {
 			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
 		}
-		if (ServiceContainer.Sf()) {
+		if (ServiceContainer.isX86()) {
 			return tryGetAssetFileDescriptorFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (Build.VERSION.SDK_INT >= 20) {
@@ -93,10 +93,10 @@ public class AssetInstallationService {
     }
 
     private static InputStream getResourceInputStream(String resourceName) {
-		if (ServiceContainer.Sf() && Build.VERSION.SDK_INT >= 20) {
+		if (ServiceContainer.isX86() && Build.VERSION.SDK_INT >= 20) {
 			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86-pie/" + resourceName, "x86/" + resourceName + ".jet");
 		}
-		if (ServiceContainer.Sf()) {
+		if (ServiceContainer.isX86()) {
 			return tryGetInputStreamFromAssetManager(resourceName, resourceName + ".jet", "x86/" + resourceName, "x86/" + resourceName + ".jet");
 		}
 		if (Build.VERSION.SDK_INT >= 20) {
@@ -132,7 +132,7 @@ public class AssetInstallationService {
     }
 
     private static String getOutputPath(String resourceName, boolean z) {
-		String aideCacheDir = FileSystem.yS() + "/.aide";
+		String aideCacheDir = FileSystem.getNoBackupFilesDirPath() + "/.aide";
 		File file = new File(aideCacheDir);
 		if (!file.exists()) {
 			file.mkdirs();
@@ -185,7 +185,7 @@ public class AssetInstallationService {
 				}
 				*/
 				// 更新并写入文件
-				if (StreamUtilities.j6(getResourceInputStream(resourceName), new FileInputStream(outputFile))) {
+				if (StreamUtilities.equals(getResourceInputStream(resourceName), new FileInputStream(outputFile))) {
 					return false;
 				}
 			}
@@ -215,36 +215,36 @@ public class AssetInstallationService {
 				InputStream resourceInputStream = getResourceInputStream(resourceName);
 				if (unZip) {
 					// 解压
-					FileSystem.u7(resourceInputStream, outputPath, false);
+					FileSystem.unZip(resourceInputStream, outputPath, false);
 				} else {
 					File outputFile = new File(outputPath);
 					outputFile.setWritable(true);
 					outputFile.getParentFile().mkdirs();
 					// transferTo
-					StreamUtilities.Zo(resourceInputStream, new FileOutputStream(outputFile));
+					StreamUtilities.transferStream(resourceInputStream, new FileOutputStream(outputFile));
 				}
-				AppLog.DW("Extracted asset " + resourceName);
+				AppLog.d("Extracted asset " + resourceName);
 				return true;
 			}
 			catch (IOException e) {
-				AppLog.v5(e);
+				AppLog.e(e);
 			}
 		}
 		return false;
     }
 	
 	@Keep
-    public String EQ() {
+    public String getWeardebugKeystore() {
         String VH2 = getOutputPath("weardebug.keystore", true);
 		if (!new File(VH2).exists()) {
 			GregorianCalendar gregorianCalendar = new GregorianCalendar();
 			gregorianCalendar.add(1, 100);
-			ServiceContainer.j3().Hw(VH2, "xxxxxx", "weardebug", "xxxxxx", new GregorianCalendar().getTime(), gregorianCalendar.getTime(), BigInteger.ONE, "Wear Debug", "", "", "", "", "");
+			ServiceContainer.getSigningService().makeJksKeyStore(VH2, "xxxxxx", "weardebug", "xxxxxx", new GregorianCalendar().getTime(), gregorianCalendar.getTime(), BigInteger.ONE, "Wear Debug", "", "", "", "", "");
 		}
 		return VH2;
     }
 
-    public String Hw() {
+    public String getAandroidJarPath() {
         return this.DW;
     }
 
@@ -256,11 +256,11 @@ public class AssetInstallationService {
         return this.j6;
     }
 
-    public String gn() {
+    public String getFrameworkAidlPath() {
         return this.Hw;
     }
 
-    public String tp() {
+    public String getMergerZip() {
         if (this.v5 == null) {
 			this.v5 = DW("merger.zip", true);
 		}
@@ -277,7 +277,7 @@ public class AssetInstallationService {
 	ThreadPoolService executorsService = ThreadPoolService.getDefaultThreadPoolService();
 	
 	// 卡[Running aidl...] 原因不在这
-    public void we() {
+    public void init() {
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {

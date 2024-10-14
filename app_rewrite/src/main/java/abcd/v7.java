@@ -55,13 +55,13 @@ public class v7{
 		AppLog.d("initViewClassTypes()");
 		//this.model.codeCompleterCallback.j6();
 
-		//(syntaxTree.getFile(), syntaxTree.getLanguage()).DEFAULT_ITERATOR;
-		MapOfInt<ClassType>.Iterator default_Iterator = model.entitySpace.XG().DEFAULT_ITERATOR;
+		//(syntaxTree.getFile(), syntaxTree.getLanguage()).default_Iterator;
+		MapOfInt<ClassType>.Iterator default_Iterator = model.entitySpace.XG().default_Iterator;
 		// init
-		default_Iterator.DW();
+		default_Iterator.init();
 
-		ClassType view = this.model.entitySpace.getRootNamespace().OW(this.model.identifierSpace.get("android")).OW(this.model.identifierSpace.get("view")).ca().gn(this.model.identifierSpace.get("View"));
-		ClassType viewGroup = this.model.entitySpace.getRootNamespace().OW(this.model.identifierSpace.get("android")).OW(this.model.identifierSpace.get("view")).ca().gn(this.model.identifierSpace.get("ViewGroup"));
+		ClassType view = this.model.entitySpace.getRootNamespace().getMemberNamespace(this.model.identifierSpace.get("android")).getMemberNamespace(this.model.identifierSpace.get("view")).getAllMemberClassTypes().get(this.model.identifierSpace.get("View"));
+		ClassType viewGroup = this.model.entitySpace.getRootNamespace().getMemberNamespace(this.model.identifierSpace.get("android")).getMemberNamespace(this.model.identifierSpace.get("view")).getAllMemberClassTypes().get(this.model.identifierSpace.get("ViewGroup"));
 
 		long loadSyntaxStartTime = System.currentTimeMillis();
 		// 只写操作
@@ -116,7 +116,7 @@ public class v7{
         }else if ( fileName.startsWith("layout") ){
 
 			// 重置代码提示
-			this.model.codeCompleterCallback.j6();
+			this.model.codeCompleterCallback.listStarted();
 
 			if ( this.viewClassTypes.isEmpty() ){
 				initViewClassTypes();
@@ -132,7 +132,7 @@ public class v7{
 				/// 显示 ClassType简称 填充 全称
 				String fullyQualifiedNameString = viewClassType.getFullyQualifiedNameString();
 				if ( fullyQualifiedNameString.startsWith("android.widget.") ){
-					fullyQualifiedNameString = viewClassType.gG();
+					fullyQualifiedNameString = viewClassType.getIdentifierString();
 				}
 				this.model.codeCompleterCallback.aM(viewClassType, fullyQualifiedNameString);
             }
@@ -217,15 +217,15 @@ public class v7{
 
 			AppLog.d("初始化 xml classType");
 
-			this.model.codeCompleterCallback.j6();
+			this.model.codeCompleterCallback.listStarted();
 
 
-			MapOfInt<ClassType>.Iterator maps = model.entitySpace.getAllClasstypes(syntaxTree.getFile(), syntaxTree.getLanguage()).DEFAULT_ITERATOR;
+			MapOfInt<ClassType>.Iterator maps = model.entitySpace.getAllClasstypes(syntaxTree.getFile(), syntaxTree.getLanguage()).default_Iterator;
 			// init
-			maps.DW();
+			maps.init();
 
-			ClassType view = this.model.entitySpace.getRootNamespace().OW(this.model.identifierSpace.get("android")).OW(this.model.identifierSpace.get("view")).ca().gn(this.model.identifierSpace.get("View"));
-			ClassType viewGroup = this.model.entitySpace.getRootNamespace().OW(this.model.identifierSpace.get("android")).OW(this.model.identifierSpace.get("view")).ca().gn(this.model.identifierSpace.get("ViewGroup"));
+			ClassType view = this.model.entitySpace.getRootNamespace().getMemberNamespace(this.model.identifierSpace.get("android")).getMemberNamespace(this.model.identifierSpace.get("view")).getAllMemberClassTypes().get(this.model.identifierSpace.get("View"));
+			ClassType viewGroup = this.model.entitySpace.getRootNamespace().getMemberNamespace(this.model.identifierSpace.get("android")).getMemberNamespace(this.model.identifierSpace.get("view")).getAllMemberClassTypes().get(this.model.identifierSpace.get("ViewGroup"));
 
 			long loadSyntaxStartTime = System.currentTimeMillis();
 			// 初始化全部集合
@@ -348,24 +348,24 @@ public class v7{
 		int identifier = syntaxTree.getIdentifier(syntaxTree.getChildNode(syntaxTree.getChildNode(i, 0), 2));
 		if ( identifier != this.model.identifierSpace.get("layout_width") && identifier != this.model.identifierSpace.get("layout_height") ){
 			if ( identifier == this.model.identifierSpace.get("orientation") ){
-				this.model.codeCompleterCallback.Zo("horizontal");
-				this.model.codeCompleterCallback.Zo("vertical");
+				this.model.codeCompleterCallback.listElementKeywordFound("horizontal");
+				this.model.codeCompleterCallback.listElementKeywordFound("vertical");
 				return;
 			}
 			if ( identifier == this.model.identifierSpace.get("visibility") ){
-				this.model.codeCompleterCallback.Zo("visible");
-				this.model.codeCompleterCallback.Zo("invisible");
-				this.model.codeCompleterCallback.Zo("gone");
+				this.model.codeCompleterCallback.listElementKeywordFound("visible");
+				this.model.codeCompleterCallback.listElementKeywordFound("invisible");
+				this.model.codeCompleterCallback.listElementKeywordFound("gone");
 				return;
 			}
 			if ( identifier == this.model.identifierSpace.get("textAllignment") ){
-				this.model.codeCompleterCallback.Zo("inherit");
-				this.model.codeCompleterCallback.Zo("gravity");
-				this.model.codeCompleterCallback.Zo("textStart");
-				this.model.codeCompleterCallback.Zo("textEnd");
-				this.model.codeCompleterCallback.Zo("center");
-				this.model.codeCompleterCallback.Zo("viewStart");
-				this.model.codeCompleterCallback.Zo("viewEnd");
+				this.model.codeCompleterCallback.listElementKeywordFound("inherit");
+				this.model.codeCompleterCallback.listElementKeywordFound("gravity");
+				this.model.codeCompleterCallback.listElementKeywordFound("textStart");
+				this.model.codeCompleterCallback.listElementKeywordFound("textEnd");
+				this.model.codeCompleterCallback.listElementKeywordFound("center");
+				this.model.codeCompleterCallback.listElementKeywordFound("viewStart");
+				this.model.codeCompleterCallback.listElementKeywordFound("viewEnd");
 				return;
 			}
 			if ( identifier != this.model.identifierSpace.get("gravity") && identifier != this.model.identifierSpace.get("layout_gravity") && identifier != this.model.identifierSpace.get("foregroundGravity") ){
@@ -374,95 +374,95 @@ public class v7{
 						if ( identifier != this.model.identifierSpace.get("background") && identifier != this.model.identifierSpace.get("src") && identifier != this.model.identifierSpace.get("thumb") && identifier != this.model.identifierSpace.get("track") && identifier != this.model.identifierSpace.get("popupBackground") ){
 							if ( identifier != this.model.identifierSpace.get("prompt") && identifier != this.model.identifierSpace.get("textOn") && identifier != this.model.identifierSpace.get("textOff") && identifier != this.model.identifierSpace.get("text") ){
 								if ( identifier == this.model.identifierSpace.get("textStyle") ){
-									this.model.codeCompleterCallback.Zo("normal");
-									this.model.codeCompleterCallback.Zo("bold");
-									this.model.codeCompleterCallback.Zo("italic");
+									this.model.codeCompleterCallback.listElementKeywordFound("normal");
+									this.model.codeCompleterCallback.listElementKeywordFound("bold");
+									this.model.codeCompleterCallback.listElementKeywordFound("italic");
 									return;
 								}
 								if ( identifier == this.model.identifierSpace.get("typeface") ){
-									this.model.codeCompleterCallback.Zo("normal");
-									this.model.codeCompleterCallback.Zo("sans");
-									this.model.codeCompleterCallback.Zo("serif");
-									this.model.codeCompleterCallback.Zo("monospace");
+									this.model.codeCompleterCallback.listElementKeywordFound("normal");
+									this.model.codeCompleterCallback.listElementKeywordFound("sans");
+									this.model.codeCompleterCallback.listElementKeywordFound("serif");
+									this.model.codeCompleterCallback.listElementKeywordFound("monospace");
 									return;
 								}
 								if ( identifier == this.model.identifierSpace.get("ellipsize") ){
-									this.model.codeCompleterCallback.Zo("none");
-									this.model.codeCompleterCallback.Zo("start");
-									this.model.codeCompleterCallback.Zo("middle");
-									this.model.codeCompleterCallback.Zo("end");
-									this.model.codeCompleterCallback.Zo("marquee");
+									this.model.codeCompleterCallback.listElementKeywordFound("none");
+									this.model.codeCompleterCallback.listElementKeywordFound("start");
+									this.model.codeCompleterCallback.listElementKeywordFound("middle");
+									this.model.codeCompleterCallback.listElementKeywordFound("end");
+									this.model.codeCompleterCallback.listElementKeywordFound("marquee");
 									return;
 								}
 								if ( identifier == this.model.identifierSpace.get("inputType") ){
-									this.model.codeCompleterCallback.Zo("none");
-									this.model.codeCompleterCallback.Zo("text");
-									this.model.codeCompleterCallback.Zo("textCapCharacters");
-									this.model.codeCompleterCallback.Zo("textCapWords");
-									this.model.codeCompleterCallback.Zo("textCapSentences");
-									this.model.codeCompleterCallback.Zo("textAutoCorrect");
-									this.model.codeCompleterCallback.Zo("textAutoComplete");
-									this.model.codeCompleterCallback.Zo("textMultiLine");
-									this.model.codeCompleterCallback.Zo("textImeMultiLine");
-									this.model.codeCompleterCallback.Zo("textNoSuggestions");
-									this.model.codeCompleterCallback.Zo("textUri");
-									this.model.codeCompleterCallback.Zo("textEmailAddress");
-									this.model.codeCompleterCallback.Zo("textEmailSubject");
-									this.model.codeCompleterCallback.Zo("textShortMessage");
-									this.model.codeCompleterCallback.Zo("textLongMessage");
-									this.model.codeCompleterCallback.Zo("textPersonName");
-									this.model.codeCompleterCallback.Zo("textPostalAddress");
-									this.model.codeCompleterCallback.Zo("textPassword");
-									this.model.codeCompleterCallback.Zo("textVisiblePassword");
-									this.model.codeCompleterCallback.Zo("textWebEditText");
-									this.model.codeCompleterCallback.Zo("textFilter");
-									this.model.codeCompleterCallback.Zo("textPhonetic");
-									this.model.codeCompleterCallback.Zo("textWebEmailAddress");
-									this.model.codeCompleterCallback.Zo("textWebPassword");
-									this.model.codeCompleterCallback.Zo("number");
-									this.model.codeCompleterCallback.Zo("numberSigned");
-									this.model.codeCompleterCallback.Zo("numberDecimal");
-									this.model.codeCompleterCallback.Zo("numberPassword");
-									this.model.codeCompleterCallback.Zo("phone");
-									this.model.codeCompleterCallback.Zo("datetime");
-									this.model.codeCompleterCallback.Zo("date");
-									this.model.codeCompleterCallback.Zo("time");
+									this.model.codeCompleterCallback.listElementKeywordFound("none");
+									this.model.codeCompleterCallback.listElementKeywordFound("text");
+									this.model.codeCompleterCallback.listElementKeywordFound("textCapCharacters");
+									this.model.codeCompleterCallback.listElementKeywordFound("textCapWords");
+									this.model.codeCompleterCallback.listElementKeywordFound("textCapSentences");
+									this.model.codeCompleterCallback.listElementKeywordFound("textAutoCorrect");
+									this.model.codeCompleterCallback.listElementKeywordFound("textAutoComplete");
+									this.model.codeCompleterCallback.listElementKeywordFound("textMultiLine");
+									this.model.codeCompleterCallback.listElementKeywordFound("textImeMultiLine");
+									this.model.codeCompleterCallback.listElementKeywordFound("textNoSuggestions");
+									this.model.codeCompleterCallback.listElementKeywordFound("textUri");
+									this.model.codeCompleterCallback.listElementKeywordFound("textEmailAddress");
+									this.model.codeCompleterCallback.listElementKeywordFound("textEmailSubject");
+									this.model.codeCompleterCallback.listElementKeywordFound("textShortMessage");
+									this.model.codeCompleterCallback.listElementKeywordFound("textLongMessage");
+									this.model.codeCompleterCallback.listElementKeywordFound("textPersonName");
+									this.model.codeCompleterCallback.listElementKeywordFound("textPostalAddress");
+									this.model.codeCompleterCallback.listElementKeywordFound("textPassword");
+									this.model.codeCompleterCallback.listElementKeywordFound("textVisiblePassword");
+									this.model.codeCompleterCallback.listElementKeywordFound("textWebEditText");
+									this.model.codeCompleterCallback.listElementKeywordFound("textFilter");
+									this.model.codeCompleterCallback.listElementKeywordFound("textPhonetic");
+									this.model.codeCompleterCallback.listElementKeywordFound("textWebEmailAddress");
+									this.model.codeCompleterCallback.listElementKeywordFound("textWebPassword");
+									this.model.codeCompleterCallback.listElementKeywordFound("number");
+									this.model.codeCompleterCallback.listElementKeywordFound("numberSigned");
+									this.model.codeCompleterCallback.listElementKeywordFound("numberDecimal");
+									this.model.codeCompleterCallback.listElementKeywordFound("numberPassword");
+									this.model.codeCompleterCallback.listElementKeywordFound("phone");
+									this.model.codeCompleterCallback.listElementKeywordFound("datetime");
+									this.model.codeCompleterCallback.listElementKeywordFound("date");
+									this.model.codeCompleterCallback.listElementKeywordFound("time");
 									return;
 								}
 								return;
 							}
-							this.model.codeCompleterCallback.Zo("@string/");
+							this.model.codeCompleterCallback.listElementKeywordFound("@string/");
 							return;
 						}
-						this.model.codeCompleterCallback.Zo("@drawable/");
+						this.model.codeCompleterCallback.listElementKeywordFound("@drawable/");
 						return;
 					}
-					this.model.codeCompleterCallback.Zo("@id/");
+					this.model.codeCompleterCallback.listElementKeywordFound("@id/");
 					return;
 				}
-				this.model.codeCompleterCallback.Zo("true");
-				this.model.codeCompleterCallback.Zo("false");
+				this.model.codeCompleterCallback.listElementKeywordFound("true");
+				this.model.codeCompleterCallback.listElementKeywordFound("false");
 				return;
 			}
-			this.model.codeCompleterCallback.Zo("top");
-			this.model.codeCompleterCallback.Zo("bottom");
-			this.model.codeCompleterCallback.Zo("left");
-			this.model.codeCompleterCallback.Zo("right");
-			this.model.codeCompleterCallback.Zo("center_vertical");
-			this.model.codeCompleterCallback.Zo("fill_vertical");
-			this.model.codeCompleterCallback.Zo("center_horizontal");
-			this.model.codeCompleterCallback.Zo("fill_horizontal");
-			this.model.codeCompleterCallback.Zo("center");
-			this.model.codeCompleterCallback.Zo("fill");
-			this.model.codeCompleterCallback.Zo("clip_vertical");
-			this.model.codeCompleterCallback.Zo("clip_horizontal");
-			this.model.codeCompleterCallback.Zo("start");
-			this.model.codeCompleterCallback.Zo("end");
+			this.model.codeCompleterCallback.listElementKeywordFound("top");
+			this.model.codeCompleterCallback.listElementKeywordFound("bottom");
+			this.model.codeCompleterCallback.listElementKeywordFound("left");
+			this.model.codeCompleterCallback.listElementKeywordFound("right");
+			this.model.codeCompleterCallback.listElementKeywordFound("center_vertical");
+			this.model.codeCompleterCallback.listElementKeywordFound("fill_vertical");
+			this.model.codeCompleterCallback.listElementKeywordFound("center_horizontal");
+			this.model.codeCompleterCallback.listElementKeywordFound("fill_horizontal");
+			this.model.codeCompleterCallback.listElementKeywordFound("center");
+			this.model.codeCompleterCallback.listElementKeywordFound("fill");
+			this.model.codeCompleterCallback.listElementKeywordFound("clip_vertical");
+			this.model.codeCompleterCallback.listElementKeywordFound("clip_horizontal");
+			this.model.codeCompleterCallback.listElementKeywordFound("start");
+			this.model.codeCompleterCallback.listElementKeywordFound("end");
 			return;
 		}
-		this.model.codeCompleterCallback.Zo("fill_parent");
-		this.model.codeCompleterCallback.Zo("match_parent");
-		this.model.codeCompleterCallback.Zo("wrap_content");
+		this.model.codeCompleterCallback.listElementKeywordFound("fill_parent");
+		this.model.codeCompleterCallback.listElementKeywordFound("match_parent");
+		this.model.codeCompleterCallback.listElementKeywordFound("wrap_content");
     }
 }
 

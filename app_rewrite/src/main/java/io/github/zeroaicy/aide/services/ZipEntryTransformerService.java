@@ -85,7 +85,7 @@ public class ZipEntryTransformerService {
 	public static void packagingZipFile(String zipFilePath, ZipEntryTransformer transformer, PackagingStream packagingZipOutput, boolean followZipEntryMethod) throws IOException {
 		
 		if (!new File(zipFilePath).exists()) {
-			AppLog.gn("Zip file not found: " + zipFilePath);
+			AppLog.w("Zip file not found: " + zipFilePath);
 			return;
 		}
 		

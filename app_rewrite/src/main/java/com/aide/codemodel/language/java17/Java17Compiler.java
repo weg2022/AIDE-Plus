@@ -5,19 +5,19 @@ import com.aide.codemodel.api.FileEntry;
 import com.aide.codemodel.api.FileSpace;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
+import com.aide.codemodel.api.abstraction.CodeCompiler;
 import com.aide.codemodel.api.abstraction.CodeModel;
-import com.aide.codemodel.api.abstraction.Compiler;
 import com.aide.codemodel.api.collections.SetOfFileEntry;
 import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import javax.tools.JavaFileObject;
+import com.sun.tools.javac.main.JavaCompiler;
 
-public class Java17Compiler implements Compiler {
+public class Java17Compiler implements CodeCompiler {
 
 	Java17CodeModel java17CodeModel;
 
@@ -61,11 +61,11 @@ public class Java17Compiler implements Compiler {
 
 		JavacFileManager javacFileManager = (JavacFileManager) context.get(javax.tools.JavaFileManager.class);
 		
-		JavacJavaCompiler javacJavaCompiler = (JavacJavaCompiler) JavaCompiler.instance(context);
+		JavacJavaCompiler javacJavaCodeCompiler = (JavacJavaCompiler) JavaCompiler.instance(context);
 		
 		List<JavaFileObject> sourceFileObject = new ArrayList<>();
 		
-		javacJavaCompiler.compile(null);
+		javacJavaCodeCompiler.compile(null);
 		
 		
 	}
@@ -84,8 +84,8 @@ public class Java17Compiler implements Compiler {
 		SetOfFileEntry files = new SetOfFileEntry(this.fileSpace);
 		
 		// checkedFiles
-		files.u7(this.fileSpace.KD());
-		SetOfFileEntry.Iterator default_Iterator = files.j6;
+		files.put(this.fileSpace.KD());
+		SetOfFileEntry.Iterator default_Iterator = files.default_Iterator;
 		default_Iterator.init();
 		
         while (default_Iterator.hasMoreElements()) {

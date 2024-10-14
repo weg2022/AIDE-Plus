@@ -19,7 +19,7 @@ public class CodeAnalysisEngineService$c implements com.aide.engine.c{
 
     public void MP(java.lang.Throwable th){
 
-		AppLog.v5(th);
+		AppLog.e(th);
 
 		Log.e("CodeAnalysisEngineService", "CodeAnalysis", th);
 
@@ -28,19 +28,19 @@ public class CodeAnalysisEngineService$c implements com.aide.engine.c{
 				CodeAnalysisEngineService.getEngineListener(this.j6).rJ();
 			}
 			catch (Exception unused){
-				AppLog.v5(th);
+				AppLog.e(th);
 			}
 		}
     }
 
     public void oa(){
-		AppLog.FH("Engine process killed after OOM");
+		AppLog.e("Engine process killed after OOM");
 		if ( CodeAnalysisEngineService.getEngineListener(this.j6) != null ){
 			try{
 				CodeAnalysisEngineService.getEngineListener(this.j6).oa();
 			}
 			catch (Exception e){
-				AppLog.v5(e);
+				AppLog.e(e);
 			}
 		}
 		Process.killProcess(Process.myPid());
@@ -48,7 +48,7 @@ public class CodeAnalysisEngineService$c implements com.aide.engine.c{
     }
 
     public void qP(){
-		AppLog.DW("Engine process killed after shutdown");
+		AppLog.d("Engine process killed after shutdown");
 		Process.killProcess(Process.myPid());
     }
 }
