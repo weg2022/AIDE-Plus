@@ -67,7 +67,8 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 	}
 
 	private void setNotificationAndForeground() {
-		String CHANNEL_ID = "engine";
+		// String CHANNEL_ID = "engine";
+		String CHANNEL_ID = "other";
 		
 		try {
 			/*
