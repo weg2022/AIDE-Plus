@@ -120,7 +120,6 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	 * 查询任务是否为空
 	 */
 	public boolean isEmptyTask() {
-
 		return this.service.getQueue().size() == 0;
 	}
 

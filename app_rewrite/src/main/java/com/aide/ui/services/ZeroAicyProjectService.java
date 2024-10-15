@@ -94,7 +94,7 @@ public class ZeroAicyProjectService extends ProjectService {
 					String name = Thread.currentThread().getName();
 					if (ThreadPoolService.isUiThread() 
 						|| !name.startsWith(ZeroAicyProjectService.executorsName)) {
-						System.out.println("put " + name);
+						System.out.println("put2 " + name);
 						AppLog.e(new Throwable());
 					}
 
@@ -456,7 +456,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			show.getWindow().addFlags(128);
 			show.getWindow().clearFlags(2);
 			// ProjectService.c::run() -> DW() -> init()
-			init(); 
+			this.init(); 
 
 			final ProjectService.d d = new ProjectService.d(z);
 			ServiceContainer.aj(new Runnable(){
@@ -544,7 +544,7 @@ public class ZeroAicyProjectService extends ProjectService {
 							}
 						};
 						// 开始轮询
-						ThreadPoolService.postDelayedOfUi(pollDismissDialog, time);
+						ThreadPoolService.postDelayedOfUi(pollDismissDialog, time / 10);
 
 					}
 				});
@@ -733,8 +733,9 @@ public class ZeroAicyProjectService extends ProjectService {
 	protected void initAsync() {
 		if (isInited()) {
 			// 老是重复初始化
+			AppLog.e(new Throwable());
 			AppLog.d("项目服务, 已初始化: ");
-			return;
+			// return;
 		}
 
 		this.mainAppWearApps.clear();
@@ -816,7 +817,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			// 只有在未初始化完成才执行
 			// 且都在项目服务线程池中运行
 			// 不会并发
-			init();
+			this.init();
 		}
 		// 刷新远程端[代码分析器]
 		jJ();

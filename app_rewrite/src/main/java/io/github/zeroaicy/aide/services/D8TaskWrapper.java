@@ -18,6 +18,8 @@ import com.aide.common.AppLog;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import dalvik.system.DexClassLoader;
+import io.github.zeroaicy.util.reflect.ReflectPie;
 
 public class D8TaskWrapper {
 
@@ -51,6 +53,7 @@ public class D8TaskWrapper {
 		argList.add(String.join("|", inputFiles));
 
 		run(D8BatchTask, argList, environment);
+		
 	}
 
 	public static void runR8Task(List<String> argList) throws Throwable {
@@ -70,7 +73,8 @@ public class D8TaskWrapper {
 	private static void run(String className, List<String> argList) throws Throwable {
 		run(className, argList, Collections.<String, String>emptyMap());
 	}
-
+	
+	private static DexClassLoader r8DexClassLoader;
 	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
@@ -78,7 +82,26 @@ public class D8TaskWrapper {
 		if (r8ZipFile.canWrite()) {
 			r8ZipFile.setWritable(false);
 		}
-
+		if( !R8Task.equals(className)){
+			// 只有r8采用线进程方式
+			// D8Task D8BatchTask 采用动态加载dex的方式运行
+			// 这样可能有dex2oat优化
+			if( r8DexClassLoader == null ){
+				r8DexClassLoader = new DexClassLoader(r8Path, null, null, D8TaskWrapper.class.getClassLoader().getParent());
+			}
+			ArrayList<String> cmdList = new ArrayList<String>();
+			// 方便改变线程数
+			// 都启用多线程dexing ❛˓◞˂̵✧
+			cmdList.add("--thread-count");
+			cmdList.add("16");
+			// 参数
+			cmdList.addAll(argList);
+			String[] args = cmdList.toArray(new String[cmdList.size()]);
+			ReflectPie.onClass(className, r8DexClassLoader).call("main", new Object[]{args});
+			
+			return;
+		}
+		
 		// /system/bin/app_process -Djava.class.path="r8Path" /system/bin --nice-name=R8Task io.github.zeroaicy.r8.R8Task "$@"
 		ArrayList<String> cmdList = new ArrayList<String>();
 		cmdList.add("app_process");
