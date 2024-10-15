@@ -28,6 +28,7 @@ import io.github.zeroaicy.aide.highlight.ColorKind;
 import android.graphics.Canvas;
 import com.aide.common.AppLog;
 import java.util.concurrent.ExecutorService;
+import android.widget.LinearLayout;
 
 public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
@@ -197,7 +198,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	//*/
 
 	static ExecutorService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
-	
+
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
 
 		private static final String TAG = "AIDEEditorModel";
@@ -226,6 +227,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				new Runnable(){
 					@Override
 					public void run() {
+						AppLog.d("异步读取");
 						initAsync(FileSystem.readFileOrZipEntry(AIDEEditorModel.this.filePath));
 					}
 				});
@@ -288,43 +290,44 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		private void initReader(Reader reader) {
 			synchronized (this) {
 				Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
-				synchronized (textBuffers) {
-					// k1()
-					this.cb = com.aide.engine.service.CodeModelFactory.findCodeModel(filePath, ServiceContainer.Hw());
+				// 锁 textBuffers 会导致卡主线程
+				//synchronized (textBuffers) {
+				// k1()
+				this.cb = com.aide.engine.service.CodeModelFactory.findCodeModel(filePath, ServiceContainer.Hw());
 
-					// 需要对textBuffers操作，防止并发
-					//synchronized (textBuffers) {
-					// 重置
-					textBuffers.clear();
+				// 需要对textBuffers操作，防止并发
+				//synchronized (textBuffers) {
+				// 重置
+				textBuffers.clear();
 
-					char[] bufferPool = new char[0x8000];
-					com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
-					IOUtils.close(reader);
+				char[] bufferPool = new char[0x8000];
+				com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
+				IOUtils.close(reader);
 
-					// 没有内容
-					if (textBuffers.size() == 0) {
-						textBuffers.addElement(new TextBuffer());
-					}
-					textBuffers.trimToSize();
-
-					this.initing.set(false);
-
-					synchronized (this.lock) {
-						// 通知代码分析进程
-						this.lock.notifyAll();
-					}
-
-					final CodeEditText.EditorView oEditorView = getOEditorView();
-					oEditorView.invalidateLayoutTask.DW();
-					oEditorView.indexingLayoutTask.DW();
-
-					// 通知代码分析进程 内容填充完毕
-					EngineService engineService = ServiceContainer.getEngineService();
-					// 解除代码分析进程阻塞
-					engineService.ef();
-					engineService.ei();
-
+				// 没有内容
+				if (textBuffers.size() == 0) {
+					textBuffers.addElement(new TextBuffer());
 				}
+				textBuffers.trimToSize();
+
+				this.initing.set(false);
+
+				synchronized (this.lock) {
+					// 通知代码分析进程
+					this.lock.notifyAll();
+				}
+
+				final CodeEditText.EditorView oEditorView = getOEditorView();
+				oEditorView.invalidateLayoutTask.DW();
+				oEditorView.indexingLayoutTask.DW();
+
+				// 通知代码分析进程 内容填充完毕
+				EngineService engineService = ServiceContainer.getEngineService();
+				// 解除代码分析进程阻塞
+				engineService.ef();
+				engineService.ei();
+
+				//}
 
 			}
 		}

@@ -40,7 +40,8 @@ public class ZeroAicyProjectService extends ProjectService {
 	private static final String TAG = "ZeroAicyProjectService";
 
 	// 使用ProjectService的实现类的类名作为线程池标记
-	private static final ThreadPoolService executorsService = ThreadPoolService.getThreadPoolService(ZeroAicyProjectService.class.getName(), 1);
+	public static final String executorsName = ZeroAicyProjectService.class.getName();
+	private static final ThreadPoolService executorsService = ThreadPoolService.getSingleThreadPoolService(ZeroAicyProjectService.executorsName);
 
 	/**
 	 * 使用此线程池的有: AaptService 
@@ -79,15 +80,31 @@ public class ZeroAicyProjectService extends ProjectService {
 	static ProjectSupport getProjectSupport(ProjectService projectService) {
 		return ProjectService.Hw(projectService);
 	}
-	private Map<String, List<String>> libraryMappingCopy;
+	// private Map<String, List<String>> libraryMappingCopy;
 	public ZeroAicyProjectService() {
 		super();
-
 		// 防止并发
 		synchronized (this) {
 			// Collections.synchronizedMap(new HashMap<String, List<String>>());
 			// 项目路径 -> 所有maven依赖
-			this.libraryMapping = new HashMap<>();
+			this.libraryMapping = new HashMap<String, List<String>>(){
+				public List<String> put(String key, List<String> value) {
+
+
+					String name = Thread.currentThread().getName();
+					if (ThreadPoolService.isUiThread() 
+						|| !name.startsWith(ZeroAicyProjectService.executorsName)) {
+						System.out.println("put " + name);
+						AppLog.e(new Throwable());
+					}
+
+					return super.put(key, value);
+				}
+				public List<String> remove(Object key) {
+					System.out.println("remove " + Thread.currentThread());
+					return super.remove(key);
+				}
+			};
 			// new ConcurrentHashMap<String, List<String>>();
 			// mainAppWearApps 主项目和wear app项目
 			this.mainAppWearApps = new Vector<String>();
@@ -111,8 +128,8 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return classPathEntrys;
 	}
-	
-	
+
+
 	// is_add_lib filebrowserMenuAddLibrary
 	// canAddLib
 	@Override
@@ -197,7 +214,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	public List<String> P8() {
         try {
             ArrayList<String> arrayList = new ArrayList<>();
-            new HashSet<String>(this.getLibraryMapping().keySet()).add(getCurrentAppHome());
+            // new HashSet<String>(this.getLibraryMapping().keySet()).add(getCurrentAppHome());
 			arrayList.addAll(new HashSet<String>(this.getLibraryMapping().keySet()));
             return arrayList;
         }
@@ -214,18 +231,19 @@ public class ZeroAicyProjectService extends ProjectService {
 		if (ThreadPoolService.isUiThread()) {
 			synchronized (this.libraryMapping) {
 				// 动态创建副本
-				AppLog.e(new Throwable());
+				// AppLog.e(new Throwable());
 				return new HashMap<String, List<String>>(this.libraryMapping);
 			}
 		}
 		/*
-		if (!isInited() && libraryMappingCopy == null) {
-			return Collections.emptyMap();
-		}
-		// 返回已经初始化完成时，保存的副本[信息完整]
-		return this.libraryMappingCopy;
-		*/
-		System.out.println( Thread.currentThread());
+		 if (!isInited() && libraryMappingCopy == null) {
+		 return Collections.emptyMap();
+		 }
+		 // 返回已经初始化完成时，保存的副本[信息完整]
+		 return this.libraryMappingCopy;
+		 */
+		System.out.println(Thread.currentThread());
+
 		return this.libraryMapping;
 	}
 
@@ -307,13 +325,14 @@ public class ZeroAicyProjectService extends ProjectService {
 			if (this.mainAppWearApps.size() == 0 
 				&& ! isBuildProjected()) {
 				// 返回一个拉倒
-				return Arrays.<String>asList(new String[]{this.currentAppHome});
+				return Collections.singletonList(this.currentAppHome);
 			}
 		}
 
 		// project中所有model文件夹路径
 		return this.mainAppWearApps;			
 	}
+
 	/*****************************************************************/
 	/**
 	 * 防止 Hw 与 libraryMapping值被覆盖
@@ -488,15 +507,6 @@ public class ZeroAicyProjectService extends ProjectService {
 			Window window = show.getWindow();
 			window.addFlags(128);
 			window.clearFlags(2);
-
-			/* 打开完毕，再取消
-			 final Runnable dismissRunnable = new Runnable(){
-			 @Override
-			 public void run() {
-			 show.dismiss();
-			 }
-			 };
-			 //*/
 
 			executorsService.submit(new Runnable(){
 					@Override
@@ -746,8 +756,8 @@ public class ZeroAicyProjectService extends ProjectService {
 		if (this.currentAppHome != null && this.pojectSupport instanceof AndroidProjectSupport) {
 			this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(this.currentAppHome, null);
 		}
-		
-		
+
+
 		// 优先添加依赖信息
 		this.projectProperties = eiAsync();
 		// 初始化完成

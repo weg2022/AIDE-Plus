@@ -21,9 +21,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ThreadPoolService implements ExecutorService {
-
-
+public class ThreadPoolService implements ExecutorService, ThreadFactory {
+	/**
+	 * 实现ExecutorService接口
+	 */
 	@Override
 	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
 		return this.service.awaitTermination(timeout, unit);
@@ -77,70 +78,87 @@ public class ThreadPoolService implements ExecutorService {
 	public <T extends Object> Future<T> submit(Callable<T> task) {
 		return  this.service.submit(task);
 	}
+
+
 	/**
-	 * 监听
+	 * 监听提交
 	 */
 	@Override
 	public Future<?> submit(Runnable runnable) {
-		try{
+		try {
 			ThreadPoolService.Group group = new Group(runnable);
-			// 还在子线程中，直接运行
-			if (!isUiThread()) {
+			// 在本线程内
+			if (this.keepAliveSingleThread
+				&& this.currentThread == Thread.currentThread()) {
 				group.run();			
 				return null;
 			}
 			return service.submit(group);
-			
-		}catch(RejectedExecutionException rejectedExecution){
+
+		}
+		catch (RejectedExecutionException rejectedExecution) {
 			// 过滤 shutdownNow()导致的异常
 			return null;
 		}
 	}
 	/**
-	 * 监听
+	 * 监听提交任务
 	 */
 	@Override
 	public void execute(Runnable command) {
 		ThreadPoolService.Group group = new Group(command);
-		// 还在子线程中，直接运行
-		if (!isUiThread()) {
+		// 在本线程内
+		if (this.keepAliveSingleThread
+			&& this.currentThread == Thread.currentThread()) {
 			group.run();			
 			return;
 		}
 		service.submit(group);
 	}
-	
+
 	/**
 	 * 查询任务是否为空
 	 */
-	 public boolean isEmptyTask(){
-		 
-		 return this.service.getQueue().size() == 0;
-	 }
-	
+	public boolean isEmptyTask() {
+
+		return this.service.getQueue().size() == 0;
+	}
+
 
 	public static final boolean isDebug = !true;
-
 	public static final boolean isPrint = false;
 
 	private static final String TAG = "ExecutorsService";
 	private static final int maxThreadNumber = 8;
+	
 	private static Map<String, ThreadPoolService> executorsNameMap = new HashMap<>();
 	
-	private static ThreadFactory threadFactory = new ThreadFactory(){
-		private final AtomicInteger poolNumber = new AtomicInteger();
-		@Override
-		public Thread newThread(Runnable r) {
-			//namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";			
-			Thread thread = new Thread(r, TAG + "-pool-" + poolNumber.incrementAndGet());
-			return thread;
+	// 默认线程池为单线程且保持运行
+	private static ThreadPoolService defaultThreadPoolService;
+	public static ThreadPoolService getDefaultThreadPoolService() {
+		if (ThreadPoolService.defaultThreadPoolService == null) {
+			ThreadPoolService.defaultThreadPoolService = getSingleThreadPoolService("default");
 		}
-	};
+		return defaultThreadPoolService;
+	}
+
+	/**
+	 * 单线程
+	 */
+	public static ThreadPoolService getSingleThreadPoolService(String executorsName) {
+		ThreadPoolService temp = ThreadPoolService.executorsNameMap.get(executorsName);
+		if (temp == null) {
+			temp = new ThreadPoolService(executorsName);
+			ThreadPoolService.executorsNameMap.put(executorsName, temp);
+		}
+		return temp;
+	}
+
 
 	// 主线程
 	private static Handler uiHandler = new Handler(Looper.getMainLooper());
 	private static Thread uiThread = uiHandler.getLooper().getThread();
-	
+
 
 	public static final boolean post(Runnable r) {
 		return uiHandler.post(r);
@@ -148,7 +166,7 @@ public class ThreadPoolService implements ExecutorService {
 	public static final boolean postDelayedOfUi(Runnable r, long delayMillis) {
 		return uiHandler.postDelayed(r, delayMillis);
 	}
-	
+
 	public static final void removeCallbacksOfUi(Runnable r) {
 		uiHandler.removeCallbacks(r);
 	}
@@ -156,52 +174,20 @@ public class ThreadPoolService implements ExecutorService {
 		return uiThread == Thread.currentThread();
 	}
 
-	// 默认子线程
-	private static ThreadPoolService defaultThreadPoolService;
-	// 默认线程为4
-	// 使用默认线程的有
-	public static ThreadPoolService getDefaultThreadPoolService() {
-		if (defaultThreadPoolService == null) {
-			defaultThreadPoolService = getThreadPoolService("default");
-		}
-		return defaultThreadPoolService;
-	}
+	
 
 	/**
-	 * 默认线程数为 4
+	 * 空闲时间会关闭线程
 	 */
-	public static ThreadPoolService getThreadPoolService(String executorsName) {
-		return getThreadPoolService(executorsName, 1);
-	}
-
 	public static ThreadPoolService getThreadPoolService(String executorsName, int threadNumber) {
 		ThreadPoolService temp = executorsNameMap.get(executorsName);
 		if (temp == null) {
-			temp = new ThreadPoolService(threadNumber);
+			temp = new ThreadPoolService(executorsName, threadNumber);
 			executorsNameMap.put(executorsName, temp);
 		}
 		return temp;
 	}
-	
-	// invokeAll阻塞调用处线程
-	// 暂时用这种
-	private final ThreadPoolExecutor service;
-	public ExecutorService getService() {
-		return this.service;
-	}
-	public ThreadPoolService() {
-		service = newFixedThreadPool(1, threadFactory);
-	}
 
-	public ThreadPoolService(int threadNumber) {
-		if (threadNumber > maxThreadNumber) {
-			threadNumber = maxThreadNumber;
-		}
-		service = newFixedThreadPool(threadNumber, threadFactory);
-	}
-	public static ThreadPoolExecutor newFixedThreadPool(int maximumPoolSize) {
-        return new ThreadPoolExecutor(maximumPoolSize, maximumPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-    }
 	/**
 	 * corePoolSize为最大线程数的一半
 	 */
@@ -210,12 +196,45 @@ public class ThreadPoolService implements ExecutorService {
         return new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), threadFactory);
     }
 
+
+	private final AtomicInteger poolNumber = new AtomicInteger();
+	@Override
+	public Thread newThread(Runnable r) {
+		String prefix = this.executorsName;
+		if (this.keepAliveSingleThread) {
+			this.currentThread = new Thread(r, prefix + "-keep-single-pool-" + poolNumber.incrementAndGet());
+			this.currentThread.setDaemon(true);
+			return this.currentThread;
+		}
+		return new Thread(r, prefix + "-pool-" + poolNumber.incrementAndGet());
+	}
+
+	// invokeAll阻塞调用处线程
+	// 暂时用这种
+	private final ThreadPoolExecutor service;
+
 	/**
-	 * 使得AaptService可以使用此线程池
-	 * 已免运行aapt2时
+	 * 长时间单线程池
 	 */
-	public <V> void execute(FutureTask<V> futureTask) {
-		service.execute(futureTask);
+	final boolean keepAliveSingleThread;
+	Thread currentThread;
+	final String executorsName;
+	public ThreadPoolService(String executorsName) {
+		this.keepAliveSingleThread = true;
+		this.executorsName = executorsName;
+		this.service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(), this);
+	}
+
+	public ThreadPoolService(String executorsName, int threadNumber) {
+		this.keepAliveSingleThread = false;
+		this.executorsName = executorsName;
+		
+		threadNumber = Math.min(threadNumber, maxThreadNumber);
+		this.service = newFixedThreadPool(threadNumber, this);
+	}
+
+	public ExecutorService getService() {
+		return this.service;
 	}
 
 	public static class Group implements Runnable {
@@ -268,9 +287,9 @@ public class ThreadPoolService implements ExecutorService {
 				AppLog.d("ExecutorsService", "耗时 ", (now) + "ms");
 				AppLog.println_e(stackTraces);
 				AppLog.println_e("******************************************************\n");
-				
+
 			}
-			
+
 
 		}
 	}
