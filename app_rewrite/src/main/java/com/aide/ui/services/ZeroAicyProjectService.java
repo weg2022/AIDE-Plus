@@ -359,16 +359,23 @@ public class ZeroAicyProjectService extends ProjectService{
 	 * 返回主项目路径及子项目路径 [签名服务会回调]
 	 */
 	// yS() -> getMainAppWearApps
+	List<String> mainAppWearAppsCopy;
+	
+	/**
+	 * 构建时不能返回空对象，之前要有一个
+	 */
 	@Override
 	public synchronized List<String> getMainAppWearApps(){
 		if ( !executorsService.isCurrentThread() ){
-			synchronized ( this.mainAppWearApps ){
-				if ( this.mainAppWearApps.size() == 0 
-					&& ! isBuildProjected() ){
-					// 返回一个当前项目路径拉倒
+			
+			synchronized ( this ){
+				List<String> mainAppWearAppsCopy = this.mainAppWearAppsCopy;
+				if ( mainAppWearAppsCopy == null
+					|| this.mainAppWearAppsCopy.isEmpty() ){
 					// 一般不会有WearApp项目
 					return Collections.singletonList(this.currentAppHome);
 				}
+				return mainAppWearAppsCopy;
 			}
 		}
 		// project中所有model文件夹路径
@@ -387,7 +394,8 @@ public class ZeroAicyProjectService extends ProjectService{
 		this.libraryMapping.clear();
 		// libraryMapping只读副本
 		this.libraryMappingCopy = null;
-
+		this.mainAppWearAppsCopy = null;
+		
 		this.classPathEntrys = null;
 
 		// 同步代码分析进程
@@ -891,6 +899,8 @@ public class ZeroAicyProjectService extends ProjectService{
 			// libraryMapping是所有子项目目录[aar也算且包含当前项目目录]
 			this.pojectSupport.init(this.currentAppHome, this.libraryMapping, this.mainAppWearApps);
 			this.libraryMappingCopy = new HashMap<String, List<String>>(this.libraryMapping);
+			this.mainAppWearAppsCopy = new ArrayList<String>(this.mainAppWearApps);
+
 		}
 
 		// 初始化完成
