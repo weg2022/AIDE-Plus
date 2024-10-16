@@ -651,7 +651,7 @@ public class ZeroAicyProjectService extends ProjectService{
 
 		if ( isOpenProject() ){
 			// call PojectSupport::cn()
-			ZeroAicyProjectService.this.et(null, false);
+			// ZeroAicyProjectService.this.et(null, false);
 			//sy("init");
 		}
 
