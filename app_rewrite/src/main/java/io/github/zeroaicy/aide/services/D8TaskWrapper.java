@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import dalvik.system.DexClassLoader;
 import io.github.zeroaicy.util.reflect.ReflectPie;
+import io.github.zeroaicy.util.reflect.ReflectPieException;
 
 public class D8TaskWrapper {
 
@@ -53,7 +54,7 @@ public class D8TaskWrapper {
 		argList.add(String.join("|", inputFiles));
 
 		run(D8BatchTask, argList, environment);
-		
+
 	}
 
 	public static void runR8Task(List<String> argList) throws Throwable {
@@ -73,7 +74,7 @@ public class D8TaskWrapper {
 	private static void run(String className, List<String> argList) throws Throwable {
 		run(className, argList, Collections.<String, String>emptyMap());
 	}
-	
+
 	private static DexClassLoader r8DexClassLoader;
 	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
@@ -82,11 +83,11 @@ public class D8TaskWrapper {
 		if (r8ZipFile.canWrite()) {
 			r8ZipFile.setWritable(false);
 		}
-		if( !R8Task.equals(className)){
+		if (!R8Task.equals(className)) {
 			// 只有r8采用线进程方式
 			// D8Task D8BatchTask 采用动态加载dex的方式运行
 			// 这样可能有dex2oat优化
-			if( r8DexClassLoader == null ){
+			if (r8DexClassLoader == null) {
 				r8DexClassLoader = new DexClassLoader(r8Path, null, null, D8TaskWrapper.class.getClassLoader().getParent());
 			}
 			ArrayList<String> cmdList = new ArrayList<String>();
@@ -97,27 +98,40 @@ public class D8TaskWrapper {
 			// 参数
 			cmdList.addAll(argList);
 			String[] args = cmdList.toArray(new String[cmdList.size()]);
-			ReflectPie.onClass(className, r8DexClassLoader).call("main", new Object[]{args});
-			
+			try {
+				ReflectPie.onClass(className, r8DexClassLoader).call("main", new Object[]{args});
+			}
+			catch (ReflectPieException e) {
+				Throwable cause = e.getCause();
+				if (cause != null) {
+					Throwable cause2 = cause.getCause();
+					if (cause2 != null) {
+						cause = cause2;						
+					}
+				}
+				throw cause;
+			}catch (Throwable e) {
+				throw e;
+			}
 			return;
 		}
-		
+
 		// /system/bin/app_process -Djava.class.path="r8Path" /system/bin --nice-name=R8Task io.github.zeroaicy.r8.R8Task "$@"
 		ArrayList<String> cmdList = new ArrayList<String>();
 		cmdList.add("app_process");
 		cmdList.add("-Djava.class.path=" + r8Path);
 		cmdList.add("/system/bin");
 		cmdList.add("--nice-name=D8Task");
-		
+
 
 		// 需要运行的类
 		cmdList.add(className);
-		
+
 		// 方便改变线程数
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		cmdList.add("--thread-count");
 		cmdList.add("16");
-		
+
 		// 参数
 		cmdList.addAll(argList);
 
@@ -131,10 +145,10 @@ public class D8TaskWrapper {
 	private static void run(String className, String[] args, Map<String, String> environment, boolean isExceptionHandling) throws Throwable {
 
 		ProcessBuilder processBuilder = new ProcessBuilder(args);
-		if( environment != null){
+		if (environment != null) {
 			processBuilder.environment().putAll(environment);
 		}
-	
+
 
 		// 运行进程
 		Process process = processBuilder.start();
@@ -162,7 +176,7 @@ public class D8TaskWrapper {
 		//已经是在处理异常了 及时退出否则死递归了
 		// int[] exceptionCodes = new int[]{134, 13};
 		if (!isExceptionHandling 
-			&& ( exitValue == 134 || exitValue == 139 )) {
+			&& (exitValue == 134 || exitValue == 139)) {
 			// 扩容库储存
 			// 禁用扩容
 			ZeroAicySetting.disableEnableEnsureCapacity();
@@ -172,15 +186,15 @@ public class D8TaskWrapper {
 		}
 
 		String error = errorStreamReader.getError();
-		
+
 		//String output = inputStreamReader.getError();
 
 		String format = String.format(
 			"\nTask: %s -> exited with code %s\nError:\n%s\n", 
 			className, process.exitValue(), error);
-		
 
-		if( exitValue == 137 ){
+
+		if (exitValue == 137) {
 			throw new OutOfMemoryError("r8 task exited code 137可能是OOM\n" + format);
 		}
 		throw new Error(format);
@@ -189,7 +203,7 @@ public class D8TaskWrapper {
 
 
 	public static class ProcessStreamReader implements Runnable {
-		
+
 		public static String TAG = "ProcessStreamReader";
 		//BufferedInputStream bufferedInputStream;
 		// ByteArrayOutputStream byteArrayOutputStream;
@@ -201,7 +215,7 @@ public class D8TaskWrapper {
 		public ProcessStreamReader(InputStream inputStream) {
 			this(inputStream, false);
 		}
-		
+
 		public ProcessStreamReader(InputStream inputStream, boolean isErrorStream) {
 			//this.bufferedInputStream = new BufferedInputStream(inputStream);
 			//this.byteArrayOutputStream = new ByteArrayOutputStream();
@@ -220,7 +234,7 @@ public class D8TaskWrapper {
 				while ((line = bufferedReader.readLine()) != null) {
 					// 边运行边打印
 					if (isErrorStream) AppLog.println_d(line);
-					
+
 					stringBuilder.append(line);
 					stringBuilder.append(System.lineSeparator());
 				}
@@ -240,7 +254,7 @@ public class D8TaskWrapper {
 	public static void fillD8Args(List<String> argsList, int minSdk, boolean file_per_class_file, boolean intermediate, String user_androidjar, List<String> dependencyLibs, String outPath) {
 		// 都启用多线程dexing ❛˓◞˂̵✧
 		argsList.add("--min-api");
-		
+
 		minSdk = Math.max(minSdk, 21);
 		//待跟随minSDK
 		argsList.add(String.valueOf(minSdk));

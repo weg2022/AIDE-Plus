@@ -40,6 +40,10 @@ public class MavenService {
 		// resolvingMavenDependency
 		this.resolvingMavenDependency(dependency);
 	}*/
+	
+	/**
+	 * 解析依赖及其子依赖，并将其添加到版本管理器中
+	 */
 	@Keep
 	public final void resolvingMavenDependency(BuildGradle.MavenDependency dependency) {
 		proxy.resolvingDependency(dependency);
@@ -52,6 +56,9 @@ public class MavenService {
 		return this.resolveMavenDepPath(dependency);
 	}
 	
+	/**
+	 * 返回依赖版本管理器中的依赖路径
+	 */
 	@Keep
 	public final String resolveMavenDepPath(BuildGradle.MavenDependency dependency) {
 		return proxy.resolveMavenDepPath(dependency);
@@ -61,6 +68,10 @@ public class MavenService {
 	/*public final List<BuildGradle.MavenDependency> er(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency){
 		return this.getNotExistsLocalCache(flatRepoPathMap, dependency);
 	}*/
+	
+	/**
+	* 
+	*/
 	@Keep
 	public final List<BuildGradle.MavenDependency> getNotExistsLocalCache(Map<String, String> flatRepoPathMap, BuildGradle.MavenDependency dependency) {
 		return proxy.getNotExistsLocalCache(flatRepoPathMap, dependency);
@@ -74,8 +85,9 @@ public class MavenService {
 	public final List<String> J0(String depPath){
 		return this.resolveFullDependencyTree(depPath);
 	}
-
-	// @Override
+	/**
+	 * 根据依赖路径
+	 */
 	@Keep
 	public final List<String> resolveFullDependencyTree(String depPath) {
 		return proxy.resolveFullDependencyTree(depPath);

@@ -189,7 +189,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	 * 文件路径，也有可能是jar里的class
 	 * 有很大的闪退风险
 	 */
-	//*
+	/*
 	@Override
 	protected OpenFileService.OpenFileModel Z1(final String filePath) {
 		// 先返回，内容异步塞入
@@ -198,7 +198,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	//*/
 
 	static ExecutorService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
-
+	// 有问题 暂时不启用
 	public class AIDEEditorModel extends com.aide.ui.AIDEEditor.t {
 
 		private static final String TAG = "AIDEEditorModel";
@@ -233,7 +233,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				});
 
 		}
-
+		// 启用后输入卡顿，可能是这个
 		@Override
 		public void j6() {
 			// 异步
@@ -260,8 +260,8 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			if (initing.get()) {
 				try {
 					synchronized (this.lock) {
-						//等待
-						this.lock.wait();
+						// 防止死锁
+						this.lock.wait(10000);
 					}
 				}
 				catch (Throwable e) {
@@ -269,12 +269,12 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			}
 			super.J0(openFile);
 		}
-
+		
 		@Override
 		public int getLineCount() {
-
 			return super.getLineCount();
 		}
+		
 		// 为了等待
 		private final Object lock = new Object();
 		private final AtomicBoolean initing = new AtomicBoolean(true);
@@ -298,20 +298,22 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				// 需要对textBuffers操作，防止并发
 				//synchronized (textBuffers) {
 				// 重置
-				textBuffers.clear();
-
+				synchronized (textBuffers) {
+					textBuffers.clear();
+				}
 				char[] bufferPool = new char[0x8000];
 				com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
 				IOUtils.close(reader);
-
-				// 没有内容
-				if (textBuffers.size() == 0) {
-					textBuffers.addElement(new TextBuffer());
+				
+				synchronized (textBuffers) {
+					// 没有内容
+					if (textBuffers.size() == 0) {
+						textBuffers.addElement(new TextBuffer());
+					}
+					textBuffers.trimToSize();
 				}
-				textBuffers.trimToSize();
-
+				
 				this.initing.set(false);
-
 				synchronized (this.lock) {
 					// 通知代码分析进程
 					this.lock.notifyAll();

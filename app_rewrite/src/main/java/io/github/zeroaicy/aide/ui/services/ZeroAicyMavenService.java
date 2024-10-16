@@ -133,7 +133,7 @@ public class ZeroAicyMavenService{
 			// 装箱
 			ArtifactNode artifactNode = makeUpdateDep(dep);
 
-            getNotExistsLocalCache(flatRepoPathMap, artifactNode, notExistsLocalCache, defaultDepth);
+            getNotExistsLocalCache(flatRepoPathMap, artifactNode, notExistsLocalCache, defaultDepth * defaultDepth);
 
             return notExistsLocalCache;
         }
@@ -257,31 +257,10 @@ public class ZeroAicyMavenService{
 	@Keep
 	public synchronized void resetDepMap(){
 		this.depManager.clear();
-		
-		// 以前只有AndroidProjectSupport使用 MavenService
-		
-		// 提前 解析AndroidGradle项目
-		// 边添加依赖边解析会有问题
+		// 理解错了 有提前resolvingMavenDependency的
+		// 结果还是需要提前，不然还是有连个版本的jar
 		ZeroAicyProjectService.preResolving();
     }
-
-	/*private void test() {
-	 BuildGradle.MavenDependency mavenDependency = new BuildGradle.MavenDependency(0);
-	 mavenDependency.groupId = "androidx.customview";
-	 mavenDependency.artifactId = "customview";
-	 mavenDependency.version = "1.0.0-alpha1";
-
-	 ArtifactNode customview = makeUpdateDep(mavenDependency);
-
-	 System.out.println();
-	 System.out.println();
-	 System.out.println("提前初始化完毕");
-	 System.out.println("测试: " + customview);
-	 System.out.println("测试2: " + this.depManager.get(customview.getGroupIdArtifactId()));
-	 System.out.println(this.depManager);
-	 System.out.println();
-	 System.out.println();
-	 }*/
 
 
 
@@ -308,7 +287,8 @@ public class ZeroAicyMavenService{
 	public void resolvingDependency(BuildGradle.MavenDependency dependency){
         try{
 			//解析并填充此依赖
-            resolvingDependency(makeUpdateDep(dependency), defaultDepth);
+			// 必须完全解析
+            resolvingDependency(makeUpdateDep(dependency), defaultDepth * defaultDepth);
         }
 		catch (Throwable th){
 			if ( th instanceof Error ) 
@@ -323,7 +303,7 @@ public class ZeroAicyMavenService{
         try{
 			//从缓存仓库计算MavenDependency依赖路径[pom|jar|aar]
 
-			// 先从依赖管理器中获取最新版本
+			// 先从依赖版本管理器中获取最新版本
 			ArtifactNode artifactNode = makeUpdateDep(mavenDependency);
 			// 解析依赖路径
 			String depPath = resolveMavenDepPath(null, artifactNode);
@@ -444,7 +424,7 @@ public class ZeroAicyMavenService{
         }
     }
 	/**
-	 * 私有，内部实现 依赖管理器
+	 * 私有，内部实现 依赖版本管理器
 	 */
     private final Map<String, ArtifactNode> depManager = new HashMap<>();
 
@@ -668,9 +648,10 @@ public class ZeroAicyMavenService{
             if ( depPaths.contains(depPath) ){
                 return;
             }
-
-			// 不应该边解析边添加 依赖路径
-			// 因为版本没有最终确定
+			
+			
+			//  ProjectSupport::init()时应当 resolvingDependency
+			// 将依赖版本管理器的依赖都是新版本
             depPaths.add(depPath);
 
 			if ( depth < 1 ){
@@ -683,6 +664,7 @@ public class ZeroAicyMavenService{
 
 			for ( ArtifactNode artifactNode : curPomXml.depManages ){
 				// dependencyManagement只做版本控制
+				// 向依赖版本管理中更新版本
 				makeUpdateDep(artifactNode);
 			}
 

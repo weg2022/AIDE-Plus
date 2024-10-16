@@ -1,6 +1,4 @@
-//
-// Decompiled by Jadx - 931ms
-//
+
 package com.aide.common;
 
 import io.github.zeroaicy.util.Log;

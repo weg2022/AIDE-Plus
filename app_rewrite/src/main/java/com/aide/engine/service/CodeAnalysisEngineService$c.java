@@ -45,6 +45,7 @@ public class CodeAnalysisEngineService$c implements com.aide.engine.c{
 		}
 		Process.killProcess(Process.myPid());
 		Process.killProcess(Process.myPid());
+		System.out.println(-1);
     }
 
     public void qP(){

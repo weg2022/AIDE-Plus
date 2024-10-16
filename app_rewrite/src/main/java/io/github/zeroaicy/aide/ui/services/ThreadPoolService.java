@@ -22,6 +22,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadPoolService implements ExecutorService, ThreadFactory {
+
+	public boolean isCurrentThread() {
+		return this.currentThread == Thread.currentThread();
+	}
 	/**
 	 * 实现ExecutorService接口
 	 */
@@ -87,11 +91,13 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	public Future<?> submit(Runnable runnable) {
 		try {
 			ThreadPoolService.Group group = new Group(runnable);
-			// 在本线程内
-			if (this.keepAliveSingleThread
-				&& this.currentThread == Thread.currentThread()) {
-				group.run();			
-				return null;
+			
+			if (!isUiThread()) {
+				if (this.keepAliveSingleThread
+					&& this.currentThread == Thread.currentThread()) {
+					group.run();
+					return null;
+				}
 			}
 			return service.submit(group);
 
@@ -107,11 +113,14 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	@Override
 	public void execute(Runnable command) {
 		ThreadPoolService.Group group = new Group(command);
-		// 在本线程内
-		if (this.keepAliveSingleThread
-			&& this.currentThread == Thread.currentThread()) {
-			group.run();			
-			return;
+		
+		if (!isUiThread()) {
+			// 在本线程内
+			if (this.keepAliveSingleThread
+				&& this.currentThread == Thread.currentThread()) {
+				group.run();			
+				return;
+			}
 		}
 		service.submit(group);
 	}
@@ -129,14 +138,14 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 
 	private static final String TAG = "ExecutorsService";
 	private static final int maxThreadNumber = 8;
-	
+
 	private static Map<String, ThreadPoolService> executorsNameMap = new HashMap<>();
-	
+
 	// 默认线程池为单线程且保持运行
 	private static ThreadPoolService defaultThreadPoolService;
 	public static ThreadPoolService getDefaultThreadPoolService() {
 		if (ThreadPoolService.defaultThreadPoolService == null) {
-			ThreadPoolService.defaultThreadPoolService = getSingleThreadPoolService("default");
+			ThreadPoolService.defaultThreadPoolService = getThreadPoolService("default", 2);
 		}
 		return defaultThreadPoolService;
 	}
@@ -173,7 +182,7 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 		return uiThread == Thread.currentThread();
 	}
 
-	
+
 
 	/**
 	 * 空闲时间会关闭线程
@@ -196,11 +205,14 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
     }
 
 
-	private final AtomicInteger poolNumber = new AtomicInteger();
+	private static final AtomicInteger poolNumber = new AtomicInteger();
 	@Override
-	public Thread newThread(Runnable r) {
+	public synchronized Thread newThread(Runnable r) {
 		String prefix = this.executorsName;
 		if (this.keepAliveSingleThread) {
+			if( this.currentThread != null ){
+				return this.currentThread;
+			}
 			this.currentThread = new Thread(r, prefix + "-keep-single-pool-" + poolNumber.incrementAndGet());
 			this.currentThread.setDaemon(true);
 			return this.currentThread;
@@ -222,12 +234,28 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 		this.keepAliveSingleThread = true;
 		this.executorsName = executorsName;
 		this.service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(), this);
+		
+		/*
+		Future<Thread> getCurrentThread = this.service.submit(new Callable<Thread>(){
+				@Override
+				public Thread call() throws Exception {
+					// 返回当前进程
+					return Thread.currentThread();
+				}
+			});
+		try {
+			this.currentThread = getCurrentThread.get();
+			AppLog.e("改变 this.currentThread " + System.identityHashCode(this.currentThread));
+		}
+		catch (Throwable e) {
+
+		}*/
 	}
 
 	public ThreadPoolService(String executorsName, int threadNumber) {
 		this.keepAliveSingleThread = false;
 		this.executorsName = executorsName;
-		
+
 		threadNumber = Math.min(threadNumber, maxThreadNumber);
 		this.service = newFixedThreadPool(threadNumber, this);
 	}

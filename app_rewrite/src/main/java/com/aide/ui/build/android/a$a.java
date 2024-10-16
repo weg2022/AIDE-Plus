@@ -18,14 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-@TypeMark(clazz = 6522210001655193240L, container = 6522210001655193240L, user = true)
 class a$a implements Callable<Map<String, List<SyntaxError>>> {
-
-    @ParametersEnabled
-    private static boolean FH;
-
-    @ExceptionEnabled
-    private static boolean Hw;
 
     @FieldMark(field = 3008899555223405220L)
     @hy

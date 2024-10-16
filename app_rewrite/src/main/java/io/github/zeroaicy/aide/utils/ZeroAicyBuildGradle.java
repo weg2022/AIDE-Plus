@@ -31,7 +31,6 @@ import org.codehaus.groovy.antlr.parser.GroovyLexer;
 import org.codehaus.groovy.antlr.parser.GroovyRecognizer;
 
 import static com.aide.ui.util.BuildGradle.*;
-import java.util.Arrays;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
 
@@ -94,7 +93,6 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 	public static synchronized ZeroAicyBuildGradle getSingleton() {
 		if (singleton == null) {
 			singleton = new ZeroAicyBuildGradle(true);
-
 			AppLog.d("ZeroAicyBuildGradle",  "替换gradle解析器");
 		}
 		return singleton;
@@ -862,13 +860,12 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 			getText(getFirstChild(getNextSibling(getFirstChild(getFirstChild(ast)))));
 
 		if ("viewBinding".equals(nodeSimpleName)) {
-			AppLog.println_d("%s  %s", nodeName, astValue);
 			this.viewBindingEnabled = "true".equals(astValue);
 		}
 
 		if ("useAndroidx".equals(nodeSimpleName)) {
-			AppLog.println_d("%s  %s", nodeName, astValue);
-			this.useAndroidx = "true".equals(astValue);
+			// 这样才是默认true
+			this.useAndroidx = !"false".equals(astValue);
 		}
 	}
 	private void parserBuildTypesRelease(String nodeName, AST ast) {

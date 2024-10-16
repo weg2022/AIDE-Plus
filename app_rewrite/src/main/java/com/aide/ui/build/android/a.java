@@ -3,21 +3,17 @@
 //
 package com.aide.ui.build.android;
 
-import abcd.th;
 import android.os.Build;
+import androidx.annotation.Keep;
 import com.aide.common.AppLog;
 import com.aide.engine.SyntaxError;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.services.AssetInstallationService;
+import com.aide.ui.services.ProjectService;
 import com.aide.ui.util.FileSystem;
-import com.google.android.gms.internal.ads.iy;
-import com.google.android.gms.internal.ads.z2;
-import com.probelytics.annotation.ExceptionEnabled;
 import com.probelytics.annotation.FieldMark;
 import com.probelytics.annotation.MethodMark;
-import com.probelytics.annotation.ParametersEnabled;
-import com.probelytics.annotation.TypeMark;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,17 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-@TypeMark(clazz = -390754962848522880L, container = -390754962848522880L, user = true)
+/**
+ * 被AndroidProjectBuildService引用
+ * AidlService
+ */
+ @Keep
 public class a {
 
     @FieldMark(field = 239202569234476859L)
     private static boolean Hw;
-
-    @ExceptionEnabled
-    private static boolean Zo;
-
-    @ParametersEnabled
-    private static boolean v5;
 
     @FieldMark(field = -1439319343464242515L)
     private a$c lastTask;
@@ -188,6 +182,7 @@ public class a {
     }
 
     @MethodMark(method = 4174856810662674400L)
+	// getAIDL路径
     private String tp() {
         try {
             if (Build.VERSION.SDK_INT >= 29) {
@@ -211,7 +206,7 @@ public class a {
     }
 
     @MethodMark(method = 4158781679847656875L)
-    static Map v5(a aVar, String str, String str2) {
+    static Map<String, List<SyntaxError>> v5(a aVar, String str, String str2) {
         return aVar.EQ(str, str2);
     }
 
@@ -227,7 +222,8 @@ public class a {
         }
     }
 
-    @MethodMark(method = -2918463703260725856L)
+    // AndroidProjectBuildService::DW() call
+	@Keep
     public void QX(f fVar) {
         try {
             this.FH = fVar;
@@ -237,8 +233,9 @@ public class a {
         }
     }
 
-    @MethodMark(method = 32178355211172639L)
-    public void XL(final String str, final boolean z, final boolean z2) {
+    // AndroidProjectBuildService::sy() call
+	@Keep
+	public void XL(final String str, final boolean z, final boolean z2) {
         try {
             final String tp = tp();
             if (this.lastTask != null) {
@@ -269,8 +266,10 @@ public class a {
             throw new Error(th);
         }
     }
-
-    @MethodMark(method = -570462002232748675L)
+	
+	// AndroidProjectBuildService$c$c::run() 调用
+	// AndroidProjectBuildService::yO()
+    @Keep
     public void aM(final List<String> list) {
         try {
             final String tp = tp();
@@ -284,7 +283,9 @@ public class a {
 				public List<a$b> getTasks() {
 					// 比较耗时，当在线程池运行
 					ArrayList<a$b> arrayList = new ArrayList<>();
-					for(String next : ServiceContainer.getProjectService().getMainAppWearApps()){
+					ProjectService projectService = ServiceContainer.getProjectService();
+					List<String> mainAppWearApps = projectService.getMainAppWearApps();
+					for (String next : mainAppWearApps) {
 						arrayList.add(getTaskInfo(next, list, false, tp));
 					}
 					return arrayList;

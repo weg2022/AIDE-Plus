@@ -210,7 +210,8 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 
 				//缓存目录都不存在，全量dexing
 				boolean existsCacheDir = new File(getDefaultJarDexDirPath()).exists();
-				boolean isBuildRefresh = isBuildRefresh() || ! existsCacheDir;
+				// dexing jarw不管构建刷新
+				boolean isBuildRefresh = /*isBuildRefresh() ||*/ !existsCacheDir;
 				//dexing 没有Jardex缓存的依赖
 				List<String> dexingLibs = getDexingLibs();
 				List<String> needDexingLibs = new ArrayList<>();
@@ -611,7 +612,9 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService{
 				File defaultClassDexCacheDir = new File(getDefaultClassDexCacheDirPath());
 				File mergerCacheDir = new File(getMergerCacheDirPath());
 
-				FileUtil.deleteFolder(new File(getDefaultIntermediatesDirPath()));
+FileUtil.deleteFolder(defaultClassDexCacheDir);
+FileUtil.deleteFolder(mergerCacheDir);
+				// FileUtil.deleteFolder(new File(getDefaultIntermediatesDirPath()));
 
 				defaultJarDexDir.mkdirs();
 				defaultClassDexCacheDir.mkdirs();
