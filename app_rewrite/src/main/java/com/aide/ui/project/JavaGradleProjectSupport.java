@@ -9,17 +9,16 @@ import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.services.ProjectSupport;
 import com.aide.ui.services.TemplateService;
 import com.aide.ui.util.BuildGradle;
+import com.aide.ui.util.BuildGradle.Dependency;
+import com.aide.ui.util.BuildGradleExt;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
-import com.aide.ui.util.BuildGradleExt;
-import com.aide.ui.util.BuildGradle.Dependency;
-import java.util.Iterator;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -44,7 +43,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	@Override
 	public void buildProject(boolean p) {
-		// TODO: Implement this method
+		// TODO: Implement  method
 	}
 
 	@Override
@@ -222,7 +221,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			}
 		}
 	}
-	
+
 
 	private void preResolving(String projectPath) {
 
