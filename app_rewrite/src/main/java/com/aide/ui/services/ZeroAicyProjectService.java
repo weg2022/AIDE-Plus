@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.aide.ui.project.JavaGradleProjectSupport;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -162,15 +163,18 @@ public class ZeroAicyProjectService extends ProjectService {
 	 */
 	public List<ClassPath.Entry> getClassPathEntrys() {
 		List<ClassPath.Entry> classPathEntrys = this.classPathEntrys;
+		
 		if (classPathEntrys == null) {
-			// 可以做一些额外处理
-			executorsService.submit(new Runnable(){
-					@Override
-					public void run() {
-						// 异步加载吧
-						ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
-					}
-				});
+			if (this.pojectSupport instanceof AndroidProjectSupport) {
+				// 可以做一些额外处理
+				executorsService.submit(new Runnable(){
+						@Override
+						public void run() {
+							// 异步加载吧
+							ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
+						}
+					});
+			}
 			return Collections.emptyList();
 		}
 		return classPathEntrys;
@@ -531,6 +535,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		
 		// 必须赋值
 		ZeroAicyProjectService.this.currentAppHome = projectDir;
+		ZeroAicyProjectService.this.pojectSupport = getProjectSupport(projectDir);
 		
 		// ye();
 		// 清空错误列表
@@ -932,10 +937,21 @@ public class ZeroAicyProjectService extends ProjectService {
 		edit.commit();
 	}
 
+	@Override
+	public int getOpenProjectNameStringId(String str) {
+		return getProjectSupport(str).getOpenProjectNameStringId(str);
+	}
+
 	private ProjectSupport getProjectSupport(String projectPath) {
 		if (projectPath == null) {
 			return null;
 		}
+		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
+		boolean isSupport = javaGradleProjectSupport.isSupport(projectPath);
+		if (isSupport) {
+			return javaGradleProjectSupport;
+		}
+		
 		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
 			if (projectSupport.isSupport(projectPath)) {
 				return projectSupport;

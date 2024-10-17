@@ -321,24 +321,38 @@ public class ZeroAicyMavenService{
 			String depPomPath = getDepPomPath(depPath);
 
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
-			for ( ArtifactNode subArtifactNode : curPomXml.depManages ){
-				// dependencyManagement只做版本控制
-				makeUpdateDep(subArtifactNode);
-
-			}
+			
 
 			ArtifactNode curArtifactNode = makeUpdateDep(mavenDependency);
+			
+			// 解析时不排除 排除依赖会怎样🤔🤔🤔
+			// 
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
-
-			for ( ArtifactNode subArtifactNode : curPomXml.deps ){
+			
+			for ( ArtifactNode subArtifactNode : curPomXml.depManages ){
+				// dependencyManagement只做版本控制
+				//*
 				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
 					continue;
 				}
+				//*/
+				// 即使是版本控制也要解析其子依赖
+				resolvingDependency(makeUpdateDep(subArtifactNode));
+
+			}
+
+			for ( ArtifactNode subArtifactNode : curPomXml.deps ){
+				/*
+				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
+					continue;
+				}
+				*/
+				/* 没用
 				if ( vy(subArtifactNode) ){
 					continue;
 				}
+				*/
 				resolvingDependency(makeUpdateDep(subArtifactNode), depth - 1);
-
 			}
 
         }
