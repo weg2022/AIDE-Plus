@@ -69,17 +69,15 @@ public class ZeroAicyProjectService extends ProjectService {
 		show.getWindow().clearFlags(2);
 
 		final Runnable syncTask = new Runnable(){
-
 			@Override
 			public void run() {
 				try {
 					show.dismiss();
+				}
+				finally {
 					if (onUiTask != null) {
 						executorsService.post(onUiTask);
-					}		
-				}
-				catch (Throwable e) {
-
+					}
 				}
 			}
 		};
@@ -88,7 +86,9 @@ public class ZeroAicyProjectService extends ProjectService {
 				@Override
 				public void run() {
 					try {
-						asynTask.run();
+						if (asynTask != null) {
+							asynTask.run();
+						}
 					}
 					finally {
 						executorsService.post(syncTask);
@@ -163,18 +163,8 @@ public class ZeroAicyProjectService extends ProjectService {
 	 */
 	public List<ClassPath.Entry> getClassPathEntrys() {
 		List<ClassPath.Entry> classPathEntrys = this.classPathEntrys;
-		
+
 		if (classPathEntrys == null) {
-			if (this.pojectSupport instanceof AndroidProjectSupport) {
-				// 可以做一些额外处理
-				executorsService.submit(new Runnable(){
-						@Override
-						public void run() {
-							// 异步加载吧
-							ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
-						}
-					});
-			}
 			return Collections.emptyList();
 		}
 		return classPathEntrys;
@@ -284,6 +274,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			&& !executorsService.isCurrentThread()) {
 			Map<String, List<String>> libraryMappingCopy = this.libraryMappingCopy;
 			if (libraryMappingCopy == null) {
+
 				return Collections.emptyMap();
 			}
 			// 动态创建只读副本
@@ -308,13 +299,6 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return null;
     }
-
-	// is_open_project
-	@Override
-	public boolean Mz(String string) {
-		return super.Mz(string);
-	}
-
 
 	// 返回当前的文件是否支持[Design]
 	@Override
@@ -401,7 +385,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.mainAppWearAppsCopy = null;
 
 		this.classPathEntrys = null;
-
+		this.projectProperties = null;
 		// 同步代码分析进程
 		// 置空代码分析进程信息
 		this.jJ(); 
@@ -486,14 +470,14 @@ public class ZeroAicyProjectService extends ProjectService {
 
 
 	/*****************************************************************/
-	
+
 
 	@Override
 	public void yO(String projectDir) {
 		// XX(str, true);
 		super.yO(projectDir);
 	}
-	
+
 	@Override
 	public void XX(String projectDir) {
 		// kQ(str, true);
@@ -532,11 +516,11 @@ public class ZeroAicyProjectService extends ProjectService {
 			// 已打开项目
 			return;
 		}
-		
+
 		// 必须赋值
 		ZeroAicyProjectService.this.currentAppHome = projectDir;
 		ZeroAicyProjectService.this.pojectSupport = getProjectSupport(projectDir);
-		
+
 		// ye();
 		// 清空错误列表
 		ServiceContainer.getErrorService().aM();
@@ -550,7 +534,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		Runnable asynTask = new Runnable(){
 			@Override
 			public void run() {
-				
+
 				ZeroAicyProjectService.this.saveCurrentAppHome(projectDir);
 				// 赋值 pojectSupport
 				ZeroAicyProjectService.this.pojectSupport = getProjectSupport(projectDir);
@@ -564,14 +548,8 @@ public class ZeroAicyProjectService extends ProjectService {
 			@Override
 			public void run() {
 				ServiceContainer.getDebugger().P8(ProjectService.Hw(ZeroAicyProjectService.this).getProjectPackageName(), false);
-				ServiceContainer.getDropboxService().ca(ZeroAicyProjectService.this.P8());
 				ServiceContainer.getMainActivity().q7();
 				ServiceContainer.getFileBrowserService().v5();
-
-				/*if (z) {
-					// aidl aapt
-					// ZeroAicyProjectService.this.et(null, false);
-				}*/
 				ZeroAicyProjectService.this.verifyResourcesDownload();
 
 			}
@@ -584,25 +562,18 @@ public class ZeroAicyProjectService extends ProjectService {
 	private String projectProperties = null;
 	@Override
 	public String getProjectAttribute() {
-
 		if (this.currentAppHome == null) {
 			// 没有打开项目,，或初始化未完成
 			return "";
 		}
-
 		// 返回缓存
 		if (this.projectProperties != null) {
 			return this.projectProperties;
 		}
-		executorsService.submit(new Runnable(){
-				@Override
-				public void run() {
-					ZeroAicyProjectService.this.projectProperties = ZeroAicyProjectService.this.eiAsync();
-				}
-			});
-		return "异步加载中，请等待初始化...";
+		// 未做优化处理
+		return super.getProjectAttribute();
 	}
-	private String eiAsync() {
+	private String getProjectAttributeAsync() {
 		return super.getProjectAttribute();
 	}
 	/*****************************************************************/
@@ -634,8 +605,21 @@ public class ZeroAicyProjectService extends ProjectService {
 					AppLog.println_d("openProjectAsync(): %sms", Utils.nowTime() - nowTime);
 				}
 			};
+
+
+			final Runnable onUiTask = new Runnable(){
+				@Override
+				public void run() {
+					// 同步界面
+					ServiceContainer.getFileBrowserService().v5();
+					ServiceContainer.getMainActivity().kf();
+					
+					// 反正在主线程调用也是异步
+					ZeroAicyProjectService.this.verifyResourcesDownload();
+				}
+			};
 			// 显示弹窗
-			showProgressDialog(ServiceContainer.getMainActivity(), "打开项目中[请等待]...", asynTask, null);
+			showProgressDialog(ServiceContainer.getMainActivity(), "打开项目中[请等待]...", asynTask, onUiTask);
 
 		}
 		catch (Throwable e) {
@@ -756,12 +740,6 @@ public class ZeroAicyProjectService extends ProjectService {
 	private long jJMethodCallTime;
 	@Override
 	protected void jJ() {
-		if (Utils.nowTime() - jJMethodCallTime < 10_000) {
-			// 1s内重复调用毫无意义
-			// 因为 jJAsync一般2s执行不完
-			return;
-		}
-
 		jJMethodCallTime = Utils.nowTime();
 		// updateEngineSolution
 		executorsService.submit(new Runnable(){
@@ -836,11 +814,11 @@ public class ZeroAicyProjectService extends ProjectService {
 					final Runnable onUiTask = new Runnable(){
 						@Override
 						public void run() {
+							// 反正在主线程调用也是异步
+							ZeroAicyProjectService.this.verifyResourcesDownload();
 							// 同步界面
 							ServiceContainer.getFileBrowserService().v5();
 							ServiceContainer.getMainActivity().kf();
-							// 反正在主线程调用也是异步
-							ZeroAicyProjectService.this.verifyResourcesDownload();
 
 							// 猜测 aapt2 aidl
 							// ZeroAicyProjectService.this.et(null, false);
@@ -880,22 +858,6 @@ public class ZeroAicyProjectService extends ProjectService {
 					initAsync();
 				}
 			});
-
-		// 不影响项目使用，但影响第一次查看体验
-		// 因此在进度条关闭后异步初始化
-		executorsService.submit(new Runnable(){
-				@Override
-				public void run() {
-
-					ZeroAicyProjectService.this.projectProperties = null;
-					ZeroAicyProjectService.this.classPathEntrys = null;
-
-					ZeroAicyProjectService.this.getProjectAttribute();
-					ZeroAicyProjectService.this.getClassPathEntrys();
-
-				}
-			});
-
 	}
 
 	private void initAsync() {
@@ -920,6 +882,12 @@ public class ZeroAicyProjectService extends ProjectService {
 			this.libraryMappingCopy = new HashMap<String, List<String>>(this.libraryMapping);
 			this.mainAppWearAppsCopy = new ArrayList<String>(this.mainAppWearApps);
 
+			if (this.pojectSupport instanceof AndroidProjectSupport) {
+				// 可以做一些额外处理
+				ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
+			}
+			this.projectProperties = getProjectAttributeAsync();
+
 		}
 
 		// 初始化完成
@@ -931,27 +899,44 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	private synchronized void saveCurrentAppHome(String projectPath) {
 		this.currentAppHome = projectPath;
-		
+
 		SharedPreferences.Editor edit = ServiceContainer.getContext().getSharedPreferences("ProjectService", 0).edit();
 		edit.putString("CurrentAppHome", projectPath);
 		edit.commit();
 	}
 
+	// is_open_project
+	@Override
+	public boolean Mz(String projectPath) {
+		// JavaGradle项目需要单独处理
+		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
+		if (javaGradleProjectSupport.isSupport(projectPath)) {
+			// 当前项目不能包含他
+			return !isInCurrentProjectDirectory(projectPath);
+		}
+
+		return getProjectSupport(projectPath) != null;
+    }
+
 	@Override
 	public int getOpenProjectNameStringId(String str) {
-		return getProjectSupport(str).getOpenProjectNameStringId(str);
+		ProjectSupport projectSupport = getProjectSupport(str);
+		if (projectSupport == null) {
+			return 0;
+		}
+		return projectSupport.getOpenProjectNameStringId(str);
 	}
 
 	private ProjectSupport getProjectSupport(String projectPath) {
 		if (projectPath == null) {
 			return null;
 		}
+
 		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
-		boolean isSupport = javaGradleProjectSupport.isSupport(projectPath);
-		if (isSupport) {
+		if (javaGradleProjectSupport.isSupport(projectPath)) {
 			return javaGradleProjectSupport;
 		}
-		
+
 		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
 			if (projectSupport.isSupport(projectPath)) {
 				return projectSupport;
@@ -1031,6 +1016,14 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 		return false;
     }
-	/*****************************************************************/
 
+	@Override
+	public String er() {
+		return super.er();
+	}
+	public String getBuildType() {
+		return this.er();
+	}
+	/*****************************************************************/
+	
 }

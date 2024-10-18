@@ -12,6 +12,7 @@ import com.probelytics.annotation.ExceptionEnabled;
 import com.probelytics.annotation.FieldMark;
 import com.probelytics.annotation.ParametersEnabled;
 import com.probelytics.annotation.TypeMark;
+import com.aide.ui.project.JavaGradleProjectSupport;
 
 public class BuildServiceCollect {
 
@@ -35,7 +36,14 @@ public class BuildServiceCollect {
 		nativeProjectBuildService = new NativeProjectBuildService();
 		htmlCodeBuildService = new HtmlCodeBuildService();
 		javaScriptBuildService = new JavaScriptBuildService();
-		buildServices = new IBuildService[]{androidProjectBuildService, javaProjectBuildService, nativeProjectBuildService, htmlCodeBuildService, javaScriptBuildService};
+		buildServices = new IBuildService[]{
+			androidProjectBuildService,
+			javaProjectBuildService, 
+			nativeProjectBuildService, 
+			htmlCodeBuildService, 
+			javaScriptBuildService, 
+			JavaGradleProjectSupport.buildService
+		};
     }
     public BuildServiceCollect() {}
 }

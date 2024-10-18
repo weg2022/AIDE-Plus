@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.aide.ui.rewrite.R;
+import java.util.Arrays;
+import com.aide.ui.build.JavaGradleProjectBuildService;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -37,32 +39,104 @@ import com.aide.ui.rewrite.R;
  * 必须优先AndroidProjectSupport判断*
  */
 public class JavaGradleProjectSupport implements ProjectSupport {
+	public static String[] aj(Map<String, List<String>> map) {
+		ArrayList arrayList = new ArrayList();
+		for (String str2 : map.keySet()) {
+			if (!GradleTools.isAarEexplodedPath(str2)) {
+				for (ClassPath.Entry entry : getProjectClassPathEntrys(str2)) {
+					if (entry.isSrcKind()) {
+						arrayList.add(entry.resolveFilePath(str2));
+					}
+				}
+			}
+		}
+		String[] strArr = new String[arrayList.size()];
+		arrayList.toArray(strArr);
+		return strArr;
+	}
+	public static String[] getClassFileRootDirs(Map<String, List<String>> vy, boolean isDebugAide) {
+		ArrayList<String> arrayList = new ArrayList<>();
+		Iterator<String> it = vy.keySet().iterator();
+		while (it.hasNext()) {
+			arrayList.add(GradleTools.u7(it.next(), isDebugAide));
+		}
+		String[] strArr = new String[arrayList.size()];
+		arrayList.toArray(strArr);
+		return strArr;
+	}
+
+	public static String Mz(String currentAppHome, boolean isDebugAide) {
+		// 打包服务我重写了 ，不会用这个
+		return null;
+	}
+
+	public static String getProjectOutputPath(String currentAppHome, boolean isDebugAide) {
+		return GradleTools.getProjectOutputPath(currentAppHome);
+	}
+
+	// get jarFiles
+	public static String[] cb(String currentAppHome) {
+		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().vy(currentAppHome);
+		
+		HashMap<String, String> hashMap = new HashMap<>();
+		for (String str : libraryMapping.keySet()) {
+			for (ClassPath.Entry entry : getProjectClassPathEntrys(currentAppHome)) {
+				if (entry.isLibKind() && !hashMap.containsKey(entry.getId())) {
+					hashMap.put(entry.getId(), entry.resolveFilePath(str));
+				}
+			}
+		}
+		String[] strArr = new String[hashMap.size()];
+		hashMap.values().toArray(strArr);
+		return strArr;
+	}
+	
+	public void fillLibs(String projectDir, Map<String, List<String>> libraryMapping, Set<String> filter){
+		if( filter.contains(projectDir)){
+			return;
+		}
+		filter.add(projectDir);
+		for( String projectLibPath : libraryMapping.get(projectDir)){
+		
+		}
+		
+	}
+	
+	public static String Sf(String currentAppHome, boolean isDebugAide) {
+		return GradleTools.getProjectOutputPath(currentAppHome) + "/classes.dex.zip";
+	}
+
 	/**
 	 * 用于判断是否是Java项目
 	 * 
 	 */
 	private static boolean isJavaGradleProject(String projectPath) {
 		// 必须有 src build.gradle 
-		// 后期添加对 apply plugin的判断 用BuildGradle解析并缓存，不用每次都解析
+
+		/*if (FileSystem.isDirectory(projectPath)) {
+		 // 后期添加对 apply plugin的判断 用BuildGradle解析并缓存，不用每次都解析
+		 AppLog.d(projectPath , "isGradleProject %b isAndroidProject %b exists %b ", GradleTools.isGradleProject(projectPath), GradleTools.isGradleProject(projectPath), !FileSystem.exists(projectPath + "/src/main/AndroidManifest.xml"));
+		 }*/
+
 		return GradleTools.isGradleProject(projectPath) 
 			&& !GradleTools.isAndroidProject(projectPath)
-			&& !GradleTools.isAndroidProject(projectPath + "/src/main") ;
+			&& !FileSystem.exists(projectPath + "/src/main/AndroidManifest.xml");
 	}
 
 
-
+	public static final JavaGradleProjectBuildService buildService = new JavaGradleProjectBuildService();
 	@Override
-	public void buildProject(boolean p) {
-		// TODO: Implement  method
+	public void buildProject(boolean buildRefresh) {
+		String buildType = ServiceContainer.getProjectService().er();
+		buildService.buildProject(buildRefresh, buildType);
 	}
-	
-	
+
+
 	@Override
 	public int getOpenProjectNameStringId(String string) {
 		// 打开这个Java项目
 		return R.string.command_files_open_java_project;
 	}
-
 	@Override
 	public String getProjectAttributeHtmlString() {
 
@@ -75,6 +149,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		List mainAppWearApps = projectService.getMainAppWearApps();
 
 		StringBuilder projectAttributeSb = new StringBuilder();
+		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().getLibraryMapping();
 		for (String projectDir : projectDirs) {
 			if (projectDir.endsWith(".aar")) {
 				continue;
@@ -86,7 +161,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			}
 
 			// ServiceContainer.getProjectService().getLibraryMapping()
-			var dependenciePaths = ServiceContainer.getProjectService().getLibraryMapping().get(projectDir);
+			// 库目录以及aar依赖
+			var dependenciePaths = libraryMapping.get(projectDir);
+
 			boolean hasAddLabelHeader = false;
 			for (String dependenciePath : dependenciePaths) {
 				if (dependenciePath.endsWith(".aar")) {
@@ -95,7 +172,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				if (!FileSystem.exists(dependenciePath)) {
 					projectAttributeSb.append("(NOT FOUND) ");
 				}
-				projectAttributeSb.append(dependenciePath).append("<br/><br/>");
+				projectAttributeSb
+					.append(dependenciePath)
+					.append("<br/><br/>");
 				hasAddLabelHeader = true;
 			}
 			if (!hasAddLabelHeader) {
@@ -106,29 +185,30 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 			//  getProjectLibPaths
 			String[] projectLibPaths = getProjectLibPaths(projectDir);
+			AppLog.println_d("projectLibPaths %s", Arrays.toString(projectLibPaths));
 			//重置
 			hasAddLabelHeader = false;
-			for (String str6 : projectLibPaths) {
-				if (!FileSystem.exists(str6)) {
+			for (String projectLibPath : projectLibPaths) {
+				if (!FileSystem.exists(projectLibPath)) {
 					projectAttributeSb.append("(NOT FOUND) ");
 				}
-				projectAttributeSb.append(str6).append("<br/><br/>");
+				projectAttributeSb.append(projectLibPath).append("<br/><br/>");
 				hasAddLabelHeader = true;
 			}
-			
+
 			// Java项目不添加
-			for (String dependenciePath : dependenciePaths) {
-				if (dependenciePath.endsWith(".aar")) {
-					if (!FileSystem.exists(dependenciePath)) {
-						projectAttributeSb.append("(NOT FOUND) ");
-					}
-					if (dependenciePath.endsWith(".exploded.aar")) {
-						dependenciePath = dependenciePath.substring(0, dependenciePath.length() - 13) + ".aar";
-					}
-					projectAttributeSb.append(dependenciePath).append("<br/><br/>");
-					hasAddLabelHeader = true;
-				}
-			}
+			/*for (String dependenciePath : dependenciePaths) {
+			 if (dependenciePath.endsWith(".aar")) {
+			 if (!FileSystem.exists(dependenciePath)) {
+			 projectAttributeSb.append("(NOT FOUND) ");
+			 }
+			 if (dependenciePath.endsWith(".exploded.aar")) {
+			 dependenciePath = dependenciePath.substring(0, dependenciePath.length() - 13) + ".aar";
+			 }
+			 projectAttributeSb.append(dependenciePath).append("<br/><br/>");
+			 hasAddLabelHeader = true;
+			 }
+			 }*/
 
 			if (!hasAddLabelHeader) {
 				projectAttributeSb.append("&lt;none&gt;<br/><br/>");
@@ -139,16 +219,21 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		return projectAttributeSb.toString();
     }
 
-	public String[] getProjectLibPaths(String projectDir) {
+	private static String[] empty = new String[0];
+	public static String[] getProjectLibPaths(String projectDir) {
 		HashMap<String, String>  hashMap = new HashMap<>();
+
 		List<ClassPath.Entry> projectClassPathEntrys = getProjectClassPathEntrys(projectDir);
-		if (projectClassPathEntrys != null) {
-			for (ClassPath.Entry entry : projectClassPathEntrys) {
-				if (entry.isLibKind() && !hashMap.containsKey(entry.getId())) {
-					hashMap.put(entry.getId(), entry.resolveFilePath(projectDir));
-				}
+		if (projectClassPathEntrys == null) {
+			return empty;
+		}
+		for (ClassPath.Entry entry : projectClassPathEntrys) {
+			if (entry.isLibKind() 
+				&& !hashMap.containsKey(entry.getId())) {
+				hashMap.put(entry.getId(), entry.resolveFilePath(projectDir));
 			}
 		}
+
 		String[] strArr = new String[hashMap.size()];
 		hashMap.values().toArray(strArr);
 		return strArr;
@@ -172,9 +257,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		for (BuildGradle.Dependency dependency : getProjectDependencies(projectDir)) {
 			if (dependency instanceof BuildGradle.MavenDependency) {
-				for (String str5 : ServiceContainer.getMavenService().resolveFullDependencyTree(null, (BuildGradle.MavenDependency) dependency)) {
-					if (str5.endsWith(".jar")) {
-						arrayList.add(new ClassPath.Entry("lib", str5, false, true));
+				for (String mavenDependenciePath : ServiceContainer.getMavenService().resolveFullDependencyTree(null, (BuildGradle.MavenDependency) dependency)) {
+					if (mavenDependenciePath.endsWith(".jar")) {
+						arrayList.add(new ClassPath.Entry("lib", mavenDependenciePath, false, true));
 					}
 				}
 			} else if (dependency instanceof BuildGradle.FileTreeDependency) {
@@ -188,8 +273,11 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			}
 		}
 		arrayList.add(new ClassPath.Entry("output", FileSystem.removePrefix(projectDir, GradleTools.getBinPath(projectDir)), false));
+
 		return arrayList;
 	}
+
+
 	private static void addLibFileTree(String str, String str2, List<ClassPath.Entry> list, boolean z) {
 		if (FileSystem.getSuffixName(str).equals("jar")) {
 			Iterator<ClassPath.Entry> it = list.iterator();
@@ -346,6 +434,8 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	 * 填充项目依赖路径
 	 */
 	private static void fillSubProjectDependency(String projectPath, Map<String, List<String>> subProjectMap) {
+
+		// 不会有jar 这是 库项目集合
 		List<String> dependencys = subProjectMap.get(projectPath);
 		Set<String> dependencySet = new HashSet<String>(dependencys);
 
@@ -363,25 +453,26 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		for (BuildGradle.Dependency dependency : projectDependencies) {
 
-			// maven依赖
-			if (dependency instanceof BuildGradle.MavenDependency) {
-				BuildGradle.MavenDependency mavenDependency = ( BuildGradle.MavenDependency)dependency;
+			/* maven依赖
+			 if (dependency instanceof BuildGradle.MavenDependency) {
+			 BuildGradle.MavenDependency mavenDependency = ( BuildGradle.MavenDependency)dependency;
 
-				// 此maven依赖的所有依赖
-				List<String> resolveFullDependencyTree = ServiceContainer.getMavenService().resolveFullDependencyTree(null, mavenDependency);
+			 // 此maven依赖的所有依赖
+			 List<String> resolveFullDependencyTree = ServiceContainer.getMavenService().resolveFullDependencyTree(null, mavenDependency);
 
-				for (String libFilePath : resolveFullDependencyTree) {
-					// List contains效率太慢
-					if (libFilePath.endsWith(".jar")
-						&& !dependencySet.contains(libFilePath)
-						&& !projectPath.equals(libFilePath)) {
-						// 添加依赖
-						dependencys.add(libFilePath);
-						dependencySet.add(libFilePath);
-					}
-				}
-				continue;
-			}
+			 for (String libFilePath : resolveFullDependencyTree) {
+			 // List contains效率太慢
+			 if (libFilePath.endsWith(".jar")
+			 && !dependencySet.contains(libFilePath)
+			 && !projectPath.equals(libFilePath)) {
+			 // 添加依赖
+			 dependencys.add(libFilePath);
+			 dependencySet.add(libFilePath);
+			 }
+			 }
+			 continue;
+			 }
+			 //*/
 
 			// 处理库项目的依赖
 			if (dependency instanceof BuildGradle.ProjectDependency) {
@@ -450,8 +541,65 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	@Override
 	public boolean verifyResourcesDownload() {
 		// 先不实现
+		ArrayList<BuildGradle.MavenDependency> arrayList = new ArrayList<>();
+		arrayList.addAll(qp());
+		if (!arrayList.isEmpty()) {
+			ServiceContainer.getDownloadService().a8(ServiceContainer.getCurrentActivity(), arrayList, WB(ServiceContainer.getProjectService().getCurrentAppHome()), new Runnable(){
+					@Override
+					public void run() {
+						ServiceContainer.getMavenService().resetDepPathMap();
+						ServiceContainer.getProjectService().reloadingProject();
+					}
+				});
+			return true;
+		}
 		return false;
 	}
+	private List<BuildGradle.RemoteRepository> WB(String str) {
+		ArrayList<BuildGradle.RemoteRepository> arrayList = new ArrayList<>();
+		if (GradleTools.isGradleProject(str)) {
+			for (BuildGradle.Repository remoteRepository : ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.getBuildGradlePath(str)).curProjectsRepositorys) {
+				if (remoteRepository instanceof BuildGradle.RemoteRepository) {
+					arrayList.add((BuildGradle.RemoteRepository)remoteRepository);
+				}
+			}
+			String lastBuildGradlePath = GradleTools.getLastBuildGradlePath(str);
+			if (FileSystem.isFileAndNotZip(lastBuildGradlePath)) {
+				BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(lastBuildGradlePath);
+				for (BuildGradle.Repository remoteRepository2 : configuration.allProjectsRepositorys) {
+					if (remoteRepository2 instanceof BuildGradle.RemoteRepository) {
+						arrayList.add((BuildGradle.RemoteRepository)remoteRepository2);
+					}
+				}
+				for (BuildGradle.Repository remoteRepository3 : configuration.subProjectsRepositorys) {
+					if (remoteRepository3 instanceof BuildGradle.RemoteRepository) {
+						arrayList.add((BuildGradle.RemoteRepository)remoteRepository3);
+					}
+				}
+			}
+		}
+		return arrayList;
+    }
+	public List<BuildGradle.MavenDependency> qp() {
+		ArrayList<BuildGradle.MavenDependency> arrayList = new ArrayList<>();
+		for (String str : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
+			if (GradleTools.isGradleProject(str)) {
+				Iterator<BuildGradle.Dependency> it = getProjectDependencies(str).iterator();
+				while (it.hasNext()) {
+					BuildGradle.Dependency dependency = it.next();
+					if (dependency instanceof BuildGradle.MavenDependency) {
+
+						Iterator<BuildGradle.MavenDependency> it2 = ServiceContainer.getMavenService().getNotExistsLocalCache(null, (BuildGradle.MavenDependency)dependency).iterator();
+						while (it2.hasNext()) {
+							arrayList.add(it2.next());
+						}
+					}
+				}
+			}
+		}
+		return arrayList;
+    }
+
 
 	@Override
 	public boolean J8() {
@@ -511,9 +659,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		List<String> hw = ServiceContainer.Hw();
 		return new EngineSolution(engineSolutionProject, null, CodeModelFactory.findCodeModels(hw), hw);
 	}
-
-
-	public String getOutputPath(String projectDir, boolean isDebug) {
+	
+	// getBinPath(str) + "/classesrelease";
+	public static String getOutputPath(String projectDir, boolean isDebug) {
 		return  GradleTools.u7(projectDir, isDebug);
 		/*
 		 for (ClassPath.Entry entry : new ClassPath().getConfiguration(g3(projectDir)).Zo) {
@@ -564,25 +712,26 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			return;
 		}
 		handledSet.add(projectDir);
-		
+
 		List<ClassPath.Entry> projectClassPathEntrys = getProjectClassPathEntrys(projectDir);
 		engineSolutionProject.add(createProjectEngineSolutionProject(projectDir, flavor, z, z2, projectClassPathEntrys, map));
-		
+
 		for (ClassPath.Entry entry : projectClassPathEntrys) {
 			if (entry.isLibKind()) {
 				boolean hasEngineSolutionProject = false;
-				for( EngineSolutionProject next : engineSolutionProject){
+				for (EngineSolutionProject next : engineSolutionProject) {
 					if (next.projectName.equals(entry.getId())) {
 						hasEngineSolutionProject = true;
 						break;
 					}
 				}
-				if( !hasEngineSolutionProject){
+				if (!hasEngineSolutionProject) {
 					engineSolutionProject.add(createEntryEngineSolutionProject(projectDir, flavor, entry, projectClassPathEntrys, map));
 				}
 			}
 		}
-		for( String next : map.get(projectDir)){
+
+		for (String next : map.get(projectDir)) {
 			DW(engineSolutionProject, next, flavor, z, true, map, handledSet);			
 		}
     }
@@ -592,7 +741,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		String resolveFilePath = entry.resolveFilePath(projectDir);
 		sourceSolutionFiles.add(new EngineSolution.File(resolveFilePath, "Java Binary", "", false, true));
-		
+
 		ArrayList<String> depProjectIds = new ArrayList<>();
 		for (ClassPath.Entry entry2 : projectClassPathEntrys) {
 			if (entry2.isLibKind()) {
@@ -638,7 +787,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				depProjectIds.add("android.jar");
 			}
 		}
-		
+
 		ArrayList<String> arrayList3 = new ArrayList<>();
 		VH(xd.FH(projectDir, map), flavor, arrayList3);
 		for (String next : arrayList3) {
@@ -694,25 +843,54 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	@Override
 	public boolean isInCurrentProjectDirectory(String path) {
-		
+		if (path == null) {
+			return false;
+		}
+
 		ProjectService projectService = ServiceContainer.getProjectService();
 		for (String projectDir : projectService.getMainAppWearApps()) {
-			if( path.startsWith(projectDir)){
+			if (projectDir == null) continue;
+			String parent = FileSystem.getParent(projectDir);
+			if (parent != null && path.startsWith(parent)) {
+				return true;
+			}
+			if (path.startsWith(projectDir)) {
 				return true;
 			}
 		}
-		for (String projectDir : projectService.getLibraryMapping().keySet()){
-			if( path.startsWith(projectDir)){
+		for (String projectDir : projectService.getLibraryMapping().keySet()) {
+			if (path.startsWith(projectDir)) {
 				return true;
 			}
 		}
-		
+		System.out.println(path + "不在项目内");
 		return false;
 	}
 
 
 	@Override
 	public void cn(List<String> list, boolean p) {
+		// 新修改且保存的文件列表
+		if (list == null) {
+			return;
+		}
+
+
+		for (String path : list) {
+			if (path == null) continue;
+			String name = FileSystem.getName(path);
+			AppLog.println_d("cn name: %s path: %s ", name, path);
+
+			if ("build.gradle".equals(name)) {
+				// 刷新项目
+				ServiceContainer.getProjectService().reloadingProject();
+				return;
+			}
+		}
+
+		// 刷新项目
+		// ServiceContainer.getProjectService().reloadingProject();
+
 	}
 
 	@Override
@@ -755,16 +933,17 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	@Override
 	public boolean isVersionSupport(String string) {
-		return false;
+		return true;
 	}
 
 	@Override
 	public void j6() {
+
 	}
 
 	@Override
 	public boolean lg() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -779,7 +958,10 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	// 添加到项目建议
 	@Override
 	public List<String> getAddToProjectAdvise(String string) {
-		return null;
+		ArrayList<String> arrayList = new ArrayList<String>();
+		arrayList.add("api \"com.badlogicgames.gdx:gdx:+\"");
+
+		return arrayList;
 	}
 
 	@Override
@@ -814,7 +996,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	@Override
 	public String getProjectPackageName() {
-		return null;
+		return ServiceContainer.getContext().getPackageName();
 	}
 
 }
