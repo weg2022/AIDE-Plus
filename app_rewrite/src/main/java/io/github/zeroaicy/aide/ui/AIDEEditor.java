@@ -150,37 +150,36 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 	@Override
 	public String getQuickKeys() {
-		String str = "";
+		String indentation = "";
 		int indentationSize = getIndentationSize();
 		int i = 0;
 		if (indentationSize % getTabSize() == 0) {
 			while (i < indentationSize / getTabSize()) {
-				str = str + "\t";
+				indentation = indentation + "\t";
 				i++;
 			}
 		} else {
 			while (i < indentationSize) {
-				str = str + "s";
+				indentation = indentation + "s";
 				i++;
 			}
 		}
 		String lowerCase = getFilePath().toLowerCase();
 
 		if (lowerCase.endsWith(".css")) {
-			return str + " { } - : . ; # % ( ) \" ' @ > = [ ] / * !";
+			return indentation + " { } - : . ; # % ( ) \" ' @ > = [ ] / * !";
 		}
 		if (lowerCase.endsWith(".xml") 
 			|| lowerCase.endsWith(".html") 
 			|| lowerCase.endsWith(".htm")) {
-			return str + " < > / = \" : @ + ( ) ; , . | & ! [ ] { } _ -";
+			return indentation + " < > / = \" : @ + ( ) ; , . | & ! [ ] { } _ -";
 		}
 		if (lowerCase.endsWith(".java") 
 			|| lowerCase.endsWith(".js")) {
-			return str + " { } ( ) ; , . = \" | & ! [ ] < > + - / * ? : _";
+			return indentation + " { } ( ) ; , . = \" | & ! [ ] < > + - / * ? : _";
 		}
 		// 比如gradle
-		return str + " { } ( ) ; , . = \" | & ! [ ] < > + - / * :";
-
+		return indentation + " { } ( ) ; , . = \" | & ! [ ] < > + - / * :";
 
 		//return super.getQuickKeys();
 	}
@@ -234,6 +233,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 
 		}
 		// 启用后输入卡顿，可能是这个
+		/*
 		@Override
 		public void j6() {
 			// 异步
@@ -250,6 +250,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				super.j6();
 			}			
 		}
+		*/
 		// OpenFileModel 由代码分析进程通过aidl调用
 		// 通过阻塞防止代码分析进程获取的是空内容
 		// 虽然可以主动通知 代码分析进程，

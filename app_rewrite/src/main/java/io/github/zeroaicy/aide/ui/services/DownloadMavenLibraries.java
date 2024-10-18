@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import io.github.zeroaicy.util.FileUtil;
+import android.util.Log;
 
 public class DownloadMavenLibraries implements Callable<Void> {
 
@@ -82,7 +83,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 		}
 		catch (Throwable unused) {
-			AppLog.d("仓库" + remoteRepository.repositorieURL, " 错误 ", mavenMetadataUrl, unused);
+			AppLog.d(TAG, "Maven仓库%s错误 -> %s\n %s", remoteRepository.repositorieURL, mavenMetadataUrl, Log.getStackTraceString(unused));
 			return false;
 		}
 		// 检查文件是否存在
@@ -92,10 +93,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
 		//查看maven-metadata.xml是否下载成功
 		String version = metadataXml.getVersion(dep.version);
-
 		if ( version == null ) {
-			AppLog.d("resolvingMetadataFile", "metadata version: %s -> dep version %s", version, dep.version);
-			return false;
+			AppLog.d("resolvingMetadataFile", "metadata versions: %s -> dep version %s", String.valueOf( metadataXml.Zo ), dep.version);
+			return true;
 		}
 		
 		if ( !dep.version.endsWith("+")
@@ -107,7 +107,6 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 		// 更新依赖库版本
 		dep.version = version;
-		AppLog.d("resolvingMetadataFile", "metadata version: %s -> dep version %s", version, dep.version);
 		return true;
 	}
 
@@ -236,9 +235,10 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			sb.append(":");
 			sb.append(classifier);
 		}
-		sb.append("@");
-		sb.append(dependency.packaging);
-
+		if( artifactType != null ){
+			sb.append("@");
+			sb.append(artifactType);			
+		}
 		String dependencyString = sb.toString();
 
 		try {
@@ -248,7 +248,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
-			AppLog.d(" Maven Download", dependencyString, unused);
+			AppLog.e(" Maven Download", dependencyString, unused);
 			FileUtil.deleteFolder(artifactPath);
 			return false;
 		}

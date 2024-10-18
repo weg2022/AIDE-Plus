@@ -133,7 +133,7 @@ public class ZeroAicyMavenService{
 			// 装箱
 			ArtifactNode artifactNode = makeUpdateDep(dep);
 
-            getNotExistsLocalCache(flatRepoPathMap, artifactNode, notExistsLocalCache, defaultDepth * defaultDepth);
+            getNotExistsLocalCache(flatRepoPathMap, artifactNode, notExistsLocalCache, defaultDepth);
 
             return notExistsLocalCache;
         }
@@ -252,14 +252,14 @@ public class ZeroAicyMavenService{
     }
 
 	private boolean preInitialization = false;
-	
+
 	//重置当前服务的依赖记录
 	@Keep
 	public synchronized void resetDepMap(){
 		this.depManager.clear();
 		// 理解错了 有提前resolvingMavenDependency的
 		// 结果还是需要提前，不然还是有连个版本的jar
-		ZeroAicyProjectService.preResolving();
+		// ZeroAicyProjectService.preResolving();
     }
 
 
@@ -288,7 +288,7 @@ public class ZeroAicyMavenService{
         try{
 			//解析并填充此依赖
 			// 必须完全解析
-            resolvingDependency(makeUpdateDep(dependency), defaultDepth * defaultDepth);
+            resolvingDependency(makeUpdateDep(dependency), defaultDepth);
         }
 		catch (Throwable th){
 			if ( th instanceof Error ) 
@@ -321,37 +321,33 @@ public class ZeroAicyMavenService{
 			String depPomPath = getDepPomPath(depPath);
 
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
-			
+
 
 			ArtifactNode curArtifactNode = makeUpdateDep(mavenDependency);
-			
+
 			// 解析时不排除 排除依赖会怎样🤔🤔🤔
 			// 
 			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
-			
+
 			for ( ArtifactNode subArtifactNode : curPomXml.depManages ){
 				// dependencyManagement只做版本控制
 				//*
 				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
 					continue;
 				}
-				//*/
-				// 即使是版本控制也要解析其子依赖
-				resolvingDependency(makeUpdateDep(subArtifactNode));
-
 			}
 
 			for ( ArtifactNode subArtifactNode : curPomXml.deps ){
 				/*
-				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
-					continue;
-				}
-				*/
+				 if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
+				 continue;
+				 }
+				 */
 				/* 没用
-				if ( vy(subArtifactNode) ){
-					continue;
-				}
-				*/
+				 if ( vy(subArtifactNode) ){
+				 continue;
+				 }
+				 */
 				resolvingDependency(makeUpdateDep(subArtifactNode), depth - 1);
 			}
 
@@ -662,8 +658,8 @@ public class ZeroAicyMavenService{
             if ( depPaths.contains(depPath) ){
                 return;
             }
-			
-			
+
+
 			//  ProjectSupport::init()时应当 resolvingDependency
 			// 将依赖版本管理器的依赖都是新版本
             depPaths.add(depPath);
@@ -994,6 +990,5 @@ public class ZeroAicyMavenService{
 
         }
     }
-
 }
 

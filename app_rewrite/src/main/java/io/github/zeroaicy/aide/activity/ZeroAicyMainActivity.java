@@ -1,6 +1,5 @@
 package io.github.zeroaicy.aide.activity;
 
-import com.probelytics.Probelytics;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -28,14 +27,17 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
+import com.aide.ui.AppCommands;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
+import com.aide.ui.command.MenuItemCommand;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.views.SplitView;
 import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.XXPermissions;
+import com.probelytics.Probelytics;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import io.github.zeroaicy.aide.preference.ZeroAicyPreferencesActivity;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
@@ -65,13 +67,13 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (enableActionDrawerLayout()) {
 			setUpDrawerLayout();
 		}
-		
+
 		if (!ZeroAicySetting.isWatch()) {
 			// 检查并申请管理外部储存权限
 			showRequestManageExternalStorage();
 		}
 	}
-	
+
 	/**
 	 * 是否启用DrawerLayout
 	 */
@@ -124,11 +126,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 				}
 			});
 	}
-	
+
 	// 必须在主线程
 	@Override
 	public void Hw(final String string) {
-		if( ThreadPoolService.isUiThread()){
+		if (ThreadPoolService.isUiThread()) {
 			super.Hw(string);
 			return;
 		}
@@ -139,10 +141,10 @@ public class ZeroAicyMainActivity extends MainActivity {
 				}
 			});
 	}
-	public void HwAsync(String string){
+	public void HwAsync(String string) {
 		super.Hw(string);
 	}
-	
+
 	// mainMasterButton 点击回调
 	//*
 	@Override
@@ -308,8 +310,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 	public void setHasEmbeddedTabs() {
 		//ServiceContainer.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.setActionBarHasEmbeddedTabs(this, ZeroAicySetting.enableActionBarSpinner() 
-						 || (ServiceContainer.isTrainerMode() 
-						 && AndroidHelper.getScreenWidthInDp(this) <= 610.0f));
+												  || (ServiceContainer.isTrainerMode() 
+												  && AndroidHelper.getScreenWidthInDp(this) <= 610.0f));
 		//绑定监听器
 		AndroidHelper.setTabSpinnerOnClickListener(this);
 	}
@@ -463,15 +465,15 @@ public class ZeroAicyMainActivity extends MainActivity {
 					@Override
 					public boolean onMenuItemClick(MenuItem _item) {
 						String cmdline = itemNameMap.get(itemName);
-						
+
 						Intent launchIntentForPackage;
-						if ( "io.github.zeroaicy.aide2".equals( getPackageName()) ){
+						if ("io.github.zeroaicy.aide2".equals(getPackageName())) {
 							launchIntentForPackage = new Intent().setComponent(new ComponentName(ZeroAicyMainActivity.this, "com.termux.app.TermuxActivity"));
-						}else{
+						} else {
 							launchIntentForPackage = getPackageManager().getLaunchIntentForPackage("com.aide.termux");
-							
+
 						}
-						
+
 						if (launchIntentForPackage == null) {
 							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "运行错误", "AIDE-Termux未安装或找不到主Activity");
 							return true;
@@ -479,7 +481,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 
 						String currentAppHome = ZeroAicySetting.getCurrentAppHome();
-						if( currentAppHome == null ){
+						if (currentAppHome == null) {
 							com.aide.common.MessageBox.BT(ServiceContainer.getMainActivity(), "没有打开Gradle项目", "请保证项目目录下GradleWrapper(Gradle包装器)");
 							return true;
 						}
@@ -502,7 +504,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 	private boolean hasGradlew(String currentAppHome) {
-		if( TextUtils.isEmpty(currentAppHome)){
+		if (TextUtils.isEmpty(currentAppHome)) {
 			return false;
 		}
 		File gradleProjectRootDir = new File(currentAppHome).getParentFile();
@@ -522,7 +524,14 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (!com.aide.ui.ServiceContainer.isTrainerMode()) {
 			RepairBUG2(menu);
 		}
-		return super.onPrepareOptionsMenu(menu);
+		boolean onPrepareOptionsMenu = super.onPrepareOptionsMenu(menu);
+		MenuItem mainMenuSaveItem = menu.findItem(R.id.mainMenuSave);
+		if( mainMenuSaveItem != null){
+			MenuItemCommand saveMenuItemCommand = AppCommands.u7(mainMenuSaveItem.getItemId());
+			// setEnabled不变灰色，那就隐藏😕
+			mainMenuSaveItem.setVisible(saveMenuItemCommand.isEnabled());
+		}
+		return onPrepareOptionsMenu;
 	}
 
 

@@ -52,6 +52,7 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 
 		// 保留 packaging
 		this.packaging = mavenDependency.packaging;
+				
 	}
 
 	public ArtifactNode( String groupId, String artifactId, String version ) {
@@ -65,6 +66,9 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 		// version不能为空
 		this.setVersion(version == null ? "+" : version);
 
+		if( this.groupId == null ){
+			this.groupId = "";
+		}
 	}
 
 	public ArtifactNode( PomXml pom ) {
@@ -79,13 +83,19 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 
 		// 从pom解析出来的
 		this.packaging = pom.getPackaging();
-
+		
+		if( this.groupId == null ){
+			this.groupId = "";
+		}
+		if( this.artifactId == null ){
+			this.artifactId = "";
+		}
+		
 	}
 	/*******************************************************************************/
 
 	public void setVersion( String version ) {
 		if ( TextUtils.isEmpty(version) ) {
-			AppLog.d("setVersion", new Throwable());
 			version = "+";
 		}
 		this.version = version;

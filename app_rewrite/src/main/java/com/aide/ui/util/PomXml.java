@@ -90,7 +90,8 @@ public class PomXml extends Configuration<PomXml> {
 
 		this.deps = new ArrayList<>();
 		this.depManages = new ArrayList<>();
-
+		this.configurationPath = filePath;
+		
 		try {
 			File file = new File(filePath);
 			if (!file.exists()) {
@@ -98,7 +99,6 @@ public class PomXml extends Configuration<PomXml> {
 				this.isEmpty = true;
 				return;
 			}
-
 			FileInputStream inputStream = new FileInputStream(file);
 			// pom文件模型
 			Model model = mavenXpp3Reader.read(inputStream);
@@ -206,6 +206,13 @@ public class PomXml extends Configuration<PomXml> {
 				groupId = model.getProperties().getProperty(groupId.substring(2, groupId.length()  - 1));	
 			}
 		}
+
+		if (groupId == null) {
+			// groupId仍然为null是不对的
+			System.out.println(configurationPath);
+			return null;
+		}
+		
 		if (artifactId.startsWith("${")) {
 			//${project.artifactId}
 			if ("${project.artifactId}".equals(artifactId)) {
@@ -213,6 +220,10 @@ public class PomXml extends Configuration<PomXml> {
 			} else {
 				artifactId = model.getProperties().getProperty(artifactId.substring(2, artifactId.length()  - 1));
 			}
+		}
+		if (artifactId == null) {
+			// artifactId仍然为null是不对的
+			return null;
 		}
 		
 		if (version == null) {
