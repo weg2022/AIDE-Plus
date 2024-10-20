@@ -30,40 +30,40 @@ import java.io.FileNotFoundException;
  validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs/2.0.4/desugar_jdk_libs-2.0.4.jar");
  validLibs.add("/storage/emulated/0/.MyAicy/.aide/maven/com/android/tools/desugar_jdk_libs_configuration/2.0.4/desugar_jdk_libs_configuration-2.0.4.jar");
  } */
-public class ScopeTypeQuerier {
+public class ScopeTypeQuerier{
 
 	private static final BuildGradleExt buildGradleExt = new BuildGradleExt();
 	private static final ZeroAicyBuildGradle singleton = ZeroAicyBuildGradle.getSingleton();
 
-	public enum ScopeType {
+	public enum ScopeType{
 		compileOnly,
 		runtimeOnly,
 		libgdxNatives,
 		dexing;
 	}
-	public static class ScopeTypeMap {
+	public static class ScopeTypeMap{
 		private final Map<String, ScopeType> fileScopeTypeMap = new HashMap<>();
 		private final Map<String, Integer> runtimeOnlySerialMap = new HashMap<>();
 		private int runtimeOnlySerial = 0;
 		private final Set<String> dirScopeTypeSet = new HashSet<>();
-		public void putDir( String key, ScopeType value ) {
+		public void putDir(String key, ScopeType value){
 			this.dirScopeTypeSet.add(key);
 			this.put(key, value);
 		}
-		public void put( String key, ScopeType value ) {
+		public void put(String key, ScopeType value){
 			if ( value == null ) return;
 			this.fileScopeTypeMap.put(key, value);
 			this.runtimeOnlySerialMap.put(key, runtimeOnlySerial++);
 
 		}
-		public ScopeType get( String key ) {
+		public ScopeType get(String key){
 			if ( key == null ) return null;
 			ScopeTypeQuerier.ScopeType value = this.fileScopeTypeMap.get(key);
-			if ( value != null ) {
+			if ( value != null ){
 				return value;
 			}
-			for ( String dir : this.dirScopeTypeSet ) {
-				if ( key.startsWith(dir) ) {
+			for ( String dir : this.dirScopeTypeSet ){
+				if ( key.startsWith(dir) ){
 					// 使用 目录的序号
 					this.runtimeOnlySerialMap.put(key, this.runtimeOnlySerialMap.get(dir));
 					// 返回这个目录的 ScopeType
@@ -73,28 +73,28 @@ public class ScopeTypeQuerier {
 			return null;
 		}
 
-		public void sortRuntimeOnly( List<String> runtimeOnlyLibs ) {
+		public void sortRuntimeOnly(List<String> runtimeOnlyLibs){
 			Collections.sort(runtimeOnlyLibs, new Comparator<String>(){
 					@Override
-					public int compare( String o1, String o2 ) {
+					public int compare(String o1, String o2){
 						String o1Name = FileSystem.getName(o1).toLowerCase();
 						String o2Name = FileSystem.getName(o2).toLowerCase();
-						if ( o1Name.endsWith("_resource.jar") && o2Name.endsWith("_resource.jar") ) {
+						if ( o1Name.endsWith("_resource.jar") && o2Name.endsWith("_resource.jar") ){
 							return compare2(o1Name, o2Name);
 						}
-						if ( !o1Name.endsWith("_resource.jar") && o2Name.endsWith("_resource.jar") ) {
+						if ( !o1Name.endsWith("_resource.jar") && o2Name.endsWith("_resource.jar") ){
 							return -1;
 						}
-						if ( o1Name.endsWith("_resource.jar") && !o2Name.endsWith("_resource.jar") ) {
+						if ( o1Name.endsWith("_resource.jar") && !o2Name.endsWith("_resource.jar") ){
 							return 1;
 						}
 						Integer o1Serial = ScopeTypeMap.this.runtimeOnlySerialMap.get(o1);
 						Integer o2Serial = ScopeTypeMap.this.runtimeOnlySerialMap.get(o2);
-						if ( o1Serial == null ) {
+						if ( o1Serial == null ){
 							//最后打包
 							o1Serial = Integer.MAX_VALUE;
 						}
-						if ( o2Serial == null ) {
+						if ( o2Serial == null ){
 							//最后打包
 							o2Serial = Integer.MAX_VALUE;
 						}
@@ -104,7 +104,7 @@ public class ScopeTypeQuerier {
 					/**
 					 * 兼容旧RuntimeOnly排序方案
 					 */
-					public int compare2( String o1Name, String o2Name ) {
+					public int compare2(String o1Name, String o2Name){
 						int defaultVersion = 0;
 						int o1Version = defaultVersion;
 						int o2Version = defaultVersion;
@@ -114,21 +114,21 @@ public class ScopeTypeQuerier {
 
 						int versionTempStart = o1Name.lastIndexOf("_", o1Name.length() - suffixLength - 1);
 
-						if ( versionTempStart > 0 ) {
+						if ( versionTempStart > 0 ){
 							String versionTemp = o1Name.substring(versionTempStart + 1, o1Name.lastIndexOf("_"));
-							try {
+							try{
 								o1Version = Integer.parseInt(versionTemp);
 							}
-							catch (NumberFormatException e) {}
+							catch (NumberFormatException e){}
 						}
 
 						versionTempStart = o2Name.lastIndexOf("_", o2Name.length() - suffixLength - 1);
-						if ( versionTempStart > 0 ) {
+						if ( versionTempStart > 0 ){
 							String versionTemp = o2Name.substring(versionTempStart + 1, o2Name.lastIndexOf("_"));
-							try {
+							try{
 								o2Version = Integer.parseInt(versionTemp);
 							}
-							catch (NumberFormatException e) {}
+							catch (NumberFormatException e){}
 						}
 						return o2Version - o1Version;
 					}
@@ -154,13 +154,13 @@ public class ScopeTypeQuerier {
 
 	private ScopeTypeMap scopeTypeMap = new ScopeTypeMap();
 
-	public ScopeTypeQuerier( String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle ) throws Throwable {
+	public ScopeTypeQuerier(String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle) throws Throwable{
 
-		if ( dependencyLibs == null ) {
+		if ( dependencyLibs == null ){
 			return;
 		}
 		// gradle项目才支持
-		if ( !zeroAicyBuildGradle.isSingleton() ) {
+		if ( !zeroAicyBuildGradle.isSingleton() ){
 			String curProjectPath = FileSystem.getParent(zeroAicyBuildGradle.configurationPath);
 			resolvingProjectDependency(curProjectPath, new HashSet<String>());
 		}
@@ -169,30 +169,30 @@ public class ScopeTypeQuerier {
 		// 标记依赖并分组
 		HashSet<String> dependencyLibsHashSet = new HashSet<String>(Arrays.asList(dependencyLibs));
 		boolean isSingleton = zeroAicyBuildGradle.isSingleton();
-		
-		for ( String libFilePath : dependencyLibsHashSet ) {
+
+		for ( String libFilePath : dependencyLibsHashSet ){
 			File libFile = new File(libFilePath);
 
 			String fileName = libFile.getName().toLowerCase();
 			// 不是依赖库
-			if ( !fileName.endsWith(".jar") ) {
+			if ( !fileName.endsWith(".jar") ){
 				continue;
 			}
-			if( !libFile.exists()){
+			if ( !libFile.exists() ){
 				// 非Gradle项目 忽略
-				if( isSingleton){
+				if ( isSingleton ){
 					// 
 					continue;
 				}
 				//不是依赖库跳过
 				throw new FileNotFoundException(libFilePath + "不存在\n依赖没有下载全，返回桌面，重新进入");				
 			}
-			
-			try {
+
+			try{
 				//嗅探一下，d8打不开zip，不报路径😭
 				new ZipFile(libFile);
 			}
-			catch (IOException e) {
+			catch (IOException e){
 				// 坏的jar
 				libFile.delete();
 				throw new Error(libFilePath + "不是一个zip文件", e);
@@ -202,25 +202,25 @@ public class ScopeTypeQuerier {
 			/**
 			 * 兼容旧方案
 			 */
-			if ( this.isCompileOnly(libFileNameLowerCase) ) {
+			if ( this.isCompileOnly(libFileNameLowerCase) ){
 				addCompileOnlyLib(libFilePath);
 				continue;
 			}
-			if ( this.isRuntimeOnly(fileName) ) {
+			if ( this.isRuntimeOnly(fileName) ){
 				addRuntimeOnlyLib(libFilePath);
 				continue;
 			}
 			/**
 			 * 非gradle项目 兼容旧方案
 			 */
-			if ( isSingleton ) {
+			if ( isSingleton ){
 				addDexingLib(libFilePath);
 				continue;
 			}
-			
+
 			// 查询库类型
 			ScopeType type = getScopeType(libFilePath);
-			switch ( type ) {
+			switch ( type ){
 				case compileOnly:
 					addCompileOnlyLib(libFilePath);
 					break;
@@ -252,21 +252,21 @@ public class ScopeTypeQuerier {
 	/**
 	 * 是否仅编译，接受小写
 	 */
-	private boolean isCompileOnly( String libFileNameLowerCase ) {
+	private boolean isCompileOnly(String libFileNameLowerCase){
 		return libFileNameLowerCase.endsWith("_compileonly.jar");
 	} 
 	/**
 	 * 是否仅打包，接受小写
 	 */
-	private boolean isRuntimeOnly( String libFileNameLowerCase ) {
+	private boolean isRuntimeOnly(String libFileNameLowerCase){
 		return libFileNameLowerCase.endsWith("_resource.jar");
 	}
 	/**
 	 * 查询jar文件的依赖类型
 	 */
-	private ScopeType getScopeType( String libFilePath ) {
+	private ScopeType getScopeType(String libFilePath){
 		ScopeType scopeType = scopeTypeMap.get(libFilePath);
-		if ( scopeType == null ) {
+		if ( scopeType == null ){
 			scopeType =  ScopeType.dexing;
 		}
 		return scopeType;
@@ -276,13 +276,13 @@ public class ScopeTypeQuerier {
 	 * 递归解析子项目
 	 * 
 	 */
-	public void resolvingProjectDependency( String curProjectPath, HashSet<String> childProjectPathSet ) {
-		if ( childProjectPathSet.contains(curProjectPath) ) {
+	public void resolvingProjectDependency(String curProjectPath, HashSet<String> childProjectPathSet){
+		if ( childProjectPathSet.contains(curProjectPath) ){
 			// 已解析
 			return;
 		}
 		childProjectPathSet.add(curProjectPath);
-		if ( !GradleTools.isGradleProject(curProjectPath) ) {
+		if ( !GradleTools.isGradleProject(curProjectPath) ){
 			return;
 		}
 
@@ -290,13 +290,13 @@ public class ScopeTypeQuerier {
 		String curProjectBuildGradle = GradleTools.getBuildGradlePath(curProjectPath);
 
 		ZeroAicyBuildGradle childZeroAicyBuildGradle = singleton.getConfiguration(curProjectBuildGradle);
-		if ( childZeroAicyBuildGradle == null ) {
+		if ( childZeroAicyBuildGradle == null ){
 			return;
 		}
 
 
 		// 遍历特殊声明的依赖，例如: compileOnly runtimeOnly libgdxNatives
-		for ( ZeroAicyBuildGradle.DependencyExt dependencyExt : childZeroAicyBuildGradle.getDependencyExts() ) {
+		for ( ZeroAicyBuildGradle.DependencyExt dependencyExt : childZeroAicyBuildGradle.getDependencyExts() ){
 			// FilesDependency FileTreeDependency MavenDependency
 			int type = dependencyExt.type;
 
@@ -304,18 +304,18 @@ public class ScopeTypeQuerier {
 
 			// 计算出路径
 			BuildGradle.Dependency dependency = dependencyExt.dependency;
-			if ( dependency instanceof BuildGradle.FilesDependency ) {
+			if ( dependency instanceof BuildGradle.FilesDependency ){
 				// xxx files("filePath")
 				// 
-				String filesPath = ( (BuildGradle.FilesDependency)dependency ).getFilesPath(curProjectPath);
+				String filesPath = ((BuildGradle.FilesDependency)dependency).getFilesPath(curProjectPath);
 				this.scopeTypeMap.put(filesPath, scopeType);
-				if ( scopeType == scopeType.runtimeOnly ) {
+				if ( scopeType == scopeType.runtimeOnly ){
 					addRuntimeOnlyLib(filesPath);
 				}
 				continue;
 			}
 
-			if ( dependency instanceof BuildGradle.FileTreeDependency ) {
+			if ( dependency instanceof BuildGradle.FileTreeDependency ){
 				// xxx fileTree(dir: "filePath")
 				BuildGradle.FileTreeDependency fileTreeDependency=  (BuildGradle.FileTreeDependency)dependency;
 				String dirPath = fileTreeDependency.getDirPath(curProjectPath);
@@ -324,16 +324,16 @@ public class ScopeTypeQuerier {
 				continue;
 			}
 
-			if ( dependency instanceof BuildGradle.MavenDependency ) {
+			if ( dependency instanceof BuildGradle.MavenDependency ){
 				// xxx "G:A:V" 仅标记显示依赖
 				BuildGradle.MavenDependency mavenDependency = (BuildGradle.MavenDependency)dependency;
 				String metadataPath = MavenService.getMetadataPath(null, mavenDependency);
 
-				if ( metadataPath == null ) {
+				if ( metadataPath == null ){
 					continue;
 				}
 				String dirPath = FileSystem.getParent(metadataPath);
-				if ( dirPath == null ) {
+				if ( dirPath == null ){
 					continue;
 				}
 				this.scopeTypeMap.putDir(dirPath, scopeType);
@@ -342,26 +342,33 @@ public class ScopeTypeQuerier {
 		}
 
 		// 解析子项目
-		for ( ZeroAicyBuildGradle.ProjectDependency projectDependency : childZeroAicyBuildGradle.getProjectDependencys() ) {
+		for ( ZeroAicyBuildGradle.ProjectDependency projectDependency : childZeroAicyBuildGradle.getProjectDependencys() ){
 
-			try {
+			try{
 
 				// 子项目路径
-				String projectDependencyPath = projectDependency.getProjectDependencyPath(curProjectPath, buildGradleExt.getConfiguration(GradleTools.getSettingsGradlePath(curProjectPath)));
+				String settingsGradlePath = GradleTools.getSettingsGradlePath(curProjectPath);
+				BuildGradleExt settingsBuildGradleExt;
+				if ( settingsGradlePath == null ){
+					settingsBuildGradleExt = buildGradleExt.getConfiguration(settingsGradlePath);
+				}else{
+					settingsBuildGradleExt = buildGradleExt;
+				}
+				String projectDependencyPath = projectDependency.getProjectDependencyPath(curProjectPath, settingsBuildGradleExt);
 
-				if ( FileSystem.isDirectory(projectDependencyPath) ) {
+				if ( FileSystem.isDirectory(projectDependencyPath) ){
 					// 递归解析子项目
 					resolvingProjectDependency(projectDependencyPath, childProjectPathSet);
 				}
 			}
-			catch (Throwable e) {
+			catch (Throwable e){
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private void addCompileOnlyLib( String libFilePath ) {
-		if ( this.compileOnlyLibsSet.contains(libFilePath) ) {
+	private void addCompileOnlyLib(String libFilePath){
+		if ( this.compileOnlyLibsSet.contains(libFilePath) ){
 			return;
 		}
 		this.compileOnlyLibsSet.add(libFilePath);
@@ -369,8 +376,8 @@ public class ScopeTypeQuerier {
 		this.compileOnlyLibs.add(libFilePath);
 
 	}
-	private void addRuntimeOnlyLib( String libFilePath ) {
-		if ( this.runtimeOnlyLibsSet.contains(libFilePath) ) {
+	private void addRuntimeOnlyLib(String libFilePath){
+		if ( this.runtimeOnlyLibsSet.contains(libFilePath) ){
 			return;
 		}
 		this.runtimeOnlyLibsSet.add(libFilePath);
@@ -378,8 +385,8 @@ public class ScopeTypeQuerier {
 		this.runtimeOnlyLibs.add(libFilePath);
 	}
 
-	public void addDexingLib( String libFilePath ) {
-		if ( this.dexingLibsSet.contains(libFilePath) ) {
+	public void addDexingLib(String libFilePath){
+		if ( this.dexingLibsSet.contains(libFilePath) ){
 			return;
 		}
 		this.dexingLibsSet.add(libFilePath);
@@ -388,8 +395,8 @@ public class ScopeTypeQuerier {
 
 
 
-	private void addLibgdxNativesLib( String libFilePath ) {
-		if ( this.libgdxNativesLibsSet.contains(libFilePath) ) {
+	private void addLibgdxNativesLib(String libFilePath){
+		if ( this.libgdxNativesLibsSet.contains(libFilePath) ){
 			return;
 		}
 		this.libgdxNativesLibsSet.add(libFilePath);
@@ -397,24 +404,24 @@ public class ScopeTypeQuerier {
 
 	}
 
-	public List<String> getDexingLibs( ) {
+	public List<String> getDexingLibs(){
 		return this.dexingLibs;
 	}
 
-	public List<String> getCompileOnlyLibs( ) {
+	public List<String> getCompileOnlyLibs(){
 		return this.compileOnlyLibs;
 	}
 
-	public List<String> getRuntimeOnlyLibs( ) {
+	public List<String> getRuntimeOnlyLibs(){
 		return this.runtimeOnlyLibs;
 	}
 
-	public List<String> getLibgdxNativesLibs( ) {
+	public List<String> getLibgdxNativesLibs(){
 		return this.libgdxNativesLibs;
 	}
 
-	private static ScopeTypeQuerier.ScopeType getScopeType( int type ) {
-		switch ( type ) {
+	private static ScopeTypeQuerier.ScopeType getScopeType(int type){
+		switch ( type ){
 			case ZeroAicyBuildGradle.DependencyExt.CompileOnly:
 				return ScopeType.compileOnly;
 			case ZeroAicyBuildGradle.DependencyExt.RuntimeOnly:
