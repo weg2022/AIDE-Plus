@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import android.text.TextUtils;
 
 public class AaptService$Task {
 	// res的依赖map key res_dir_path-> value res_dir_path_list
@@ -65,7 +66,7 @@ public class AaptService$Task {
 
 	//resource.ap_
     public final String resourcesApPath;
-    private boolean j3;
+    private boolean isRrelease;
 
     public final String mainProjectPath;
     //gen对应的 res(包含res依赖，[0]为gen所在res)
@@ -80,10 +81,10 @@ public class AaptService$Task {
     public final List<String> subProjectGens;
 
 	//被Callable调用
-    public AaptService$ErrorResult runTask( ) {
+    public AaptService$ErrorResult runTask() {
         try {
 
-			if ( ZeroAicySetting.isEnableAapt2() ) {
+			if (ZeroAicySetting.isEnableAapt2()) {
 				//aapt2实现
 				return Aapt2Task.proxyAapt(this);
 			}
@@ -93,13 +94,13 @@ public class AaptService$Task {
             AndroidProjectSupport.Qq(this.resLibraryMap, this.flavor);
 
             AaptService$ErrorResult mergedAndroidManifestxml = mergedAndroidManifestxml();
-            if ( mergedAndroidManifestxml.errorInfo != null ) {
+            if (mergedAndroidManifestxml.errorInfo != null) {
                 return mergedAndroidManifestxml;
             }
 
-            for ( String injectedAManifestFilePath : this.injectedAndroidManifestMap.keySet() ) {
+            for (String injectedAManifestFilePath : this.injectedAndroidManifestMap.keySet()) {
                 File injectedAManifestFile = new File(injectedAManifestFilePath);
-				if ( !injectedAManifestFile.exists() ) {
+				if (!injectedAManifestFile.exists()) {
                     injectedAManifestFile.mkdirs();
                 }
             }
@@ -107,19 +108,19 @@ public class AaptService$Task {
             initedAaptExecutable();
 
             File resourcesApParentFile = new File(this.resourcesApPath).getParentFile();
-            if ( !resourcesApParentFile.exists() ) {
+            if (!resourcesApParentFile.exists()) {
                 resourcesApParentFile.mkdirs();
             }
 
             AaptService$ErrorResult generateRJavaErrorResult = generateRJava();
 
-            if ( generateRJavaErrorResult.errorInfo != null ) {
+            if (generateRJavaErrorResult.errorInfo != null) {
                 return generateRJavaErrorResult;
             }
 
             generateBuildConfigJava();
-            if ( !this.XL ) {
-                if ( this.isBuildRefresh ) {
+            if (!this.XL) {
+                if (this.isBuildRefresh) {
                     buildRefresh();
                 }
                 AaptService$ErrorResult Ws = Ws();
@@ -140,7 +141,7 @@ public class AaptService$Task {
 		String resourceApFilePath, Map<String, String> genPackageNameMap, Map<String, String> allResDirMap, 
 
 		Map<String, String> injectedAndroidManifestMap, Map<String, String> mergedAManifestMap, Map<String, List<String>> genResDirsMap, 
-		Map<String, String> androidManifestMap, boolean z, boolean isBuildRefresh, boolean z3 ) {
+		Map<String, String> androidManifestMap, boolean z, boolean isBuildRefresh, boolean isRrelease) {
 
 		this.aaptService = aaptService;
         this.mainProjectPath = mainProjectPath;
@@ -162,25 +163,25 @@ public class AaptService$Task {
         this.genResDirsMap = genResDirsMap;
         this.XL = z;
         this.isBuildRefresh = isBuildRefresh;
-        this.j3 = z3;
+        this.isRrelease = isRrelease;
         this.injectedAndroidManifestMap = new HashMap<String, String>(injectedAndroidManifestMap);
 
         this.androidManifestMap = new HashMap<>();
-        for ( Map.Entry<String, String> entry : androidManifestMap.entrySet() ) {
+        for (Map.Entry<String, String> entry : androidManifestMap.entrySet()) {
             this.androidManifestMap.put(entry.getValue(), entry.getKey());
         }
     }
 
-    public static String getMainProjectPath( AaptService$Task task ) {
+    public static String getMainProjectPath(AaptService$Task task) {
         return task.mainProjectPath;
     }
 
 	// 合并清单文件
-    public AaptService$ErrorResult mergedAndroidManifestxml( ) {
+    public AaptService$ErrorResult mergedAndroidManifestxml() {
         try {
 
-            if ( this.subProjectGens.size() <= 0 
-				&& this.variantManifestPaths.size() <= 0 ) {
+            if (this.subProjectGens.size() <= 0 
+				&& this.variantManifestPaths.size() <= 0) {
 				return new AaptService$ErrorResult(false);
 			}
 
@@ -195,14 +196,14 @@ public class AaptService$Task {
 			int subProjectGensSize = this.subProjectGens.size();
 
 			String[] subProjectInjectedManifestPaths = new String[subProjectGensSize];
-			for ( int index = 0; index < subProjectGensSize; index++ ) {
+			for (int index = 0; index < subProjectGensSize; index++) {
 				// 所有子项目的injectedManifest
 				subProjectInjectedManifestPaths[index] = this.injectedAndroidManifestMap.get(this.subProjectGens.get(index));
 			}
 
 			int variantManifestPathsSize = this.variantManifestPaths.size();
 			String[] variantManifestPaths = new String[variantManifestPathsSize];
-			for ( int index = 0; index < this.variantManifestPaths.size(); index++ ) {
+			for (int index = 0; index < this.variantManifestPaths.size(); index++) {
 				variantManifestPaths[index] = this.variantManifestPaths.get(index);
 			}
 
@@ -218,11 +219,11 @@ public class AaptService$Task {
 			// 添加 主项目的injected xml[属于合并的输入xml]
 			manifestPaths.add(new File(mainProjectInjectedManifestPath));
 
-			for ( int index = 0; index < subProjectGensSize; index++ ) {
+			for (int index = 0; index < subProjectGensSize; index++) {
 				manifestPaths.add(new File(subProjectInjectedManifestPaths[index]));
 			}
 
-			for ( int index = 0; index < variantManifestPathsSize; index++ ) {
+			for (int index = 0; index < variantManifestPathsSize; index++) {
 				manifestPaths.add(new File(variantManifestPaths[index]));
 			}
 
@@ -230,16 +231,16 @@ public class AaptService$Task {
 			File mainProjectMergedManifestFile = new File(mainProjectMergedManifestPath);
 			File inputInfoFile = new File(mainProjectMergedManifestFile.getParent(), "merged-manifest-inputs-info");
 
-			if ( mainProjectMergedManifestFile.exists() 
+			if (mainProjectMergedManifestFile.exists() 
 				&& !isChangerInputs(manifestPaths, inputInfoFile) 
-				&& u7(manifestPaths, Collections.singletonList(mainProjectMergedManifestFile)) ) {
+				&& u7(manifestPaths, Collections.singletonList(mainProjectMergedManifestFile))) {
 				// 省略合并
 				AppLog.d("Omitting merge " + mainProjectMergedManifestPath);
 			} else {
 				AppLog.d("Merging " + mainProjectMergedManifestPath);
 				// 合并
 				String mergedInfo = com.aide.ui.build.android.l.j6(AaptService.getContext(this.aaptService), mainProjectMergedManifestPath, mainProjectInjectedManifestPath, variantManifestPaths, subProjectInjectedManifestPaths);
-				if ( mergedInfo != null ) {
+				if (mergedInfo != null) {
 					return new AaptService$ErrorResult(mergedInfo);
 				}
 			}
@@ -254,17 +255,17 @@ public class AaptService$Task {
 	/**
 	 * 检查输入源是否改变
 	 */
-	private boolean isChangerInputs( List<File> inputFiles, File inputInfoFile ) {
+	private boolean isChangerInputs(List<File> inputFiles, File inputInfoFile) {
 
 		Set<String> inputPaths = new HashSet<String>();
-		for ( File inputFile : inputFiles ) {
+		for (File inputFile : inputFiles) {
 			inputPaths.add(inputFile.getAbsolutePath());
 		}
 
 		boolean isChangerInputs = false;
 
 		// 与inputInfoFile检查输入源
-		if ( !inputInfoFile.exists() ) {
+		if (!inputInfoFile.exists()) {
 			// 已改变
 			isChangerInputs = true;
 		} else {
@@ -276,7 +277,7 @@ public class AaptService$Task {
 		}
 
 		// 只有已改变才重写写入
-		if ( isChangerInputs ) {
+		if (isChangerInputs) {
 			//写入inputJarFilesSet
 			IOUtils.writeLines(inputPaths, inputInfoFile);
 		}
@@ -287,7 +288,7 @@ public class AaptService$Task {
 	/**
 	 * 读取输入源文件
 	 */
-	private Set<String> readInputInfoFile( File inputInfoFile ) {
+	private Set<String> readInputInfoFile(File inputInfoFile) {
 		Set<String> lastInputJarFilesSet = new HashSet<>();
 
 
@@ -299,21 +300,21 @@ public class AaptService$Task {
 		return lastInputJarFilesSet;
 	}
 
-    public static Map<String, String> getAndroidManifestMap( AaptService$Task task ) {
+    public static Map<String, String> getAndroidManifestMap(AaptService$Task task) {
         return task.androidManifestMap;
     }
 
     @MethodMark(method = 2668790741732965889L)
-    private void Hw( File file, String str, List<File> list ) {
+    private void Hw(File file, String str, List<File> list) {
         try {
             File[] listFiles = file.listFiles();
-            if ( listFiles == null ) {
+            if (listFiles == null) {
                 return;
             }
-            for ( File file2 : listFiles ) {
-                if ( file2.isDirectory() ) {
+            for (File file2 : listFiles) {
+                if (file2.isDirectory()) {
                     Hw(file2, str, list);
-                } else if ( str == null || str.equals(file2.getName()) ) {
+                } else if (str == null || str.equals(file2.getName())) {
                     list.add(file2);
                 }
             }
@@ -323,27 +324,27 @@ public class AaptService$Task {
         }
     }
 
-    private AaptService$ErrorResult generateRJava( ) {
+    private AaptService$ErrorResult generateRJava() {
         try {
-            for ( Map.Entry<String, List<String>> entry : this.genResDirsMap.entrySet() ) {
+            for (Map.Entry<String, List<String>> entry : this.genResDirsMap.entrySet()) {
 
-				if ( Thread.interrupted() ) {
+				if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 
 				String genDir = entry.getKey();
 				List<String> resDirs = entry.getValue();
-				if ( !genDir.equals(this.mainProjectGenDir) ) {
+				if (!genDir.equals(this.mainProjectGenDir)) {
 					AaptService$ErrorResult J8 = generateRJava(genDir, resDirs);
-					if ( J8.errorInfo != null ) {
+					if (J8.errorInfo != null) {
 						return J8;
 					}
 				}
 
             }
-            if ( this.XL ) {
+            if (this.XL) {
                 AaptService$ErrorResult generateRJavaErrorResult = generateRJava(this.mainProjectGenDir, this.genResDirsMap.get(this.mainProjectGenDir));
-                if ( generateRJavaErrorResult.errorInfo != null ) {
+                if (generateRJavaErrorResult.errorInfo != null) {
                     return generateRJavaErrorResult;
                 }
             }
@@ -357,42 +358,42 @@ public class AaptService$Task {
 	/**
 	 * aapt 生成R.java
 	 */ 
-    private AaptService$ErrorResult generateRJava( String genDir, List<String> list ) {
+    private AaptService$ErrorResult generateRJava(String genDir, List<String> list) {
         try {
 
             String str2 = this.injectedAndroidManifestMap.get(genDir);
             ArrayList<File> arrayList = new ArrayList<>();
-            for ( String str3 : list ) {
+            for (String str3 : list) {
                 Hw(new File(str3), null, arrayList);
             }
 
-            if ( arrayList.isEmpty() ) {
+            if (arrayList.isEmpty()) {
                 return new AaptService$ErrorResult(false);
             }
-            if ( new File(str2).exists() ) {
+            if (new File(str2).exists()) {
                 arrayList.add(new File(str2));
             }
 
             ArrayList<File> arrayList2 = new ArrayList<>();
             Hw(new File(genDir), "R.java", arrayList2);
-            if ( !this.isBuildRefresh && !arrayList2.isEmpty() && u7(arrayList, arrayList2) ) {
+            if (!this.isBuildRefresh && !arrayList2.isEmpty() && u7(arrayList, arrayList2)) {
                 AppLog.d("Omitting aapt call to regenerate R.java in " + genDir + " (is uptodate)");
                 return new AaptService$ErrorResult(false);
             }
             ArrayList<String> arrayList3 = new ArrayList<>();
-            if ( genDir.equals(this.mainProjectGenDir) ) {
+            if (genDir.equals(this.mainProjectGenDir)) {
                 arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--auto-add-overlay", "-m", "-J", genDir, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             } else {
                 arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "--non-constant-id", "--auto-add-overlay", "-m", "-J", genDir, "-M", str2, "-I", this.androidSdkFilePath, "--no-version-vectors"}));
             }
-            for ( String str4 : list ) {
-                if ( new File(str4).exists() ) {
+            for (String str4 : list) {
+                if (new File(str4).exists()) {
                     arrayList3.addAll(Arrays.asList(new String[]{"-S", str4}));
                 }
             }
-            if ( genDir.equals(this.mainProjectGenDir) ) {
+            if (genDir.equals(this.mainProjectGenDir)) {
                 String gn = gn();
-                if ( gn.length() != 0 ) {
+                if (gn.length() != 0) {
                     arrayList3.add("--extra-packages");
                     arrayList3.add(gn.toString());
                 }
@@ -400,10 +401,10 @@ public class AaptService$Task {
             tp(arrayList3);
             long currentTimeMillis = System.currentTimeMillis();
             wf j6 = xf.j6(arrayList3, (String) null, null, true, (OutputStream) null, (byte[]) null);
-            AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
-            if ( j6.DW() == 0 ) {
-                for ( File file : arrayList2 ) {
-                    if ( file.lastModified() < currentTimeMillis ) {
+            AppLog.d("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
+            if (j6.DW() == 0) {
+                for (File file : arrayList2) {
+                    if (file.lastModified() < currentTimeMillis) {
                         FileSystem.ensureUpdatedFileLastModified(file.getPath());
                     }
                 }
@@ -416,46 +417,46 @@ public class AaptService$Task {
         }
     }
 
-    private AaptService$ErrorResult QX( ) {
+    private AaptService$ErrorResult QX() {
         try {
 
-            if ( !Thread.interrupted() ) {
+            if (!Thread.interrupted()) {
                 List<String> list = this.genResDirsMap.get(this.mainProjectGenDir);
                 String str = this.injectedAndroidManifestMap.get(this.mainProjectGenDir);
                 ArrayList<File> arrayList = new ArrayList<>();
                 ArrayList<File> arrayList2 = new ArrayList<>();
-                for ( String str2 : list ) {
+                for (String str2 : list) {
                     Hw(new File(str2), null, arrayList2);
                 }
-                if ( new File(str).exists() ) {
+                if (new File(str).exists()) {
                     arrayList2.add(new File(str));
                 }
-                for ( String str3 : this.assetDirPaths ) {
-                    if ( new File(str3).exists() ) {
+                for (String str3 : this.assetDirPaths) {
+                    if (new File(str3).exists()) {
                         Hw(new File(str3), null, arrayList2);
                     }
                 }
                 arrayList2.add(new File(this.androidSdkFilePath));
                 Hw(new File(this.mainProjectGenDir), "R.java", arrayList);
                 arrayList.add(new File(this.resourcesApPath));
-                if ( !this.isBuildRefresh && !arrayList.isEmpty() && new File(this.resourcesApPath).exists() && u7(arrayList2, arrayList) ) {
+                if (!this.isBuildRefresh && !arrayList.isEmpty() && new File(this.resourcesApPath).exists() && u7(arrayList2, arrayList)) {
                     AppLog.d("Omitting aapt package call (is uptodate)");
                     return new AaptService$ErrorResult(false);
                 }
                 ArrayList<String> arrayList3 = new ArrayList<>();
-                if ( this.j3 ) {
+                if (this.isRrelease) {
                     arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "-f", "--no-crunch", "--auto-add-overlay", "-I", this.androidSdkFilePath, "-F", this.resourcesApPath}));
                 } else {
                     arrayList3.addAll(Arrays.asList(new String[]{this.aaptPath, "package", "-f", "--no-crunch", "--auto-add-overlay", "--debug-mode", "-I", this.androidSdkFilePath, "-F", this.resourcesApPath}));
                 }
-                for ( String assetDirPath : this.assetDirPaths ) {
-                    if ( new File(assetDirPath).exists() ) {
+                for (String assetDirPath : this.assetDirPaths) {
+                    if (new File(assetDirPath).exists()) {
                         arrayList3.addAll(Arrays.asList(new String[]{"-A", assetDirPath}));
                     }
                 }
                 arrayList3.addAll(Arrays.asList(new String[]{"-M", str}));
-                for ( String resDir : list ) {
-                    if ( new File(resDir).exists() ) {
+                for (String resDir : list) {
+                    if (new File(resDir).exists()) {
                         String binResDir = this.allResDirMap.get(resDir);
                         new File(binResDir).mkdirs();
                         arrayList3.addAll(Arrays.asList(new String[]{"-S", binResDir, "-S", resDir}));
@@ -463,17 +464,17 @@ public class AaptService$Task {
                 }
                 arrayList3.addAll(Arrays.asList(new String[]{"-m", "-J", this.mainProjectGenDir, "--no-version-vectors"}));
                 String gn = gn();
-                if ( gn.length() != 0 ) {
+                if (gn.length() != 0) {
                     arrayList3.add("--extra-packages");
                     arrayList3.add(gn.toString());
                 }
                 tp(arrayList3);
                 long currentTimeMillis = System.currentTimeMillis();
                 wf j6 = xf.j6(arrayList3, (String) null, null, true, (OutputStream) null, (byte[]) null);
-                AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
-                if ( j6.DW() == 0 ) {
-                    for ( File file : arrayList ) {
-                        if ( file.lastModified() < currentTimeMillis ) {
+                AppLog.d("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
+                if (j6.DW() == 0) {
+                    for (File file : arrayList) {
+                        if (file.lastModified() < currentTimeMillis) {
                             FileSystem.ensureUpdatedFileLastModified(file.getPath());
                         }
                     }
@@ -488,16 +489,16 @@ public class AaptService$Task {
         }
     }
 
-    public String getAaptError( byte[] errorBytes, int i ) {
+    public String getAaptError(byte[] errorBytes, int i) {
         try {
 
 			String error = StreamUtilities.readTextReader(new InputStreamReader(new ByteArrayInputStream(errorBytes)));
 
             error = error.trim();
 
-            if ( error.length() == 0 ) {
+            if (error.length() == 0) {
                 return "aapt exited with code " + i;
-            } else if ( i != 1 ) {
+            } else if (i != 1) {
                 return error + "\naapt exited with code " + i;
             } else {
                 return error;
@@ -508,30 +509,30 @@ public class AaptService$Task {
         }
     }
 
-    private AaptService$ErrorResult Ws( ) {
+    private AaptService$ErrorResult Ws() {
         try {
 
-            for ( Map.Entry<String, String> entry : this.allResDirMap.entrySet() ) {
-                if ( Thread.interrupted() ) {
+            for (Map.Entry<String, String> entry : this.allResDirMap.entrySet()) {
+                if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 				String key = entry.getKey();
 				String value = entry.getValue();
 
-				if ( new File(key).exists() ) {
+				if (new File(key).exists()) {
 					ArrayList<File> arrayList = new ArrayList<>();
 					Hw(new File(key), null, arrayList);
 					ArrayList<File> arrayList2 = new ArrayList<>();
 					Hw(new File(value), null, arrayList2);
-					if ( u7(arrayList, arrayList2) ) {
+					if (u7(arrayList, arrayList2)) {
 						AppLog.d("Omitting aapt crunch call (is uptodate)");
 					} else {
 						List<String> asList = Arrays.asList(new String[]{this.aaptPath, "crunch", "-S", key, "-C", value, "--no-version-vectors"});
 						tp(asList);
 						long currentTimeMillis = System.currentTimeMillis();
 						wf j6 = xf.j6(asList, (String) null, null, true, (OutputStream) null, (byte[]) null);
-						AppLog.d("aapt call elapsed " + ( System.currentTimeMillis() - currentTimeMillis ));
-						if ( j6.DW() != 0 ) {
+						AppLog.d("aapt call elapsed " + (System.currentTimeMillis() - currentTimeMillis));
+						if (j6.DW() != 0) {
 							return new AaptService$ErrorResult(getAaptError(j6.j6(), j6.DW()));
 						}
 					}
@@ -547,17 +548,25 @@ public class AaptService$Task {
 	/**
 	 * 生成 BuildConfig.java
 	 */
-    public void generateBuildConfigJava( ) {
+    public void generateBuildConfigJava() {
         try {
-            for ( Map.Entry<String, String> entry : this.genPackageNameMap.entrySet() ) {
+            for (Map.Entry<String, String> entry : this.genPackageNameMap.entrySet()) {
                 String packageName = entry.getValue();
+				
+				if (TextUtils.isEmpty(packageName)) {
+					continue;
+				}
+				AppLog.d("AAPT2", "packageName: %s", packageName);
                 File buildConfigJavaParentDirectory = new File(entry.getKey(), packageName.replace('.', File.separatorChar));
-                if ( !buildConfigJavaParentDirectory.exists() && !buildConfigJavaParentDirectory.mkdirs() ) {
-                    throw new IOException("Could not create directory " + buildConfigJavaParentDirectory);
+                if (!buildConfigJavaParentDirectory.exists() 
+					&& !buildConfigJavaParentDirectory.mkdirs()) {
+					if (!buildConfigJavaParentDirectory.exists()) {
+						throw new IOException("Could not create directory " + buildConfigJavaParentDirectory);
+					}
                 }
                 File buildConfigJavaFile = new File(buildConfigJavaParentDirectory, "BuildConfig.java");
-                if ( !this.XL || !buildConfigJavaFile.exists() ) {
-                    c.j6(buildConfigJavaFile, packageName, this.j3);
+                if (!this.XL || !buildConfigJavaFile.exists()) {
+                    com.aide.ui.build.android.c.j6(buildConfigJavaFile, packageName, this.isRrelease);
                 }
             }
         }
@@ -566,22 +575,22 @@ public class AaptService$Task {
         }
     }
 
-    private String gn( ) {
+    private String gn() {
         try {
             HashSet<String> hashSet = new HashSet<>();
-            for ( Map.Entry<String, String> entry : this.genPackageNameMap.entrySet() ) {
+            for (Map.Entry<String, String> entry : this.genPackageNameMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                if ( !value.equals(this.genPackageNameMap.get(this.mainProjectGenDir)) && !hashSet.contains(value) && new File(new File(key, value.replace('.', File.separatorChar)), "R.java").exists() ) {
+                if (!value.equals(this.genPackageNameMap.get(this.mainProjectGenDir)) && !hashSet.contains(value) && new File(new File(key, value.replace('.', File.separatorChar)), "R.java").exists()) {
                     hashSet.add(value);
                 }
             }
-            if ( FileSystem.getName(FileSystem.getParent(this.injectedAndroidManifestMap.get(this.mainProjectGenDir))).equals("AIDEExp") ) {
+            if (FileSystem.getName(FileSystem.getParent(this.injectedAndroidManifestMap.get(this.mainProjectGenDir))).equals("AIDEExp")) {
                 hashSet.add("com.aide.ui");
             }
             StringBuilder sb = new StringBuilder();
-            for ( String str : hashSet ) {
-                if ( sb.length() != 0 ) {
+            for (String str : hashSet) {
+                if (sb.length() != 0) {
                     sb.append(':');
                 }
                 sb.append(str);
@@ -593,18 +602,18 @@ public class AaptService$Task {
         }
     }
 
-    private void initedAaptExecutable( ) {
+    private void initedAaptExecutable() {
         try {
-            if ( Thread.interrupted() ) {
+            if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			if ( Build.VERSION.SDK_INT < 29 && !AaptService.initedAaptExecutable() ) {
+			if (Build.VERSION.SDK_INT < 29 && !AaptService.initedAaptExecutable()) {
 				File aaptFile = new File(this.aaptPath);
 
 				boolean isSetExecutable = aaptFile.setReadable(true, false) 
 					&& aaptFile.setExecutable(true, false);
 
-				if ( !isSetExecutable ) {
+				if (!isSetExecutable) {
 					throw new IOException("Could not make " + this.aaptPath + " executable - exit code ");
 				}
 				AaptService.setInitedAaptExecutable(true);
@@ -618,15 +627,15 @@ public class AaptService$Task {
         }
     }
 
-    private void tp( List<String> list ) {
+    private void tp(List<String> list) {
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Running aapt2 ");
-            for ( int i = 1; i < list.size(); i++ ) {
+            for (int i = 1; i < list.size(); i++) {
                 sb.append('\"');
                 sb.append(list.get(i));
                 sb.append('\"');
-                if ( i != list.size() - 1 ) {
+                if (i != list.size() - 1) {
                     sb.append(" ");
                 }
             }
@@ -639,20 +648,20 @@ public class AaptService$Task {
 	/**
 	 * 检查输出文件 是否新于输入文件
 	 */
-    private boolean u7( List<File> inputFiles, List<File> outputFiles ) {
+    private boolean u7(List<File> inputFiles, List<File> outputFiles) {
         try {
 			// ! (inputFiles.isEmpty() || !outputFiles.isEmpty())
-			if ( !inputFiles.isEmpty() && outputFiles.isEmpty() ) {
+			if (!inputFiles.isEmpty() && outputFiles.isEmpty()) {
 				return false;
 			}
 			// 获取最旧输出文件的时间戳
 			long outputFileMinLastModified = Long.MAX_VALUE;
-			for ( File outputFile : outputFiles ) {
+			for (File outputFile : outputFiles) {
 				outputFileMinLastModified = Math.min(outputFileMinLastModified, outputFile.lastModified());
 			}
 			// 获取最新输入文件的时间戳
 			long inputFileMaxLastModified = 0;
-			for ( File inputFile : inputFiles ) {
+			for (File inputFile : inputFiles) {
 				inputFileMaxLastModified = Math.max(inputFileMaxLastModified, inputFile.lastModified());
 			}
 			// 如果最旧输出文件的时间戳，仍新于最新输入文件的时间戳
@@ -665,15 +674,15 @@ public class AaptService$Task {
         }
     }
 
-    public void buildRefresh( ) {
+    public void buildRefresh() {
         try {
-            for ( Map.Entry<String, String> entry : this.allResDirMap.entrySet() ) {
-                if ( Thread.interrupted() ) {
+            for (Map.Entry<String, String> entry : this.allResDirMap.entrySet()) {
+                if (Thread.interrupted()) {
 					throw new InterruptedException();
 
 				}
 				String value = entry.getValue();
-				if ( new File(value).exists() ) {
+				if (new File(value).exists()) {
 					try {
 						FileSystem.deleteDirectory(value);
 					}

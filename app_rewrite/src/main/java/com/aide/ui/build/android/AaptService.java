@@ -23,6 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import com.aide.ui.project.internal.GradleTools;
+import java.util.Iterator;
+import com.aide.ui.project.WearAppProjectSupport;
+import com.aide.ui.util.BuildGradle;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 
 public class AaptService {
 
@@ -274,17 +279,90 @@ public class AaptService {
         aaptService.J8(z);
     }
 
-    private AaptService$Task makeTask(String mainProjectPath, boolean z, boolean isBuildRefresh, boolean z3, String str2, String flavor, String aaptPath) {
+	// 对JavaGradle项目的兼容
+	// AndroidProjectSupport::jO()
+	public static Map<String, String> jO(Map<String, List<String>> resLibraryMap, String flavor) {
+		HashMap<String, String> hashMap = new HashMap<>();
+		for (String res_dir_path : resLibraryMap.keySet()) {
+			if (GradleTools.isAndroidGradleProject(res_dir_path)) {
+				if (existsAndroidManifestXmlFile(res_dir_path, flavor)) {
+					hashMap.put(GradleTools.getGenDir(res_dir_path), AndroidProjectSupport.getProjectPackageName(res_dir_path, flavor));					
+				}
+			}
+		}
+		return hashMap;
+    }
+
+	private static boolean existsAndroidManifestXmlFile(String res_dir_path, String flavor) {
+
+		return FileSystem.exists(res_dir_path + "/AndroidManifest.xml")
+			|| FileSystem.exists(res_dir_path + "/src/main/AndroidManifest.xml")
+			|| (flavor != null  && FileSystem.exists(res_dir_path + "/src/" + flavor + "/AndroidManifest.xml"));
+	}
+	public static Map<String, String> aq(String str, Map<String, List<String>> map, String flavor) {
+		HashMap<String, String> hashMap = new HashMap<>();
+		Iterator<Map.Entry<String, List<String>>> it = map.entrySet().iterator();
+		while (it.hasNext()) {
+			String key = it.next().getKey();
+			if (AndroidProjectSupport.isAndroidGradleProject(key)
+			// 对JavaGradle项目的兼容
+				&& existsAndroidManifestXmlFile(key, flavor)) {
+
+				if (GradleTools.isAarEexplodedPath(key)) {
+					String androidManifestPath = GradleTools.getAndroidManifestPath(key, flavor);
+					String injectedAndroidManifestPath = GradleTools.getInjectedAndroidManifestPath(key);
+					if (WearAppProjectSupport.J0(androidManifestPath, injectedAndroidManifestPath, (BuildGradle) null, AndroidProjectSupport.getProjectPackageName(str, flavor), flavor)) {
+						hashMap.put(GradleTools.getGenDir(key), injectedAndroidManifestPath);
+					} else {
+						hashMap.put(GradleTools.getGenDir(key), androidManifestPath);
+					}
+				} else if (GradleTools.isGradleProject(key)) {
+					BuildGradle configuration = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.getBuildGradlePath(key));
+					String androidManifestPath2 = GradleTools.getAndroidManifestPath(key, flavor);
+					String injectedAndroidManifestPath2 = GradleTools.getInjectedAndroidManifestPath(key);
+					if (WearAppProjectSupport.J0(androidManifestPath2, injectedAndroidManifestPath2, configuration, AndroidProjectSupport.getProjectPackageName(str, flavor), flavor)) {
+						hashMap.put(GradleTools.getGenDir(key), injectedAndroidManifestPath2);
+					} else {
+						hashMap.put(GradleTools.getGenDir(key), androidManifestPath2);
+					}
+				} else {
+					hashMap.put(GradleTools.getGenDir(key), GradleTools.getAndroidManifestPath(key, flavor));
+				}
+			}
+		}
+		return hashMap;
+    }
+	public static List<String> jw(String mainProjectPath) {
+		List<String> arrayList = new ArrayList<>();
+		if (GradleTools.isGradleProject(mainProjectPath)) {
+			Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().getLibraryMapping();
+			for (String subProjectPath : libraryMapping.get(mainProjectPath)) {
+				if (!existsAndroidManifestXmlFile(subProjectPath, null)) {
+					// 不存在 AndroidManifest.xml
+					// 对JavaGradle项目的兼容
+					continue;
+				}
+				if (GradleTools.isGradleProject(subProjectPath) 
+					|| GradleTools.isAarEexplodedPath(subProjectPath)) {
+					arrayList.add(GradleTools.getGenDir(subProjectPath));
+				}
+			}
+		}
+		return arrayList;
+    }
+    private AaptService$Task makeTask(String mainProjectPath, boolean z, boolean isBuildRefresh, boolean isRrelease, String str2, String flavor, String aaptPath) {
 		Map<String, List<String>> resLibraryMap = ServiceContainer.getProjectService().vy(mainProjectPath);
 
 		String resourceApFilePath = AndroidProjectSupport.kf(mainProjectPath);
-		Map<String, String> genPackageNameMap = AndroidProjectSupport.jO(resLibraryMap, flavor);
+
+		Map<String, String> genPackageNameMap = jO(resLibraryMap, flavor);
+
 		Map<String, String> allResDirMap = AndroidProjectSupport.cT(resLibraryMap, flavor);
-		Map<String, String> injectedAndroidManifestMap = AndroidProjectSupport.aq(mainProjectPath, resLibraryMap, flavor);
+		Map<String, String> injectedAndroidManifestMap = aq(mainProjectPath, resLibraryMap, flavor);
 		Map<String, String> mergedAManifestMap = AndroidProjectSupport.FN(resLibraryMap, flavor);
 		Map<String, List<String>> genResDirsMap = AndroidProjectSupport.oY(resLibraryMap, flavor);
 		Map<String, String> androidManifestMap = AndroidProjectSupport.Z1(resLibraryMap, flavor);
-		List<String> subProjectGens = AndroidProjectSupport.jw(mainProjectPath);
+		List<String> subProjectGens = jw(mainProjectPath);
 		List<String> variantManifestPaths = AndroidProjectSupport.fY(mainProjectPath, flavor);
 
 		String androidJarPath = ServiceContainer.getProjectService().getAndroidJarPath();
@@ -298,7 +376,7 @@ public class AaptService {
 			androidJarPath, mainProjectGenDir, assetDirPaths, 
 			resourceApFilePath, genPackageNameMap, allResDirMap, 
 			injectedAndroidManifestMap, mergedAManifestMap, genResDirsMap, 
-			androidManifestMap, z, isBuildRefresh, z3);
+			androidManifestMap, z, isBuildRefresh, isRrelease);
     }
 
     private SyntaxError makeSyntaxError(String errorType, int errorLineNumber, String error) {
@@ -383,7 +461,7 @@ public class AaptService {
 				@Override
 				public List<AaptService$Task> getTasks() {
 					ArrayList<AaptService$Task> arrayList = new ArrayList<>();
-					
+
 					for (String mainAppOrWearAppPath : ServiceContainer.getProjectService().getMainAppWearApps()) {
 						boolean isRrelease = false;
 						arrayList.add(makeTask(mainAppOrWearAppPath, true, false, isRrelease, null, flavor, aaptPath));
@@ -410,10 +488,10 @@ public class AaptService {
     public void init(String flavour) {
 		Map Z1 = AndroidProjectSupport.Z1(ServiceContainer.getProjectService().getLibraryMapping(), flavour);
 		for (String projectPath : ServiceContainer.getProjectService().getLibraryMapping().keySet()) {
-			
+
 			String ye = AndroidProjectSupport.ye(projectPath, flavour);
 			FileSystem.ensureUpdatedFileLastModified(ye);
-			
+
 			if (Z1.containsKey(ye)) {
 				FileSystem.ensureUpdatedFileLastModified((String) Z1.get(ye));
 			}

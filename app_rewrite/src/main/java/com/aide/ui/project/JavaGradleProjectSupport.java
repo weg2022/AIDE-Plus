@@ -9,7 +9,9 @@ import com.aide.engine.EngineSolution;
 import com.aide.engine.EngineSolutionProject;
 import com.aide.engine.service.CodeModelFactory;
 import com.aide.ui.ServiceContainer;
+import com.aide.ui.build.JavaGradleProjectBuildService;
 import com.aide.ui.project.internal.GradleTools;
+import com.aide.ui.rewrite.R;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ProjectSupport;
 import com.aide.ui.services.TemplateService;
@@ -21,6 +23,7 @@ import com.aide.ui.util.ClassPath;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,9 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.ui.rewrite.R;
-import java.util.Arrays;
-import com.aide.ui.build.JavaGradleProjectBuildService;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -110,7 +110,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	 * 用于判断是否是Java项目
 	 * 
 	 */
-	private static boolean isJavaGradleProject(String projectPath) {
+	public static boolean isJavaGradleProject(String projectPath) {
 		// 必须有 src build.gradle 
 
 		/*if (FileSystem.isDirectory(projectPath)) {
@@ -119,7 +119,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		 }*/
 
 		return GradleTools.isGradleProject(projectPath) 
-			&& !GradleTools.isAndroidProject(projectPath)
+			&& !FileSystem.exists(projectPath + "/AndroidManifest.xml")
 			&& !FileSystem.exists(projectPath + "/src/main/AndroidManifest.xml");
 	}
 
@@ -142,14 +142,15 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		ProjectService projectService = ServiceContainer.getProjectService();
 
-		// getLibraryMapping().keySet() 并去除主项目目录
-		List<String> projectDirs = projectService.P8();
 
 		// 顶层项目 与 主项目同级
 		List mainAppWearApps = projectService.getMainAppWearApps();
 
 		StringBuilder projectAttributeSb = new StringBuilder();
 		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().getLibraryMapping();
+		
+		// getLibraryMapping().keySet() 并去除主项目目录
+		List<String> projectDirs = projectService.P8();
 		for (String projectDir : projectDirs) {
 			if (projectDir.endsWith(".aar")) {
 				continue;
@@ -849,21 +850,22 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		ProjectService projectService = ServiceContainer.getProjectService();
 		for (String projectDir : projectService.getMainAppWearApps()) {
-			if (projectDir == null) continue;
-			String parent = FileSystem.getParent(projectDir);
-			if (parent != null && path.startsWith(parent)) {
-				return true;
+			
+			if( projectDir == null ){
+				continue;
 			}
 			if (path.startsWith(projectDir)) {
 				return true;
 			}
 		}
 		for (String projectDir : projectService.getLibraryMapping().keySet()) {
+			if( projectDir == null ){
+				continue;
+			}
 			if (path.startsWith(projectDir)) {
 				return true;
 			}
 		}
-		System.out.println(path + "不在项目内");
 		return false;
 	}
 

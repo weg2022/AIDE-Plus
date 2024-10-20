@@ -51,6 +51,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.graphics.Color;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
@@ -525,12 +528,31 @@ public class ZeroAicyMainActivity extends MainActivity {
 			RepairBUG2(menu);
 		}
 		boolean onPrepareOptionsMenu = super.onPrepareOptionsMenu(menu);
-		MenuItem mainMenuSaveItem = menu.findItem(R.id.mainMenuSave);
-		if( mainMenuSaveItem != null){
-			MenuItemCommand saveMenuItemCommand = AppCommands.u7(mainMenuSaveItem.getItemId());
-			// setEnabled不变灰色，那就隐藏😕
-			mainMenuSaveItem.setVisible(saveMenuItemCommand.isEnabled());
+		for (int index= 0, size = menu.size(); index < size; index++) {
+			MenuItem menuItem = menu.getItem(index);
+			if (!menuItem.isEnabled() && menuItem.isVisible()) {
+				SpannableString s = new SpannableString(menuItem.getTitle());
+				s.setSpan(new ForegroundColorSpan(Color.GRAY), 0, s.length(), 0);
+				menuItem.setTitle(s);
+			}
 		}
+		/*
+		 MenuItem mainMenuSaveItem = menu.findItem(R.id.mainMenuSave);
+
+		 if( mainMenuSaveItem != null){
+		 MenuItemCommand saveMenuItemCommand = AppCommands.u7(mainMenuSaveItem.getItemId());
+		 // setEnabled不变灰色，那就隐藏😕
+		 boolean isEnabled = saveMenuItemCommand.isEnabled();
+		 if( !isEnabled ){
+		 // 设置背景
+		 SpannableString s = new SpannableString(mainMenuSaveItem.getTitle());
+		 s.setSpan(new ForegroundColorSpan(Color.GRAY), 0, s.length(), 0);
+		 mainMenuSaveItem.setTitle(s);
+
+		 // 隐藏
+		 //mainMenuSaveItem.setVisible(isEnabled);
+		 }
+		 }*/
 		return onPrepareOptionsMenu;
 	}
 

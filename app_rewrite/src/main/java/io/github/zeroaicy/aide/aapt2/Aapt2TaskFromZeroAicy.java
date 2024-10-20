@@ -155,15 +155,6 @@ public class Aapt2TaskFromZeroAicy {
 		EngineService engineService = ServiceContainer.getEngineService();
 		engineService.ef();
 		engineService.ei();
-		class RefreshEngineService implements Runnable{
-			@Override
-			public void run() {
-				EngineService engineService = ServiceContainer.getEngineService();
-				engineService.ef();
-				engineService.ei();
-			}
-		}
-		ServiceContainer.aj(new RefreshEngineService());
 		return new AaptService$ErrorResult(false);
 	}
 
@@ -259,6 +250,10 @@ public class Aapt2TaskFromZeroAicy {
 			String subPackageName = genPackageNameMap.get(subGenDirPath);
 			if (subPackageName == null) {
 				aaptServiceArgs.aaptLog.println(String.format("gen路径%s查询不到包名", subGenDirPath));
+			}
+			if(subPackageName == null || subPackageName.length() == 0){
+				// 对JavaGradle项目的兼容
+				continue;
 			}
 			//子项目R.java相对gen路径
 			String subRJavaAbsolutePath = subPackageName.replace('.', '/') + "/R.java";
