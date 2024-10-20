@@ -12,6 +12,7 @@ import com.aide.engine.service.CodeModelFactory;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
+import com.aide.ui.project.JavaGradleProjectSupport;
 import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.util.ClassPath;
 import com.aide.ui.util.FileSystem;
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import com.aide.ui.project.JavaGradleProjectSupport;
+import com.aide.ui.firebase.FireBaseLogEvent;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -123,6 +124,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			// Collections.synchronizedMap(new HashMap<String, List<String>>());
 			// 项目路径 -> 所有maven依赖
 			this.libraryMapping = new HashMap<String, List<String>>(){
+				@Override
 				public List<String> put(String key, List<String> value) {
 					if (!ZeroAicyProjectService.executorsService.isCurrentThread()) {
 						AppLog.e(Thread.currentThread().getName(), new Throwable());
@@ -130,6 +132,7 @@ public class ZeroAicyProjectService extends ProjectService {
 					return super.put(key, value);
 				}
 
+				@Override
 				public List<String> remove(Object key) {
 					if (!ZeroAicyProjectService.executorsService.isCurrentThread()) {
 						AppLog.e(Thread.currentThread().getName(), new Throwable());
@@ -137,10 +140,12 @@ public class ZeroAicyProjectService extends ProjectService {
 					return super.remove(key);
 				}
 
+				@Override
 				public void clear() {
 					if (!ZeroAicyProjectService.executorsService.isCurrentThread()) {
 						AppLog.e(Thread.currentThread().getName(), new Throwable());
 					}
+					super.clear();
 				}
 			};
 			// new ConcurrentHashMap<String, List<String>>();
@@ -271,10 +276,9 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public synchronized Map<String, List<String>> getLibraryMapping() {
 		if (!isInited() 
-			&& !executorsService.isCurrentThread()) {
+			|| !executorsService.isCurrentThread()) {
 			Map<String, List<String>> libraryMappingCopy = this.libraryMappingCopy;
 			if (libraryMappingCopy == null) {
-
 				return Collections.emptyMap();
 			}
 			// 动态创建只读副本
@@ -518,8 +522,12 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 
 		// 必须赋值
-		ZeroAicyProjectService.this.currentAppHome = projectDir;
-		ZeroAicyProjectService.this.pojectSupport = getProjectSupport(projectDir);
+		this.currentAppHome = projectDir;
+		this.saveCurrentAppHome(projectDir);
+
+		this.pojectSupport = getProjectSupport(projectDir);
+		this.classPathEntrys = null;
+		this.projectProperties = null;
 
 		// ye();
 		// 清空错误列表
@@ -534,10 +542,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		Runnable asynTask = new Runnable(){
 			@Override
 			public void run() {
-
-				ZeroAicyProjectService.this.saveCurrentAppHome(projectDir);
 				// 赋值 pojectSupport
-				ZeroAicyProjectService.this.pojectSupport = getProjectSupport(projectDir);
 				ZeroAicyProjectService.this.init();
 				ZeroAicyProjectService.this.jJ();
 
@@ -560,8 +565,11 @@ public class ZeroAicyProjectService extends ProjectService {
 	}
 
 	private String projectProperties = null;
+
 	@Override
 	public String getProjectAttribute() {
+
+		AppLog.println_d("getProjectAttribute() projectProperties %s", projectProperties);
 		if (this.currentAppHome == null) {
 			// 没有打开项目,，或初始化未完成
 			return "";
@@ -613,7 +621,7 @@ public class ZeroAicyProjectService extends ProjectService {
 					// 同步界面
 					ServiceContainer.getFileBrowserService().v5();
 					ServiceContainer.getMainActivity().kf();
-					
+
 					// 反正在主线程调用也是异步
 					ZeroAicyProjectService.this.verifyResourcesDownload();
 				}
@@ -660,11 +668,11 @@ public class ZeroAicyProjectService extends ProjectService {
 			ServiceContainer.getDebugger().P8(this.pojectSupport.getProjectPackageName(), true);
 		}
 
-		if (isOpenProject()) {
-			// call PojectSupport::cn()
-			// ZeroAicyProjectService.this.et(null, false);
-			//sy("init");
-		}
+		//if ( isOpenProject() ){
+		// call PojectSupport::cn()
+		// ZeroAicyProjectService.this.et(null, false);
+		//sy("init");
+		//}
 
 		// 等待EngineServiceConnection
 
@@ -870,25 +878,32 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		// 置空项目属性
 		this.mainAppWearApps.clear();
+		this.mainAppWearAppsCopy = null;
 		this.libraryMapping.clear();
+		this.libraryMappingCopy = null;
 
 		this.classPathEntrys = null;
 		this.projectProperties = null;
-
-		if (this.currentAppHome != null) {
-			// 填充this.libraryMapping[修改this.libraryMapping中]
-			// libraryMapping是所有子项目目录[aar也算且包含当前项目目录]
-			this.pojectSupport.init(this.currentAppHome, this.libraryMapping, this.mainAppWearApps);
-			this.libraryMappingCopy = new HashMap<String, List<String>>(this.libraryMapping);
-			this.mainAppWearAppsCopy = new ArrayList<String>(this.mainAppWearApps);
-
-			if (this.pojectSupport instanceof AndroidProjectSupport) {
-				// 可以做一些额外处理
-				ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
-			}
-			this.projectProperties = getProjectAttributeAsync();
-
+		if (this.currentAppHome == null) {
+			// 初始化完成
+			this.setInited();
+			return;
 		}
+
+
+		// 填充this.libraryMapping[修改this.libraryMapping中]
+		// libraryMapping是所有子项目目录[aar也算且包含当前项目目录]
+		this.pojectSupport.init(this.currentAppHome, this.libraryMapping, this.mainAppWearApps);
+
+		this.libraryMappingCopy = new HashMap<String, List<String>>(this.libraryMapping);
+		this.mainAppWearAppsCopy = new ArrayList<String>(this.mainAppWearApps);
+
+		if (this.pojectSupport instanceof AndroidProjectSupport) {
+			// 可以做一些额外处理
+			ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
+		}
+		this.projectProperties = this.getProjectAttributeAsync();
+		AppLog.println_d("projectProperties %s", projectProperties);
 
 		// 初始化完成
 		this.setInited();
@@ -909,8 +924,10 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public boolean Mz(String projectPath) {
 		// JavaGradle项目需要单独处理
+
 		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
 		if (javaGradleProjectSupport.isSupport(projectPath)) {
+
 			// 当前项目不能包含他
 			return !isInCurrentProjectDirectory(projectPath);
 		}
@@ -927,20 +944,26 @@ public class ZeroAicyProjectService extends ProjectService {
 		return projectSupport.getOpenProjectNameStringId(str);
 	}
 
-	private ProjectSupport getProjectSupport(String projectPath) {
+	@Override
+	public ProjectSupport getProjectSupport(String projectPath) {
 		if (projectPath == null) {
 			return null;
 		}
+		try {
+			JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
+			if (javaGradleProjectSupport.isSupport(projectPath)) {
 
-		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
-		if (javaGradleProjectSupport.isSupport(projectPath)) {
-			return javaGradleProjectSupport;
-		}
-
-		for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
-			if (projectSupport.isSupport(projectPath)) {
-				return projectSupport;
+				return javaGradleProjectSupport;
 			}
+
+			for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
+				if (projectSupport.isSupport(projectPath)) {
+					return projectSupport;
+				}
+			}
+		}
+		catch (Throwable e) {
+
 		}
 		return null;
     }
@@ -1024,6 +1047,23 @@ public class ZeroAicyProjectService extends ProjectService {
 	public String getBuildType() {
 		return this.er();
 	}
+
+	@Override
+	public void sy(String string) {
+		HashMap<String, String> hashMap = new HashMap<>();
+		hashMap.put("isPremium", Boolean.toString(isPremium()));
+		hashMap.put("libraryCount", Integer.toString(this.libraryMapping.size()));
+		hashMap.put("referrer", string);
+		String currentAppHome = getCurrentAppHome();
+		if (!JavaGradleProjectSupport.isJavaGradleProject(currentAppHome) && AndroidProjectSupport.isAndroidGradleProject(currentAppHome)) {
+			hashMap.put("package", AndroidProjectSupport.getProjectPackageName(getCurrentAppHome(), (String) null));
+		}
+		FireBaseLogEvent.EQ("Project opened", hashMap);
+
+	}
 	/*****************************************************************/
-	
+
+
+
+
 }
