@@ -815,6 +815,9 @@ FileUtil.deleteFolder(mergerCacheDir);
 				packagingSourceDirsResource(packagingZipOutput);
 				//打包依赖库资源
 				packagingJarResources(packagingZipOutput);
+				// 打包 libgdxNatives依赖资源
+				packagingLibgdxNativesResources(packagingZipOutput);
+				
 				packagingZipOutput.close();
 			}
 
