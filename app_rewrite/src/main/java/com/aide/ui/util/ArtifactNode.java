@@ -9,24 +9,24 @@ import java.util.ArrayList;
 import com.aide.common.AppLog;
 import android.text.TextUtils;
 
-public class ArtifactNode extends BuildGradle.MavenDependency {
+public class ArtifactNode extends BuildGradle.MavenDependency{
 
-	public static String getClassifier( BuildGradle.MavenDependency dependency ) {
-		if ( dependency instanceof ArtifactNode ) {
-			return ( (ArtifactNode)dependency ).classifier;
+	public static String getClassifier(BuildGradle.MavenDependency dependency){
+		if ( dependency instanceof ArtifactNode ){
+			return ((ArtifactNode)dependency).classifier;
 		}
 		return null;
 	}
 
 	// 装箱
-	public static ArtifactNode pack( BuildGradle.MavenDependency dep ) {
+	public static ArtifactNode pack(BuildGradle.MavenDependency dep){
 
-		if ( dep instanceof ArtifactNode ) {
+		if ( dep instanceof ArtifactNode ){
 			return (ArtifactNode)dep;
 		}
 
 		String version = dep.version;
-		if ( version != null || version.length() == 0 ) {
+		if ( version != null || version.length() == 0 ){
 			version = "+";
 		}
 		return new ArtifactNode(dep, version);
@@ -39,10 +39,10 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 	private List<Exclusion> exclusions;
 	public String classifier;
 
-	public ArtifactNode( BuildGradle.MavenDependency mavenDependency, String version ) {
+	public ArtifactNode(BuildGradle.MavenDependency mavenDependency, String version){
 		super(mavenDependency, version);
 
-		if ( mavenDependency instanceof ArtifactNode ) {
+		if ( mavenDependency instanceof ArtifactNode ){
 			// 直接用字段，getExclusions可能返回emptyList
 			ArtifactNode artifactNode = (ArtifactNode)mavenDependency;
 			this.classifier = artifactNode.classifier;
@@ -52,13 +52,13 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 
 		// 保留 packaging
 		this.packaging = mavenDependency.packaging;
-				
+
 	}
 
-	public ArtifactNode( String groupId, String artifactId, String version ) {
+	public ArtifactNode(String groupId, String artifactId, String version){
 		this(1, groupId, artifactId, version);
 	}
-	public ArtifactNode( int line, String groupId, String artifactId, String version ) {
+	public ArtifactNode(int line, String groupId, String artifactId, String version){
 		super(line);
 		this.groupId = groupId;
 		this.artifactId = artifactId;
@@ -66,12 +66,12 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 		// version不能为空
 		this.setVersion(version == null ? "+" : version);
 
-		if( this.groupId == null ){
+		if ( this.groupId == null ){
 			this.groupId = "";
 		}
 	}
 
-	public ArtifactNode( PomXml pom ) {
+	public ArtifactNode(PomXml pom){
 		super(1);
 
 		this.groupId = pom.group;
@@ -83,71 +83,80 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 
 		// 从pom解析出来的
 		this.packaging = pom.getPackaging();
-		
-		if( this.groupId == null ){
+
+		if ( this.groupId == null ){
 			this.groupId = "";
 		}
-		if( this.artifactId == null ){
+		if ( this.artifactId == null ){
 			this.artifactId = "";
 		}
-		
+
 	}
 	/*******************************************************************************/
 
-	public void setVersion( String version ) {
-		if ( TextUtils.isEmpty(version) ) {
+	public void setVersion(String version){
+		if ( TextUtils.isEmpty(version) ){
 			version = "+";
 		}
 		this.version = version;
 	}
 
-	public String getVersion( ) {
+	public String getVersion(){
 		return this.version;
 	}
 	@Override
-	public String getGroupIdArtifactId( ) {
+	public String getGroupIdArtifactId(){
 		String groupIdArtifactId = super.getGroupIdArtifactId();
-		if ( this.classifier != null ) {
+		if ( this.classifier != null ){
 			groupIdArtifactId = groupIdArtifactId + ":" + this.classifier;
 		}
 		return groupIdArtifactId;
 	}
 	@Override
-	public String toString( ) {
-		String toString = super.toString();
-		if ( this.classifier != null ) {
-			toString += ":" + this.classifier;
+	public String toString(){
+
+		StringBuilder sb = new StringBuilder(super.getGroupIdArtifactId())
+			.append(":")
+			.append(this.version);
+		if ( this.classifier != null ){
+			sb.append(":")
+				.append(this.classifier);
 		}
-		return toString;
+		if ( this.packaging != null ){
+			sb.append("@")
+				.append(this.packaging);
+		}
+		
+		return sb.toString();
 	}
 
 	@Override
-	public int hashCode( ) {
+	public int hashCode(){
 		int hashCode = super.hashCode();
-		if ( this.version != null ) {
+		if ( this.version != null ){
 			hashCode += 17 * this.version.hashCode();
 		}
-		if ( this.classifier != null ) {
+		if ( this.classifier != null ){
 			hashCode += 17 * this.classifier.hashCode();
 		}
 		return hashCode;
 	}
 
 	@Override
-	public boolean equals( Object object ) {
-		if ( object instanceof BuildGradle.MavenDependency ) {
+	public boolean equals(Object object){
+		if ( object instanceof BuildGradle.MavenDependency ){
 			BuildGradle.MavenDependency mavenDependency = (BuildGradle.MavenDependency)object;
 			return getGroupIdArtifactId().equals(mavenDependency.getGroupIdArtifactId());
-		} else {
+		}else{
 			return super.equals(object);
 		}
 	}
-	public void syncExclusions( ArtifactNode artifactNode ) {
-		if ( artifactNode.exclusions == null ) {
+	public void syncExclusions(ArtifactNode artifactNode){
+		if ( artifactNode.exclusions == null ){
 			// 没有同步啥
 			return;
 		}
-		if ( this.exclusions == null ) {
+		if ( this.exclusions == null ){
 			// 无脑用 
 			this.exclusions = artifactNode.exclusions;
 			return;
@@ -155,19 +164,19 @@ public class ArtifactNode extends BuildGradle.MavenDependency {
 		this.exclusions = new ArrayList<Exclusion>(this.exclusions);
 		this.exclusions.addAll(artifactNode.exclusions);
 	}
-	public void setExclusions( List<Exclusion> exclusions ) {
+	public void setExclusions(List<Exclusion> exclusions){
 		this.exclusions = exclusions;
 	}
-	private List<Exclusion> getExclusions( ) {
-		if ( this.exclusions == null ) {
+	private List<Exclusion> getExclusions(){
+		if ( this.exclusions == null ){
 			return Collections.emptyList();
 		}
 		return this.exclusions;
 	}
 
-	public Set<String> getExclusionSet( ) {
+	public Set<String> getExclusionSet(){
 		Set<String> exclusionSet = new HashSet<>();
-		for ( Exclusion exclusion : getExclusions() ) {
+		for ( Exclusion exclusion : getExclusions() ){
 			exclusionSet.add(exclusion.getGroupId() + ":" + exclusion.getArtifactId());
 		}
 		return exclusionSet;

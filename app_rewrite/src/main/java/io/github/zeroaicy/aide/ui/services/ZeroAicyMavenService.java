@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import com.aide.ui.services.ZeroAicyProjectService;
 import android.app.AlertDialog;
+import java.util.HashSet;
+import java.util.Arrays;
 
 /**
  * 更新底包时，再优化，那时必须抽离出修改点，只保留底包对其引用的api
@@ -285,21 +287,15 @@ public class ZeroAicyMavenService{
 	// 解析MavenDependency的子依赖
 	@Keep
 	public void resolvingDependency(BuildGradle.MavenDependency dependency){
-        try{
-			//解析并填充此依赖
-			// 必须完全解析
-            resolvingDependency(makeUpdateDep(dependency), defaultDepth);
-        }
-		catch (Throwable th){
-			if ( th instanceof Error ) 
-				throw (Error)th;
-            else
-				throw new Error(th);
-        }
+		//解析并填充此依赖
+		// 必须完全解析
+		resolvingDependency(makeUpdateDep(dependency), /*new HashSet<String>(),*/ defaultDepth);
     }
+	
+	
 	// 递归，耗时操作
 	// 解析gradle中的显示声明
-	private void resolvingDependency(BuildGradle.MavenDependency mavenDependency, int depth){
+	private void resolvingDependency(BuildGradle.MavenDependency mavenDependency, /*HashSet<String> processed,*/ int depth){
         try{
 			//从缓存仓库计算MavenDependency依赖路径[pom|jar|aar]
 
@@ -307,50 +303,47 @@ public class ZeroAicyMavenService{
 			ArtifactNode artifactNode = makeUpdateDep(mavenDependency);
 			// 解析依赖路径
 			String depPath = resolveMavenDepPath(null, artifactNode);
-
-			if ( depPath == null ){
-				// 没有此依赖未下载
-				return;
-			}
-
+			
+			
+			//processed.add(depPath);
+			
 			// 限制递归层级
 			if ( depth < 1 ){
 				return;
 			}
 
 			String depPomPath = getDepPomPath(depPath);
-
 			PomXml curPomXml = PomXml.empty.getConfiguration(depPomPath);
-
-
 			ArtifactNode curArtifactNode = makeUpdateDep(mavenDependency);
-
-			// 解析时不排除 排除依赖会怎样🤔🤔🤔
-			// 
-			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
+			
+			for ( ArtifactNode subArtifactNode : curPomXml.depManages ){
+				// dependencyManagement只做版本控制
+				// 向依赖版本管理中更新版本
+				makeUpdateDep(subArtifactNode);
+			}
 
 			for ( ArtifactNode subArtifactNode : curPomXml.depManages ){
 				// dependencyManagement只做版本控制
-				//*
+				// 向依赖版本管理中更新版本
+				makeUpdateDep(subArtifactNode);
+			}
+
+			// 解析时不排除 排除依赖会怎样🤔🤔🤔
+			Set<String> exclusionSet = curArtifactNode.getExclusionSet();
+			for ( ArtifactNode subArtifactNode : curPomXml.deps ){
 				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
 					continue;
 				}
+				if ( subArtifactNode.getGroupIdArtifactId().contains("androidx.savedstate") ){
+					ArtifactNode curArtifactNode2 = curArtifactNode;
+					System.out.println(subArtifactNode);
+					System.out.println(curArtifactNode2);
+				}
+				ArtifactNode makeUpdateDep = makeUpdateDep(subArtifactNode);
+				resolvingDependency(makeUpdateDep, /*processed,*/ depth - 1);
 			}
-
-			for ( ArtifactNode subArtifactNode : curPomXml.deps ){
-				/*
-				 if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
-				 continue;
-				 }
-				 */
-				/* 没用
-				 if ( vy(subArtifactNode) ){
-				 continue;
-				 }
-				 */
-				resolvingDependency(makeUpdateDep(subArtifactNode), depth - 1);
-			}
-
+			AppLog.println_d("");
+			
         }
 		catch (Throwable th){
 			if ( th instanceof Error ) 
@@ -602,7 +595,6 @@ public class ZeroAicyMavenService{
 		}
 
 		if ( artifactNode.getVersion() == null || artifactNode.getVersion().length() == 0 ){
-			AppLog.w("version111 " + artifactNode);
 			artifactNode.setVersion("+");
 		}
 		// 版本一致
@@ -658,8 +650,6 @@ public class ZeroAicyMavenService{
             if ( depPaths.contains(depPath) ){
                 return;
             }
-
-
 			//  ProjectSupport::init()时应当 resolvingDependency
 			// 将依赖版本管理器的依赖都是新版本
             depPaths.add(depPath);
@@ -685,11 +675,6 @@ public class ZeroAicyMavenService{
 				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
 					continue;
 				}
-				// 不知道为什么要这个
-				if ( vy(subArtifactNode) ){
-					continue;
-				}
-
 				// 计算dependency的地址
 				String depPath2 = resolveMavenDepPath(flatRepositoryPathMap, makeUpdateDep(subArtifactNode));
 				if ( depPath2 != null ){
