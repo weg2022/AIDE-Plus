@@ -88,7 +88,7 @@ public class D8TaskWrapper {
 			// D8Task D8BatchTask 采用动态加载dex的方式运行
 			// 这样可能有dex2oat优化
 			if (r8DexClassLoader == null) {
-				r8DexClassLoader = new DexClassLoader(r8Path, null, null, D8TaskWrapper.class.getClassLoader().getParent());
+				r8DexClassLoader = new DexClassLoader(r8Path, null, null, D8TaskWrapper.class.getClassLoader());
 			}
 			ArrayList<String> cmdList = new ArrayList<String>();
 			// 方便改变线程数

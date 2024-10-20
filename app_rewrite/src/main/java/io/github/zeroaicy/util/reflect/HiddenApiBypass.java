@@ -15,7 +15,12 @@ public class HiddenApiBypass {
 
 	private static Object sVmRuntime;
 	private static Method setHiddenApiExemptionsMethod;
+	private static Object currentActivityThread;
 
+	public static Object getCurrentActivityThread() {
+		return currentActivityThread;
+	}
+	
 	static  {
 		try {
 			if ( !initializedFromZeroAicy() ) {
@@ -47,7 +52,7 @@ public class HiddenApiBypass {
 			
 			boolean hiddenApiExemptions = setHiddenApiExemptions("L");
 			// 验证一下
-			Object currentActivityThread = ReflectPie.onClass("android.app.ActivityThread").call("currentActivityThread").get();
+			HiddenApiBypass.currentActivityThread = ReflectPie.onClass("android.app.ActivityThread").call("currentActivityThread").get();
 			System.err.println("解除反射限制测试 currentActivityThread " + currentActivityThread);
 			
 			return hiddenApiExemptions;
@@ -110,7 +115,7 @@ public class HiddenApiBypass {
 
 			boolean hiddenApiExemptions = setHiddenApiExemptions("L");
 			// 验证一下
-			Object currentActivityThread = ReflectPie.onClass("android.app.ActivityThread").call("currentActivityThread").get();
+			HiddenApiBypass.currentActivityThread = ReflectPie.onClass("android.app.ActivityThread").call("currentActivityThread").get();
 			System.err.println("解除反射限制测试 currentActivityThread " + currentActivityThread);
 			
 			return hiddenApiExemptions;
