@@ -108,7 +108,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			&& getProjectSupport(projectService) instanceof AndroidProjectSupport) {
 			long nowTime = Utils.nowTime();
 			AndroidProjectSupport.getProjectClassPathEntrys(currentAppHome, projectService.getFlavor());
-			AppLog.println_d("AndroidProjectSupport::preResolving(): %sms", Utils.nowTime() - nowTime);
+			AppLog.d(TAG, "AndroidProjectSupport::preResolving(): %sms", Utils.nowTime() - nowTime);
 		}
 
 	}
@@ -467,7 +467,7 @@ public class ZeroAicyProjectService extends ProjectService {
 				public void run() {
 					long nowTime = Utils.nowTime();
 					etAsync(list, p);
-					AppLog.d("ProjectService", "etAsync(): %sms", Utils.nowTime() - nowTime);
+					AppLog.d(TAG, "pre processing sync: %sms", Utils.nowTime() - nowTime);
 				}
 			});
 	}
@@ -569,7 +569,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	@Override
 	public String getProjectAttribute() {
 
-		AppLog.println_d("getProjectAttribute() projectProperties %s", projectProperties);
+		// AppLog.d(TAG, "getProjectAttribute() projectProperties %s", projectProperties);
 		if (this.currentAppHome == null) {
 			// 没有打开项目,，或初始化未完成
 			return "";
@@ -610,7 +610,7 @@ public class ZeroAicyProjectService extends ProjectService {
 					long nowTime = Utils.nowTime();
 					// 打开项目
 					openProjectAsync(projectPath);
-					AppLog.println_d("openProjectAsync(): %sms", Utils.nowTime() - nowTime);
+					AppLog.d(TAG, "openProjectAsync(): %sms", Utils.nowTime() - nowTime);
 				}
 			};
 
@@ -755,7 +755,7 @@ public class ZeroAicyProjectService extends ProjectService {
 				public void run() {
 					long nowTime = Utils.nowTime();
 					jJAsync();
-					AppLog.d("ProjectService", "jJAsync(): %sms", Utils.nowTime() - nowTime);
+					AppLog.d(TAG, "engine service sync: %sms", Utils.nowTime() - nowTime);
 				}
 			});
 	}
@@ -872,7 +872,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		if (this.isInited()) {
 			// 老是重复初始化
 			// AppLog.e(new Throwable());
-			AppLog.d("ProjectService::initAsync() Reloading");
+			// AppLog.d("initAsync() Reloading");
 			// return;
 		}
 
@@ -903,7 +903,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
 		}
 		this.projectProperties = this.getProjectAttributeAsync();
-		AppLog.println_d("projectProperties %s", projectProperties);
+		// AppLog.d(TAG, "projectProperties %s", projectProperties);
 
 		// 初始化完成
 		this.setInited();

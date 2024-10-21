@@ -334,15 +334,9 @@ public class ZeroAicyMavenService{
 				if ( exclusionSet.contains(subArtifactNode.getGroupIdArtifactId()) ){
 					continue;
 				}
-				if ( subArtifactNode.getGroupIdArtifactId().contains("androidx.savedstate") ){
-					ArtifactNode curArtifactNode2 = curArtifactNode;
-					System.out.println(subArtifactNode);
-					System.out.println(curArtifactNode2);
-				}
 				ArtifactNode makeUpdateDep = makeUpdateDep(subArtifactNode);
 				resolvingDependency(makeUpdateDep, /*processed,*/ depth - 1);
 			}
-			AppLog.println_d("");
 			
         }
 		catch (Throwable th){

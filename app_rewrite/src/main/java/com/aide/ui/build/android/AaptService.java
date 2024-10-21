@@ -355,10 +355,10 @@ public class AaptService {
 
 		String resourceApFilePath = AndroidProjectSupport.kf(mainProjectPath);
 
-		Map<String, String> genPackageNameMap = jO(resLibraryMap, flavor);
+		Map<String, String> genPackageNameMap = AndroidProjectSupport.jO(resLibraryMap, flavor);
 
 		Map<String, String> allResDirMap = AndroidProjectSupport.cT(resLibraryMap, flavor);
-		Map<String, String> injectedAndroidManifestMap = aq(mainProjectPath, resLibraryMap, flavor);
+		Map<String, String> injectedAndroidManifestMap = AndroidProjectSupport.aq(mainProjectPath, resLibraryMap, flavor);
 		Map<String, String> mergedAManifestMap = AndroidProjectSupport.FN(resLibraryMap, flavor);
 		Map<String, List<String>> genResDirsMap = AndroidProjectSupport.oY(resLibraryMap, flavor);
 		Map<String, String> androidManifestMap = AndroidProjectSupport.Z1(resLibraryMap, flavor);

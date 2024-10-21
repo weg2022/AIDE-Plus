@@ -186,7 +186,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 			//  getProjectLibPaths
 			String[] projectLibPaths = getProjectLibPaths(projectDir);
-			AppLog.println_d("projectLibPaths %s", Arrays.toString(projectLibPaths));
+			// AppLog.d(TAG, "projectLibPaths %s", Arrays.toString(projectLibPaths));
 			//重置
 			hasAddLabelHeader = false;
 			for (String projectLibPath : projectLibPaths) {
@@ -881,7 +881,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		for (String path : list) {
 			if (path == null) continue;
 			String name = FileSystem.getName(path);
-			AppLog.println_d("cn name: %s path: %s ", name, path);
+			// AppLog.d(TAG, cn name: %s path: %s ", name, path);
 
 			if ("build.gradle".equals(name)) {
 				// 刷新项目
