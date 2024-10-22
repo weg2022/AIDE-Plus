@@ -722,7 +722,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			Object lock = this.engineServiceConnectionLock;
 			// 置空锁
 			this.engineServiceConnectionLock = null;
-			AppLog.d("EngineServiceConnection");
+			AppLog.d(TAG, "EngineService Connection");
 			// 通知
 			lock.notifyAll();
 		}
@@ -733,22 +733,23 @@ public class ZeroAicyProjectService extends ProjectService {
 	 */
 	protected void jJAsync() {
 		//super.jJ();
+		EngineService engineService = ServiceContainer.getEngineService();
 		if (this.currentAppHome != null 
 			&& this.pojectSupport != null) {
-			ServiceContainer.getEngineService().setEngineSolution(this.pojectSupport.makeEngineSolution());
+			engineService.setEngineSolution(this.pojectSupport.makeEngineSolution());
 		} else {
 			// 置空
-			ServiceContainer.getEngineService().setEngineSolution(new EngineSolution(new ArrayList(), (String) null, CodeModelFactory.findCodeModels(ServiceContainer.Hw()), ServiceContainer.Hw()));
+			engineService.setEngineSolution(new EngineSolution(new ArrayList(), (String) null, CodeModelFactory.findCodeModels(ServiceContainer.Hw()), ServiceContainer.Hw()));
 		}
-		ServiceContainer.getEngineService().ef();
-		ServiceContainer.getEngineService().ei();
+		engineService.ef();
+		engineService.ei();
 	}
 
 	// [ProjectService$f, ProjectService$d] 通过 FH()调用
-	private long jJMethodCallTime;
+	// private long jJMethodCallTime;
 	@Override
 	protected void jJ() {
-		jJMethodCallTime = Utils.nowTime();
+		// jJMethodCallTime = Utils.nowTime();
 		// updateEngineSolution
 		executorsService.submit(new Runnable(){
 				@Override

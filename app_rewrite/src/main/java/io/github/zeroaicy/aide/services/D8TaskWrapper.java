@@ -1,26 +1,21 @@
 package io.github.zeroaicy.aide.services;
 
 import android.text.TextUtils;
+import com.aide.common.AppLog;
 import com.aide.ui.services.AssetInstallationService;
+import dalvik.system.DexClassLoader;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.util.IOUtils;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
+import io.github.zeroaicy.util.reflect.ReflectPie;
+import io.github.zeroaicy.util.reflect.ReflectPieException;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.io.PrintStream;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import com.aide.common.AppLog;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import dalvik.system.DexClassLoader;
-import io.github.zeroaicy.util.reflect.ReflectPie;
-import io.github.zeroaicy.util.reflect.ReflectPieException;
 
 public class D8TaskWrapper {
 
@@ -29,6 +24,8 @@ public class D8TaskWrapper {
 
 	public static final String D8BatchTask = "io.github.zeroaicy.r8.D8BatchTask";
 
+	public static final String TAG = "D8TaskWrapper";
+	
 	public static void runD8Task(List<String> argList) throws Throwable {
 
 		// 使用 app_process运行 d8 || r8
@@ -90,7 +87,7 @@ public class D8TaskWrapper {
 			if (r8DexClassLoader == null) {
 				r8DexClassLoader = new DexClassLoader(r8Path, null, null, D8TaskWrapper.class.getClassLoader());
 			}
-			ArrayList<String> cmdList = new ArrayList<String>();
+			List<String> cmdList = new ArrayList<String>();
 			// 方便改变线程数
 			// 都启用多线程dexing ❛˓◞˂̵✧
 			cmdList.add("--thread-count");
@@ -113,6 +110,7 @@ public class D8TaskWrapper {
 			}catch (Throwable e) {
 				throw e;
 			}
+			AppLog.d(TAG, "D8Task | D8BatchTask 退出正常");
 			return;
 		}
 

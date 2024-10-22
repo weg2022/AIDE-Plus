@@ -19,8 +19,6 @@ import androidx.core.app.NotificationChannelCompat.Builder;
 
 public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService {
 
-	private NotificationChannelCompat notificationChannel;
-
 	private static int id = 0x26f5;
 
 	private static final String TAG = "ZeroAicyCodeAnalysisEngineService";

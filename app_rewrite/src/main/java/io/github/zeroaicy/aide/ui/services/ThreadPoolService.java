@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import io.github.zeroaicy.aide.utils.Utils;
 
 public class ThreadPoolService implements ExecutorService, ThreadFactory {
 
@@ -91,7 +92,7 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	public Future<?> submit(Runnable runnable) {
 		try {
 			ThreadPoolService.Group group = new Group(runnable);
-			
+
 			if (!isUiThread()) {
 				if (this.keepAliveSingleThread
 					&& this.currentThread == Thread.currentThread()) {
@@ -113,7 +114,7 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	@Override
 	public void execute(Runnable command) {
 		ThreadPoolService.Group group = new Group(command);
-		
+
 		if (!isUiThread()) {
 			// 在本线程内
 			if (this.keepAliveSingleThread
@@ -210,7 +211,7 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	public synchronized Thread newThread(Runnable r) {
 		String prefix = this.executorsName;
 		if (this.keepAliveSingleThread) {
-			if( this.currentThread != null ){
+			if (this.currentThread != null) {
 				return this.currentThread;
 			}
 			this.currentThread = new Thread(r, prefix + "-keep-single-pool-" + poolNumber.incrementAndGet());
@@ -233,23 +234,7 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 	public ThreadPoolService(String executorsName) {
 		this.keepAliveSingleThread = true;
 		this.executorsName = executorsName;
-		this.service = new ThreadPoolExecutor(1, 1, 30L, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(), this);
-		
-		/*
-		Future<Thread> getCurrentThread = this.service.submit(new Callable<Thread>(){
-				@Override
-				public Thread call() throws Exception {
-					// 返回当前进程
-					return Thread.currentThread();
-				}
-			});
-		try {
-			this.currentThread = getCurrentThread.get();
-			AppLog.e("改变 this.currentThread " + System.identityHashCode(this.currentThread));
-		}
-		catch (Throwable e) {
-
-		}*/
+		this.service = new ThreadPoolExecutor(1, 1, Long.MAX_VALUE, TimeUnit.DAYS, new LinkedBlockingQueue<Runnable>(), this);
 	}
 
 	public ThreadPoolService(String executorsName, int threadNumber) {
@@ -298,26 +283,21 @@ public class ThreadPoolService implements ExecutorService, ThreadFactory {
 		@Override
 		public void run() {
 			if (isDebug && isPrint) {
-
 				AppLog.println_e("\n******************************************************");
 				AppLog.println_e(stackTrace);
 			}
-			long now = System.currentTimeMillis();
+			long nowTime = Utils.nowTime();
 			try {
 				this.runnable.run();
 			}
 			catch (Throwable e) {
 				AppLog.e("异步错误", this.stackTrace, e);
 			}
-			now = System.currentTimeMillis() - now;
 			if (isDebug && isPrint) {
-				AppLog.d("ExecutorsService", "耗时 ", (now) + "ms");
+				AppLog.d(TAG, "Group::run(): %sms ", Utils.nowTime() - nowTime);
 				AppLog.println_e(stackTraces);
 				AppLog.println_e("******************************************************\n");
-
 			}
-
-
 		}
 	}
 }

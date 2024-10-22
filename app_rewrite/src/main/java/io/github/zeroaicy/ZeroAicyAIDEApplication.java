@@ -46,7 +46,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 			return false;
 		}
 		// Crash进程不做任何初始化
-		AppLog.d(TAG, "crash进程: ", curProcessName);
+		AppLog.d(TAG, "crash进程: %s", curProcessName);
 
 		return isCrashProcess;
 	}

@@ -127,12 +127,12 @@ public class AddAndroidFiles {
     }
 
 
-	private static boolean isJavaSourceDir(String dirPath) {
+	public static boolean isJavaSourceDir(String dirPath) {
 		if( TextUtils.isEmpty(dirPath) ){
 			return false;
 		}
-		if( dirPath.contains("java")
-		   || dirPath.contains("aidl")){
+		if( dirPath.contains("/java")
+		   || dirPath.contains("/aidl")){
 			return true;
 		}
 		return false;

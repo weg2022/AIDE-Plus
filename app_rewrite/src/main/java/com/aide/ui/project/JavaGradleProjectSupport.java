@@ -31,6 +31,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.aide.common.AddAndroidFiles;
+import com.aide.common.MessageBox;
+import com.aide.ui.MainActivity;
+import android.widget.Toast;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -39,6 +43,8 @@ import java.util.Set;
  * 必须优先AndroidProjectSupport判断*
  */
 public class JavaGradleProjectSupport implements ProjectSupport {
+
+	private static final String TAG = JavaGradleProjectSupport.class.getSimpleName();
 	public static String[] aj(Map<String, List<String>> map) {
 		ArrayList arrayList = new ArrayList();
 		for (String str2 : map.keySet()) {
@@ -77,7 +83,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	// get jarFiles
 	public static String[] cb(String currentAppHome) {
 		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().vy(currentAppHome);
-		
+
 		HashMap<String, String> hashMap = new HashMap<>();
 		for (String str : libraryMapping.keySet()) {
 			for (ClassPath.Entry entry : getProjectClassPathEntrys(currentAppHome)) {
@@ -90,18 +96,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		hashMap.values().toArray(strArr);
 		return strArr;
 	}
-	
-	public void fillLibs(String projectDir, Map<String, List<String>> libraryMapping, Set<String> filter){
-		if( filter.contains(projectDir)){
-			return;
-		}
-		filter.add(projectDir);
-		for( String projectLibPath : libraryMapping.get(projectDir)){
-		
-		}
-		
-	}
-	
+
+
+
 	public static String Sf(String currentAppHome, boolean isDebugAide) {
 		return GradleTools.getProjectOutputPath(currentAppHome) + "/classes.dex.zip";
 	}
@@ -148,7 +145,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		StringBuilder projectAttributeSb = new StringBuilder();
 		Map<String, List<String>> libraryMapping = ServiceContainer.getProjectService().getLibraryMapping();
-		
+
 		// getLibraryMapping().keySet() 并去除主项目目录
 		List<String> projectDirs = projectService.P8();
 		for (String projectDir : projectDirs) {
@@ -614,17 +611,6 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	}
 
 
-	@Override
-	public void P8(String string, String string1) {
-
-	}
-
-
-	@Override
-	public void SI(String string, ValueRunnable<String> valueRunnable) {
-
-	}
-
 	/**
 	 * 模板
 	 */
@@ -660,7 +646,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		List<String> hw = ServiceContainer.Hw();
 		return new EngineSolution(engineSolutionProject, null, CodeModelFactory.findCodeModels(hw), hw);
 	}
-	
+
 	// getBinPath(str) + "/classesrelease";
 	public static String getOutputPath(String projectDir, boolean isDebug) {
 		return  GradleTools.u7(projectDir, isDebug);
@@ -833,11 +819,6 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	}
 
 	@Override
-	public boolean Zo(String string) {
-		return false;
-	}
-
-	@Override
 	public boolean a8(String string) {
 		return false;
 	}
@@ -850,8 +831,8 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 		ProjectService projectService = ServiceContainer.getProjectService();
 		for (String projectDir : projectService.getMainAppWearApps()) {
-			
-			if( projectDir == null ){
+
+			if (projectDir == null) {
 				continue;
 			}
 			if (path.startsWith(projectDir)) {
@@ -859,7 +840,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			}
 		}
 		for (String projectDir : projectService.getLibraryMapping().keySet()) {
-			if( projectDir == null ){
+			if (projectDir == null) {
 				continue;
 			}
 			if (path.startsWith(projectDir)) {
@@ -952,16 +933,18 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	public void nw(String string) {
 	}
 
-	@Override
-	public int rN(String string) {
-		return 0;
-	}
 
 	// 添加到项目建议
 	@Override
 	public List<String> getAddToProjectAdvise(String string) {
 		ArrayList<String> arrayList = new ArrayList<String>();
-		arrayList.add("api \"com.badlogicgames.gdx:gdx:+\"");
+		arrayList.add("com.badlogicgames.gdx:gdx:+");
+		arrayList.add("com.badlogicgames.gdx:gdx-bullet:+");
+		arrayList.add("com.badlogicgames.gdx:gdx-freetype:+");
+		arrayList.add("com.badlogicgames.gdx-controllers:gdx-controllers-core:+");
+		arrayList.add("com.badlogicgames.gdx:gdx-box2d:+");
+		arrayList.add("com.badlogicgames.box2dlights:box2dlights:+");
+
 
 		return arrayList;
 	}
@@ -986,14 +969,10 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		return null;
 	}
 
+	// GradleTools.getAndroidMkPath
 	@Override
-	public boolean vy(String string) {
-		return false;
-	}
-
-	@Override
-	public int we(String string) {
-		return 0;
+	public boolean vy(String dirPath) {
+		return GradleTools.getAndroidMkPath(dirPath);
 	}
 
 	@Override
@@ -1001,4 +980,47 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		return ServiceContainer.getContext().getPackageName();
 	}
 
+	/**
+	 * command_files_add_new_xxx isVisible
+	 */
+	@Override
+	public boolean Zo(String dirPath) {
+		return AddAndroidFiles.isJavaSourceDir(dirPath) && isInCurrentProjectDirectory(dirPath);
+	}
+
+	// 返回command_files_add_new_xxx字符串
+	@Override
+	public int rN(String dirPath) {
+		return AddAndroidFiles.getAddTypeName(dirPath);
+	}
+	// 返回图片id
+	@Override
+	public int we(String dirPath) {
+		return AddAndroidFiles.getDrawableId(dirPath);
+	}
+	@Override
+	public void SI(String dirPath, ValueRunnable<String> valueRunnable) {
+		AddAndroidFiles.DW(dirPath, valueRunnable);
+	}
+
+	/**
+	 * 
+	 */
+	@Override
+	public void P8(final String projectDir, final String str2) {
+		MainActivity mainActivity = ServiceContainer.getMainActivity();
+		MessageBox.rN(mainActivity, ServiceContainer.getString(R.string.dialog_add_to_project_new_library), ServiceContainer.getString(R.string.dialog_add_to_project_new_library_message, str2), new Runnable(){
+				@Override
+				public void run() {
+					if (GradleTools.isGradleProject(projectDir)) {
+						String buildGradlePath = GradleTools.getBuildGradlePath(projectDir);
+						buildGradle.getConfiguration(buildGradlePath).addMavenDependency(str2);
+						ServiceContainer.getProjectService().reloadingProject();
+						MainActivity mainActivity = ServiceContainer.getMainActivity();
+						Toast.makeText(mainActivity, "Library has been added", Toast.LENGTH_SHORT).show();
+						return;
+					}
+				}
+			}, null);
+	}
 }

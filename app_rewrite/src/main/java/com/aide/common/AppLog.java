@@ -34,22 +34,23 @@ public class AppLog{
         Log.e("AIDE", th.toString(), th);
     }
 
+
+	public static void d(String TAG, String msg){
+		if ( isPrintLog() ) Log.d(TAG, msg);
+    }
 	public static void d(String TAG, Object... objects){
 		if ( isPrintLog() ) Log.d(TAG, objects);
     }
 
+	public static void d(String TAG, String msg, Object... args){
+		if ( isPrintLog() ) Log.d(TAG, String.format(msg, args));
+    }
+	
 	public static void i(String TAG, String msg){
 		if ( isPrintLog() ) Log.i(TAG, msg);
     }
 	public static void i(String msg){
 		if ( isPrintLog() ) Log.i("AIDE", msg);
-    }
-
-	public static void d(String TAG, String msg){
-		if ( isPrintLog() ) Log.d(TAG, msg);
-    }
-	public static void d(String TAG, String msg, Object... args){
-		if ( isPrintLog() ) Log.d(TAG, String.format(msg, args));
     }
 
 	public static void d(String msg){

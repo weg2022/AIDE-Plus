@@ -94,14 +94,14 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		//查看maven-metadata.xml是否下载成功
 		String version = metadataXml.getVersion(dep.version);
 		if ( version == null ) {
-			AppLog.d("resolvingMetadataFile", "metadata versions: %s -> dep version %s", String.valueOf( metadataXml.Zo ), dep.version);
+			AppLog.d(TAG, "metadata versions: %s -> dep version %s", String.valueOf( metadataXml.Zo ), dep.version);
 			return true;
 		}
 		
 		if ( !dep.version.endsWith("+")
 			&& !version.equals(dep.version) ) {
 			// 不是动态匹配, 必须一致
-			AppLog.d("resolvingMetadataFile", "非动态匹配, 必须一致 metadata version: %s -> dep version %s", version, dep.version);
+			AppLog.d(TAG, "非动态匹配, 必须一致 metadata version: %s -> dep version %s", version, dep.version);
 			return false;
 		}
 
