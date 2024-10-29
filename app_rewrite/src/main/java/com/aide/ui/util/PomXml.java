@@ -22,7 +22,7 @@ import android.text.TextUtils;
  */
 public class PomXml extends Configuration<PomXml> {
 
-	
+
     public static PomXml empty = new PomXml(true);
 	private boolean isEmpty;
 	public boolean isEmpty() {
@@ -91,7 +91,7 @@ public class PomXml extends Configuration<PomXml> {
 		this.deps = new ArrayList<>();
 		this.depManages = new ArrayList<>();
 		this.configurationPath = filePath;
-		
+
 		try {
 			File file = new File(filePath);
 			if (!file.exists()) {
@@ -108,11 +108,11 @@ public class PomXml extends Configuration<PomXml> {
 
 			this.artifact = model.getArtifactId();
 			this.curVersion = model.getVersion();
-			
-			if( this.curVersion ==  null ){
+
+			if (this.curVersion ==  null) {
 				this.curVersion = "+";
 			}
-			
+
 			this.setPackaging(model.getPackaging());
 
 			Parent parent = model.getParent();
@@ -161,12 +161,12 @@ public class PomXml extends Configuration<PomXml> {
 			deps.add(dependency);
 		}
 		/*
-		AppLog.d( toString(), "depManages", this.depManages);
-		AppLog.d( toString(), "deps", this.deps);
-		System.out.println();
-		*/
-		
-		
+		 AppLog.d( toString(), "depManages", this.depManages);
+		 AppLog.d( toString(), "deps", this.deps);
+		 System.out.println();
+		 */
+
+
 	}
 
 	public ArtifactNode make(Model model, Dependency dep) {
@@ -184,18 +184,18 @@ public class PomXml extends Configuration<PomXml> {
 		String artifactId = dep.getArtifactId();
 		String version = dep.getVersion();
 		String type = dep.getType();
-		
+
 		if (groupId == null) {
 			groupId = "";
 		}
 		if (artifactId == null) {
 			artifactId = "";
 		}
-		if( version == null ){
+		if (version == null) {
 			version = "";
 		}
 
-		
+
 		// 解析变量
 		if (groupId.startsWith("${")) {
 			//${project.groupId}
@@ -212,7 +212,7 @@ public class PomXml extends Configuration<PomXml> {
 			System.out.println(configurationPath);
 			return null;
 		}
-		
+
 		if (artifactId.startsWith("${")) {
 			//${project.artifactId}
 			if ("${project.artifactId}".equals(artifactId)) {
@@ -225,7 +225,7 @@ public class PomXml extends Configuration<PomXml> {
 			// artifactId仍然为null是不对的
 			return null;
 		}
-		
+
 		if (version == null) {
 			String curGroupIdArtifactId = groupId + ":" + artifactId;
 			for (ArtifactNode depManage : depManages) {
@@ -234,11 +234,11 @@ public class PomXml extends Configuration<PomXml> {
 				}
 			}
 		}
-		
+
 		if (TextUtils.isEmpty(version)) {
 			version = "+";
 		}
-		
+
 		if (version.startsWith("${")) {
 			//${project.version}
 			if ("${project.version}".equals(version)) {
@@ -248,17 +248,36 @@ public class PomXml extends Configuration<PomXml> {
 			}
 		}
 
-		if (version != null && version.startsWith("[")
-			&& version.endsWith("]")) {
-			version = version.substring(1, version.length() - 1);
-		}
 		if (TextUtils.isEmpty(version)) {
 			version = "+";
 		}
-		ArtifactNode artifactNode = new ArtifactNode(groupId, artifactId, version);
+
+		//
+		if (version.startsWith("[")
+			|| version.endsWith("]")
+			|| version.startsWith("(")
+			|| version.endsWith(")")
+			|| version.contains(",")) {
+
+			String newVersion = version.substring(1, version.length() - 1);
+
+			String[] versions = newVersion.split(",");
+
+			int index = versions.length - 1;
+			if (version.endsWith("]")) {
+				version = versions[index];
+			} else if (version.endsWith(")")) {
+				if( index > 0){
+					index--;
+				}
+				version = versions[index];
+			}
+		}
 		
+		ArtifactNode artifactNode = new ArtifactNode(groupId, artifactId, version);
 		// 本质是 type
 		artifactNode.packaging = type;
+
 
 		List<Exclusion> exclusions = dep.getExclusions();
 		if (exclusions != null) {

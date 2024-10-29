@@ -155,7 +155,7 @@ public class ZeroAicyMavenService {
 			curArtifactNode = makeUpdateDep(curArtifactNode);
 			// 解算路径
 			String curArtifactNodePath = resolveMavenDepPath(flatRepoPathMap, curArtifactNode);
-
+			
 			if (curArtifactNodePath == null) {
                 dependencyList.add(curArtifactNode);
 				return;
@@ -451,6 +451,19 @@ public class ZeroAicyMavenService {
 		String artifactIdVersionDir = artifactIdDir + "/" + version + "/" + artifactId + "-" + version;
 
 		final String classifier = ArtifactNode.getClassifier(artifactNode);
+		
+		if(TextUtils.isEmpty(packaging) ){
+			String pomFilePath = artifactIdVersionDir + ".pom";
+			File file = new File(pomFilePath);
+			if (file.isFile()) {
+				// 更新packaging
+				packaging = PomXml.empty.getConfiguration(pomFilePath).getPackaging();
+			}else{
+				// .pom都不存在
+				return null;
+			}
+		}
+		
 		// 处理仅pom依赖 当classifier不为null不处理pom依赖
 		if ("pom".equals(packaging) 
 			&& classifier == null) {
@@ -935,7 +948,7 @@ public class ZeroAicyMavenService {
 			}
 			return depPath;
 		}
-
+		
 		String depPath = getMavenDependencyPath(artifactNode);
 		this.depPathMapping.put(artifactNode, depPath);
 

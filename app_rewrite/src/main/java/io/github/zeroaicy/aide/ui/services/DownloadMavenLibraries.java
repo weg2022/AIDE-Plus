@@ -31,7 +31,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 	private static final BuildGradle.RemoteRepository defaultRemoteRepository = new BuildGradle.RemoteRepository(1, "https://maven.aliyun.com/repository/public");
 
-    public DownloadMavenLibraries( DownloadService downloadService, Activity activity, List<BuildGradle.MavenDependency> deps, List<BuildGradle.RemoteRepository> remoteRepositorys, Runnable completeCallback ) {
+    public DownloadMavenLibraries(DownloadService downloadService, Activity activity, List<BuildGradle.MavenDependency> deps, List<BuildGradle.RemoteRepository> remoteRepositorys, Runnable completeCallback) {
 
 		this.downloadService = downloadService;
 		this.activity = activity;
@@ -41,7 +41,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		deduplication(remoteRepositorys);
     }
 
-	private void deduplication( List<BuildGradle.RemoteRepository> remoteRepositorys ) {
+	private void deduplication(List<BuildGradle.RemoteRepository> remoteRepositorys) {
 		// 过滤重复仓库
 		Set<String> remoteRepositorySet = new HashSet<>();
 		//
@@ -51,8 +51,8 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 
 		// 过滤重复maven仓库
-		for ( BuildGradle.RemoteRepository remoteRepository : remoteRepositorys ) {
-			if ( remoteRepositorySet.contains(remoteRepository.repositorieURL) ) {
+		for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
+			if (remoteRepositorySet.contains(remoteRepository.repositorieURL)) {
 				// 过滤重复仓库
 				continue;
 			}
@@ -64,10 +64,12 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		}
 	}
 
-	public boolean resolvingMetadataFile( BuildGradle.MavenDependency dep, int count, String mavenMetadataPath, BuildGradle.RemoteRepository remoteRepository ) {
+	public boolean resolvingMetadataFile(BuildGradle.MavenDependency dep, int count, String mavenMetadataPath, BuildGradle.RemoteRepository remoteRepository) {
 		String mavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dep);
 		try {
+
 			StringBuilder sb = new StringBuilder();
+
 			sb.append("metadata -> ");
 
 			sb.append(dep.groupId);
@@ -78,7 +80,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 			String dependencyString = sb.toString();
 			// 下载清单文件
-			DownloadService.Hw(this.downloadService, dependencyString, ( count * 100 ) / this.deps.size(), 0);
+			DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
 			//已存在 长度不一致时更新
 			DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 		}
@@ -87,19 +89,20 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			return false;
 		}
 		// 检查文件是否存在
-		if ( !new File(mavenMetadataPath).exists() ) {
+		if (!new File(mavenMetadataPath).exists()) {
 			return false;
 		}
 		MavenMetadataXml metadataXml = new MavenMetadataXml().getConfiguration(mavenMetadataPath);
 		//查看maven-metadata.xml是否下载成功
 		String version = metadataXml.getVersion(dep.version);
-		if ( version == null ) {
-			AppLog.d(TAG, "metadata versions: %s -> dep version %s", String.valueOf( metadataXml.Zo ), dep.version);
+
+		if (version == null) {
+			AppLog.d(TAG, "metadata versions: %s -> dep version %s", String.valueOf(metadataXml.Zo), dep.version);
 			return true;
 		}
-		
-		if ( !dep.version.endsWith("+")
-			&& !version.equals(dep.version) ) {
+
+		if (!dep.version.endsWith("+")
+			&& !MavenMetadataXml.matchVersion(version, dep.version)) {
 			// 不是动态匹配, 必须一致
 			AppLog.d(TAG, "非动态匹配, 必须一致 metadata version: %s -> dep version %s", version, dep.version);
 			return false;
@@ -111,19 +114,20 @@ public class DownloadMavenLibraries implements Callable<Void> {
 	}
 
     @Override
-    public Void call( ) {
+    public Void call() {
 		//是否有已完成的下载
 		boolean downloadComplete = false;
+		
 		int count = 0;
-		for ( BuildGradle.MavenDependency dep : this.deps ) {
+		for (BuildGradle.MavenDependency dep : this.deps) {
 			try {
 				//遍历远程仓库
-				for ( BuildGradle.RemoteRepository remoteRepository : this.remoteRepositorys ) {
+				for (BuildGradle.RemoteRepository remoteRepository : this.remoteRepositorys) {
 					try {
 
 						String mavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dep);
 
-						if ( !resolvingMetadataFile(dep, count, mavenMetadataPath, remoteRepository) ) {
+						if (!resolvingMetadataFile(dep, count, mavenMetadataPath, remoteRepository)) {
 							// 下载失败 仓库有问题[跳过]
 							continue;
 						}
@@ -132,7 +136,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						final String version = dep.version;
 
 						// 下载[成功|失败]
-						if ( !downloadArtifactFile(remoteRepository, dep, version, ".pom", count) ) {
+						if (!downloadArtifactFile(remoteRepository, dep, version, ".pom", count)) {
 							continue;
 						}
 
@@ -148,10 +152,12 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						// 或当前pom 声明是pom
 						String classifier = ArtifactNode.getClassifier(dep);
 
-						if ( classifier == null && ( "pom".equals(curPackaging)
-							|| "pom".equals(dep.packaging) ) ) {
+						if (classifier == null 
+							&& ("pom".equals(curPackaging)
+							|| "pom".equals(dep.packaging)
+							|| "bom".equals(curPackaging))) {
 							count++;
-							downloadComplete = true;
+							// downloadComplete = true;
 							break;
 						}
 
@@ -162,7 +168,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						boolean isAttemptn = false;
 
 						// 没有packaging信息，启用尝试模式
-						if ( classifier != null || TextUtils.isEmpty(dep.packaging) ) {
+						if (classifier != null || TextUtils.isEmpty(dep.packaging)) {
 							// 启用尝试 下载aar模式
 							isAttemptn = true;
 							dep.packaging = "aar";
@@ -170,17 +176,17 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 						String artifactType = "." + dep.packaging;
 						//下载
-						if ( downloadArtifactFile(remoteRepository, dep, version, artifactType, count) ) {
+						if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 							count++;
 							downloadComplete = true;
 							break;
 						}
 
 						// 失败接着尝试
-						if ( isAttemptn ) {
+						if (isAttemptn) {
 							dep.packaging = "jar";
 							artifactType = "." + dep.packaging;
-							if ( downloadArtifactFile(remoteRepository, dep, version, artifactType, count) ) {
+							if (downloadArtifactFile(remoteRepository, dep, version, artifactType, count)) {
 								count++;
 								downloadComplete = true;
 								break;
@@ -203,9 +209,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		// 回调通知[下载完成]
 		ServiceContainer.aj(new Runnable(){
 				@Override
-				public void run( ) {
+				public void run() {
 					DownloadService.FH(DownloadMavenLibraries.this.downloadService);
-					if ( downloadComplete2 ) {
+					if (downloadComplete2) {
 						DownloadMavenLibraries.this.downloadCompleteCallback.run();
 					}
 				}
@@ -213,14 +219,14 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		return null;
 	}
 
-	public boolean downloadArtifactFile( BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count ) {
+	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
 
 		String artifactUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, artifactType);
 
 		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
 
 		File artifactFile = new File(artifactPath);
-		if ( artifactFile.exists() ) {
+		if (artifactFile.exists()) {
 			return true;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -231,11 +237,11 @@ public class DownloadMavenLibraries implements Callable<Void> {
 		sb.append(version);
 
 		String classifier = ArtifactNode.getClassifier(dependency);
-		if ( classifier != null ) {
+		if (classifier != null) {
 			sb.append(":");
 			sb.append(classifier);
 		}
-		if( artifactType != null ){
+		if (artifactType != null) {
 			sb.append("@");
 			sb.append(artifactType);			
 		}
@@ -243,7 +249,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 		try {
 			//通知下载进度
-			DownloadService.Hw(this.downloadService, dependencyString, ( count * 100 ) / this.deps.size(), 0);
+			DownloadService.Hw(this.downloadService, dependencyString, (count * 100) / this.deps.size(), 0);
 			//如果文件存在且长度一致则不下载
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
@@ -260,7 +266,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 	/**
 	 * 旧的实现
 	 */
-	public Void call3( ) {
+	public Void call3() {
         String buildMavenMetadataPath = null;
         String version;
         String aarPath;
@@ -273,8 +279,8 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
             ArrayList<BuildGradle.RemoteRepository> remoteRepositorys = new ArrayList<>();
 
-            for ( BuildGradle.RemoteRepository remoteRepository : this.remoteRepositorys ) {
-                if ( !remoteRepositorys.contains(remoteRepository) ) {
+            for (BuildGradle.RemoteRepository remoteRepository : this.remoteRepositorys) {
+                if (!remoteRepositorys.contains(remoteRepository)) {
                     remoteRepositorys.add(remoteRepository);
                 }
             }
@@ -282,14 +288,14 @@ public class DownloadMavenLibraries implements Callable<Void> {
             Iterator<BuildGradle.MavenDependency> it = this.deps.iterator();
             boolean z2 = false;
             int i = 0;
-            while ( it.hasNext() ) {
+            while (it.hasNext()) {
 
-                if ( Thread.interrupted() ) {
+                if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 
 				BuildGradle.MavenDependency dependency = it.next();
-				for ( BuildGradle.RemoteRepository remoteRepository : remoteRepositorys ) {
+				for (BuildGradle.RemoteRepository remoteRepository : remoteRepositorys) {
 					try {
 						String buildMavenMetadataUrl = MavenService.getMetadataUrl(remoteRepository, dependency);
 						buildMavenMetadataPath = MavenService.getMetadataPath(remoteRepository, dependency);
@@ -300,7 +306,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 					}
 					// aM url
 					// XL path
-					if ( new File(buildMavenMetadataPath).exists() && ( version = new MavenMetadataXml().getConfiguration(buildMavenMetadataPath).getVersion(dependency.version) ) != null ) {
+					if (new File(buildMavenMetadataPath).exists() && (version = new MavenMetadataXml().getConfiguration(buildMavenMetadataPath).getVersion(dependency.version)) != null) {
 						String pomUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, pomType);
 						String pomPath = MavenService.getArtifactPath(remoteRepository, dependency, version, pomType);
 
@@ -311,10 +317,10 @@ public class DownloadMavenLibraries implements Callable<Void> {
 						jarPath = MavenService.getArtifactPath(remoteRepository, dependency, version, jarType);
 
 
-						if ( ( !new File(jarPath).exists() 
-							&& !new File(aarPath).exists() ) 
+						if ((!new File(jarPath).exists() 
+							&& !new File(aarPath).exists()) 
 
-							|| !new File(pomPath).exists() ) {
+							|| !new File(pomPath).exists()) {
 
 							StringBuilder sb = new StringBuilder();
 							sb.append(dependency.groupId);
@@ -325,7 +331,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 							String dependencyString = sb.toString();
 
 							//通知下载进度
-							DownloadService.Hw(this.downloadService, dependencyString, ( i * 100 ) / this.deps.size(), 0);
+							DownloadService.Hw(this.downloadService, dependencyString, (i * 100) / this.deps.size(), 0);
 							//下载 复用已有下载[长度一致]
 							DownloadService.downloadFile(this.downloadService, pomUrl, pomPath, true);
 							DownloadService.downloadFile(this.downloadService, aarUrl, aarPath, true);
@@ -333,9 +339,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 
 
 							i++;
-							if ( ( new File(jarPath).exists() 
-								|| new File(aarPath).exists() ) 
-								&& new File(pomPath).exists() ) {
+							if ((new File(jarPath).exists() 
+								|| new File(aarPath).exists()) 
+								&& new File(pomPath).exists()) {
 								z2 = true;
 								break;
 							}
@@ -347,9 +353,9 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			final boolean downloadComplete2 = z2;
             ServiceContainer.aj(new Runnable(){
 					@Override
-					public void run( ) {
+					public void run() {
 						DownloadService.FH(downloadService);
-						if ( downloadComplete2 ) {
+						if (downloadComplete2) {
 							downloadCompleteCallback.run();
 						}
 					}
