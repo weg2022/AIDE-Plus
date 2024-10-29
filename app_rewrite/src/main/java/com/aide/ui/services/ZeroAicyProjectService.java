@@ -27,6 +27,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.aide.ui.firebase.FireBaseLogEvent;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -926,14 +927,12 @@ public class ZeroAicyProjectService extends ProjectService {
 	public boolean Mz(String projectPath) {
 		// JavaGradle项目需要单独处理
 
-		JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
-		if (javaGradleProjectSupport.isSupport(projectPath)) {
-
+		ProjectSupport projectSupport = getProjectSupport(projectPath);
+		if (projectSupport instanceof JavaGradleProjectSupport) {
 			// 当前项目不能包含他
 			return !isInCurrentProjectDirectory(projectPath);
 		}
-
-		return getProjectSupport(projectPath) != null;
+		return projectSupport != null;
     }
 
 	@Override
@@ -951,20 +950,18 @@ public class ZeroAicyProjectService extends ProjectService {
 			return null;
 		}
 		try {
-			JavaGradleProjectSupport javaGradleProjectSupport = new JavaGradleProjectSupport();
-			if (javaGradleProjectSupport.isSupport(projectPath)) {
-
-				return javaGradleProjectSupport;
-			}
-
-			for (ProjectSupport projectSupport : ServiceContainer.getProjectSupports()) {
+			
+			// 重定向至 ZeroAicyExtensionInterface.getProjectSupports();
+			ProjectSupport[] projectSupports = ServiceContainer.getProjectSupports();
+			
+			for (ProjectSupport projectSupport : projectSupports) {
 				if (projectSupport.isSupport(projectPath)) {
 					return projectSupport;
 				}
 			}
 		}
 		catch (Throwable e) {
-
+			e.printStackTrace();
 		}
 		return null;
     }
