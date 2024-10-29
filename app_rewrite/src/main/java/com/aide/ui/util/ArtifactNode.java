@@ -122,7 +122,7 @@ public class ArtifactNode extends BuildGradle.MavenDependency{
 			sb.append(":")
 				.append(this.classifier);
 		}
-		if ( this.packaging != null ){
+		if ( this.packaging != null && this.packaging.length() != 0 ){
 			sb.append("@")
 				.append(this.packaging);
 		}
