@@ -82,7 +82,10 @@ public class AppLog{
 	public static void println_d(String msg){
 		if ( isPrintLog() ) Log.println(msg);
     }
-
+	public static void println_d(){
+		if ( isPrintLog() ) Log.println();
+    }
+	
 	public static void println_d(String msg, Object... args){
 		String format = String.format(msg, args);
 		if ( isPrintLog() ) Log.println(format);
@@ -92,8 +95,6 @@ public class AppLog{
 	public static void println_e(String msg){
 		Log.println(msg);
     }
-
-
 
 }
 

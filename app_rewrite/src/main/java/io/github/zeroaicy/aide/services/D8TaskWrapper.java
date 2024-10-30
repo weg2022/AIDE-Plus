@@ -74,6 +74,9 @@ public class D8TaskWrapper {
 
 	private static DexClassLoader r8DexClassLoader;
 	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
+		
+		AppLog.println_d("d8 classname: %s ", className);
+		
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
 		File r8ZipFile = new File(r8Path);
@@ -106,8 +109,10 @@ public class D8TaskWrapper {
 						cause = cause2;						
 					}
 				}
+				
 				throw cause;
 			}catch (Throwable e) {
+				
 				throw e;
 			}
 			AppLog.d(TAG, "D8Task | D8BatchTask 退出正常");

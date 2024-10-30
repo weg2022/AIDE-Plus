@@ -389,8 +389,9 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.libraryMappingCopy = null;
 		this.mainAppWearAppsCopy = null;
 
-		this.classPathEntrys = null;
-		this.projectProperties = null;
+		// 关闭项目
+		this.resetProjectAttributeCache();
+		
 		// 同步代码分析进程
 		// 置空代码分析进程信息
 		this.jJ(); 
@@ -580,7 +581,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			return this.projectProperties;
 		}
 		// 未做优化处理
-		return super.getProjectAttribute();
+		return this.projectProperties = super.getProjectAttribute();
 	}
 	private String getProjectAttributeAsync() {
 		return super.getProjectAttribute();
@@ -598,7 +599,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		try {
 
 			if (projectPath != null) {
-
+				// 弹窗是否打开上次项目
 			}
 
 			// 新打开项目，需要初始化
@@ -804,8 +805,12 @@ public class ZeroAicyProjectService extends ProjectService {
 			|| getProjectSupport(this.currentAppHome) == null) {
 			// 没有项目支持器支持
 			closeProject();
-
+			return;
 		}
+		
+		// reloadingProjectAsync需要置空
+		this.resetProjectAttributeCache();
+		
 		ServiceContainer.getDebugger().ef();
 		//在主线程执行showProgressDialog
 		executorsService.post(new Runnable(){
@@ -845,6 +850,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	public void reloadingProject() {
 		// 刷新, 需要初始化
 		this.setUnInited();
+		
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
@@ -879,13 +885,17 @@ public class ZeroAicyProjectService extends ProjectService {
 		}
 
 		// 置空项目属性
+		// 项目中的主项目
 		this.mainAppWearApps.clear();
 		this.mainAppWearAppsCopy = null;
+		
+		// 项目目录(包括主项目) -> 子项目
 		this.libraryMapping.clear();
 		this.libraryMappingCopy = null;
 
-		this.classPathEntrys = null;
-		this.projectProperties = null;
+		// 初始化
+		this.resetProjectAttributeCache();
+		
 		if (this.currentAppHome == null) {
 			// 初始化完成
 			this.setInited();
@@ -905,10 +915,16 @@ public class ZeroAicyProjectService extends ProjectService {
 			ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
 		}
 		this.projectProperties = this.getProjectAttributeAsync();
+		
 		// AppLog.d(TAG, "projectProperties %s", projectProperties);
 
 		// 初始化完成
 		this.setInited();
+	}
+
+	private void resetProjectAttributeCache() {
+		this.classPathEntrys = null;
+		this.projectProperties = null;
 	}
 
 

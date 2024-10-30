@@ -35,6 +35,9 @@ import com.aide.common.AddAndroidFiles;
 import com.aide.common.MessageBox;
 import com.aide.ui.MainActivity;
 import android.widget.Toast;
+import com.aide.ui.trainer.Course;
+import com.aide.ui.services.TemplateService.TemplateGroup;
+import com.aide.ui.services.TemplateService.Template;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -160,7 +163,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 			// ServiceContainer.getProjectService().getLibraryMapping()
 			// 库目录以及aar依赖
-			var dependenciePaths = libraryMapping.get(projectDir);
+			List<String> dependenciePaths = libraryMapping.get(projectDir);
 
 			boolean hasAddLabelHeader = false;
 			for (String dependenciePath : dependenciePaths) {
@@ -610,15 +613,6 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	}
 
-
-	/**
-	 * 模板
-	 */
-	@Override
-	public TemplateService.TemplateGroup[] getTemplateGroups() {
-		return new TemplateService.TemplateGroup[0];
-	}
-
 	/**
 	 * 返回EngineSolution
 	 * 创建EngineSolution，用于代码分析进程处理依赖
@@ -809,14 +803,6 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		List<String> depProjectIds =Collections.singletonList("android.jar");
 		return new EngineSolutionProject("android.jar", androidJarPath, "android.jar", files, depProjectIds, false, "", "", "", "", false, false, false, false, "", new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
     }
-
-	/**
-	 * 教程
-	 */
-	@Override
-	public List<com.aide.ui.trainer.Course.File> getTrainerCourses() {
-		return Collections.emptyList();
-	}
 
 	@Override
 	public boolean a8(String string) {
@@ -1023,4 +1009,48 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				}
 			}, null);
 	}
+	
+	
+
+	/**
+	 * 模板
+	 */
+	@Override
+	public TemplateService.TemplateGroup[] getTemplateGroups() {
+		String templateName = "Java Gradle Application";
+		String templateGroupName = "Java Application";
+		
+		int templateId = 3;
+		Template template = new TemplateService.Template(this, templateId, templateGroupName, "Gradle/Android SDK/Java", "MyJavaGradleConsoleApp", false, false, "com.aide.ui", "JAVA", "course_java", true);
+		
+		TemplateGroup javaGradleApplicationTemplateGroup = new TemplateService.TemplateGroup(templateName, template, R.drawable.ic_launcher_java, "JavaGradleConsole.zip", new String[]{"Main.java"}, (String) null);
+		return new TemplateService.TemplateGroup[]{javaGradleApplicationTemplateGroup};
+    }
+	
+	/*
+	
+	@Override
+	public List<Course.File> getTrainerCourses() {
+        try {
+            if (parametersEnabled) {
+                Probelytics.printlnParameters(-1751453124824682264L, this);
+            }
+            return Arrays.asList(new Course.File("course_java", 1, new String[]{"com.aide.ui", "com.aide.trainer.java"}));
+        } catch (Throwable th) {
+            if (exceptionEnabled) {
+                Probelytics.printlnException(th, -1751453124824682264L, this);
+            }
+            throw th;
+        }
+    }
+	*/
+
+	/**
+	 * 教程
+	 */
+	@Override
+	public List<com.aide.ui.trainer.Course.File> getTrainerCourses() {
+		return Collections.emptyList();
+	}
+	
 }
