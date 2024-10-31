@@ -17,6 +17,7 @@ import com.aide.codemodel.language.java.JavaCodeAnalyzer;
 import com.aide.codemodel.language.java.JavaTypeSystem;
 import java.util.Arrays;
 import com.aide.codemodel.api.excpetions.UnknownEntityException;
+import com.aide.common.AppLog;
 
 public class SyntaxTreeUtils {
 
@@ -255,7 +256,7 @@ public class SyntaxTreeUtils {
 				}
 			}
 		}
-		System.out.println("未知表达式: ");
+		AppLog.println_e("未知表达式: ");
 		SyntaxTreeUtils.printNode(syntaxTree, varRootNode);
 
 		throw new UnknownEntityException();

@@ -89,7 +89,7 @@ public class AssetInstallationService {
     }
 
     public static String FH(String resourceName, boolean z, boolean unZip) {
-		j6(resourceName, z, unZip);
+		extractResource(resourceName, z, unZip);
 		return getOutputPath(resourceName, z);
     }
 
@@ -146,7 +146,7 @@ public class AssetInstallationService {
 	 * true可以理解为未消耗事件
 	 * 
 	 */
-    private static boolean Ws(String resourceName, boolean z) {
+    private static boolean needUpdateResource(String resourceName, boolean z) {
 		String outputPath = getOutputPath(resourceName, z);
 
 		SharedPreferences sharedPreferences = ServiceContainer.getContext().getSharedPreferences("AssetInstallationService", 0);
@@ -208,8 +208,8 @@ public class AssetInstallationService {
     }
 
 
-    private static boolean j6(String resourceName, boolean z, boolean unZip) {
-        if (Ws(resourceName, z)) {
+    private static boolean extractResource(String resourceName, boolean z, boolean unZip) {
+        if (needUpdateResource(resourceName, z)) {
 			// 此时文件不存在
 			try {
 				String outputPath = getOutputPath(resourceName, z);

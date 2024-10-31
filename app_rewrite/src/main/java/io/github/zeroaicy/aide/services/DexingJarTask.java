@@ -97,6 +97,7 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 		}
 		catch (Throwable th){
 			if ( th instanceof Error ) throw (Error)th; 
+			if ( th instanceof Exception ) throw (Exception)th; 
 			else throw new Error(th);
 		}
 		return this;
