@@ -2,6 +2,8 @@ package io.github.zeroaicy;
 
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.StrictMode;
 import com.aide.common.AppLog;
 import com.aide.ui.AIDEApplication;
@@ -19,8 +21,9 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import android.content.pm.PackageManager.NameNotFoundException;
 
-public class ZeroAicyAIDEApplication extends AIDEApplication{
+public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	private static final String TAG = "ZeroAicyAIDEApplication ";
 
@@ -33,7 +36,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 	}
 
 
-	public boolean handleCrashProcess(){
+	public boolean handleCrashProcess() {
 		// 计算Crash进程名
 		String crashProcessName = this.getPackageName() + ":crash";
 		// 当前进程名
@@ -42,7 +45,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		boolean isCrashProcess = crashProcessName.equals(curProcessName)                            
 			|| curProcessName.endsWith(":crash");
 
-		if ( !isCrashProcess ){
+		if (!isCrashProcess) {
 			return false;
 		}
 		// Crash进程不做任何初始化
@@ -51,7 +54,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		return isCrashProcess;
 	}
 	@Override
-	public void onCreate(){
+	public void onCreate() {
 		super.onCreate();
 
 		// 查看 是否解除反射限制
@@ -60,6 +63,14 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		// 更改日志路径
 		DebugUtil.debug(this, false);
 
+		try {
+			PackageManager packageManager = this.getPackageManager();
+			PackageInfo packageInfo = packageManager.getPackageInfo(this.getPackageName(), PackageManager.GET_ACTIVITIES);
+			String versionName = packageInfo.versionName;
+			AppLog.e("versionName", versionName);
+			
+		}
+		catch (Exception e) {}
 		// ZeroAicy Log附加Android Log
 		// attachLogcat();
 		// 处理Crash进程
@@ -80,7 +91,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		// 更新加密库[ 原则上近主进程与打包进程需要]
 		JksKeyStore.initBouncyCastleProvider();
 
-		if ( ContextUtil.isMainProcess() ){
+		if (ContextUtil.isMainProcess()) {
 			// JavaConsole进程不需要
 
 			// 防止App的context为null
@@ -88,7 +99,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		}
 
 		// 是否显示AIDE-WhatsNewDialog
-		if ( ZeroAicySetting.isReinstall() ){
+		if (ZeroAicySetting.isReinstall()) {
 			//重装后显示
 			SharedPreferences sharedPreferences = getSharedPreferences("WhatsNew", 0);
 			SharedPreferences.Editor edit = sharedPreferences.edit();
@@ -100,7 +111,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		AppLog.d(TAG, "Application初始化耗时: " + (System.currentTimeMillis() - now) + "ms");
 	}
 
-	private void attachLogcat(){
+	private void attachLogcat() {
 		// 附加AndroidLog
 		Logger logger = Logger.getLogger();
 		// 会向ZeroAicyLog打印
@@ -108,12 +119,12 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 		logger.start();
 	}
 	// 共存版发送logcat log
-	private void method2(){
-		if ( ContextUtil.isMainProcess() ){
-			if ( "io.github.zeroaicy.aide".equals(getPackageName()) ){
+	private void method2() {
+		if (ContextUtil.isMainProcess()) {
+			if ("io.github.zeroaicy.aide".equals(getPackageName())) {
 				// 
 				Logger.onContext(this, "io.github.zeroaicy.aide1");	
-			}else{
+			} else {
 				Logger.onContext(this, "io.github.zeroaicy.aide");	
 			}
 			// 附加AndroidLog
@@ -151,11 +162,11 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 	/**
 	 * 严苛模式
 	 */
-	private void method(){
+	private void method() {
 		ApplicationInfo appInfo = getApplicationInfo(); 
 		int appFlags = appInfo.flags; 
 
-		if ( false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0 ){     
+		if (false && ContextUtil.isMainProcess() && (appFlags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {     
 			Log.d(TAG, "启用严苛模式: ");
 			// 监测当前线程（UI线程）上的网络、磁盘读写等耗时操作
 			StrictMode.setThreadPolicy(
@@ -191,20 +202,20 @@ public class ZeroAicyAIDEApplication extends AIDEApplication{
 	 * 当日志系统崩溃时,，进行修复，以便测试
 	 * 此实现依赖反射，使用时注意检查
 	 */
-	private void testLog(){
+	private void testLog() {
 
 		boolean log = Log.getLog() == null;
 
-		if ( log ){
+		if (log) {
 			Log.AsyncOutputStreamHold logHold = Log.getLogHold();
 			String logCatPath = FileUtil.LogCatPath + "_test.txt";
 
-			if ( logHold == null ){
+			if (logHold == null) {
 				AppLog.d(TAG, "LogHold 为 null");
 				logHold = new Log.AsyncOutputStreamHold(logCatPath);
 				ReflectPie.on(Log.class).set("mLogHold", logHold);
 			}
-			if ( log = Log.getLog() == null ){
+			if (log = Log.getLog() == null) {
 				AppLog.d(TAG, "LogHold mLog null");
 				FileOutputStream createOutStream = Log.AsyncOutputStreamHold.createOutStream(logCatPath);
 				Log.AsyncOutputStreamHold.AsyncOutStream asyncOutStream = new Log.AsyncOutputStreamHold.AsyncOutStream(createOutStream);
