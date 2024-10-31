@@ -5,21 +5,16 @@ import com.aide.codemodel.api.FileSpace;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.SyntaxTreeStyles;
-import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.CodeCompiler;
+import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.Debugger;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Preprocessor;
 import com.aide.codemodel.api.collections.SetOfFileEntry;
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Log;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.tools.JavaFileManager;
-import java.util.ArrayList;
 
 public class Java17CodeModel implements CodeModel {
 	
@@ -57,16 +52,19 @@ public class Java17CodeModel implements CodeModel {
 		
 	}
 	
-	// 词法分析器以及词法高亮
+	// 词法分析器 高亮
 	@Override
-	public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeStyles> map) {
-
+	public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeStyles> syntaxTreeStylesMap) {
+		
 	}
 
+	// 语法树填充
 	@Override
 	public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean p) {
 
 	}
+	
+	
 	@Override
 	public CodeCompiler getCodeCompiler() {
 		return this.Java17Compiler;

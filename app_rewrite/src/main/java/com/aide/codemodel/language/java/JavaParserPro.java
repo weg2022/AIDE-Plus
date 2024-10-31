@@ -13,6 +13,7 @@ import io.github.zeroaicy.util.reflect.ReflectPie;
 import io.github.zeroaicy.util.reflect.ReflectPieException;
 import com.aide.codemodel.api.Parser;
 import com.aide.codemodel.api.Parser.a;
+import com.aide.common.AppLog;
 
 public class JavaParserPro extends JavaParser {
 
@@ -65,11 +66,11 @@ public class JavaParserPro extends JavaParser {
 		if (analyzeParens == UN_LAMBDA) {
 
 			// 非Lambda
-			System.out.println("analyzeParens2: " + analyzeParens);
+			AppLog.println_d("analyzeParens2: " + analyzeParens);
 			return false;
 		}
 
-		System.out.println("analyzeParens: " + analyzeParens);
+		AppLog.println_d("analyzeParens: " + analyzeParens);
 
 		// 解析 PARAMETERS
 
@@ -82,11 +83,11 @@ public class JavaParserPro extends JavaParser {
 		try {
 			// PARAMETERS
 			try {
-				System.out.println("解析参数 : " + analyzeParens);
-				System.out.println("开始时 tag: " + this.currentSyntaxTag);
+				AppLog.println_d("解析参数 : " + analyzeParens);
+				AppLog.println_d("开始时 tag: " + this.currentSyntaxTag);
 				parserLambdaParameters(analyzeParens);
 
-				System.out.println("结束时tag: " + this.currentSyntaxTag);
+				AppLog.println_d("结束时tag: " + this.currentSyntaxTag);
 
 			}
 			catch (Throwable e) {
@@ -123,7 +124,7 @@ public class JavaParserPro extends JavaParser {
 
 			declareParentNode(247, 4);
 
-			System.out.println("打印 LAMBDA_EXPRESSION");
+			AppLog.println_d("打印 LAMBDA_EXPRESSION");
 			SyntaxTreeUtils.printNode(this.syntaxTree, this.nodes[this.currentNodeOffset]);
 
 			return true;
@@ -236,7 +237,7 @@ public class JavaParserPro extends JavaParser {
 				if (peekToken(this.currentOffset, /* ) */ 13)) {
 					//'(', Type, ')' -> cast
 					
-					System.out.println("cast");
+					AppLog.println_d("cast");
 					return UN_LAMBDA;
 				}
 			}
@@ -271,7 +272,7 @@ public class JavaParserPro extends JavaParser {
 
 				if (syntaxTag == /* ; */ 14) {
 					// Lambda -> 左侧不会有 ;
-					System.out.println("从;跳出");
+					AppLog.println_d("从;跳出");
 					
 					return UN_LAMBDA;
 				}
@@ -337,7 +338,7 @@ public class JavaParserPro extends JavaParser {
 	// accept
 	@Override
 	public void addMissingError(int p) {
-		System.out.println("Missing " + this.syntax.getString(p));
+		AppLog.println_d("Missing " + this.syntax.getString(p));
 		// Log.printlnStack(5, 18);
 
 		super.addMissingError(p);
@@ -347,7 +348,7 @@ public class JavaParserPro extends JavaParser {
 
 	@Override
 	public void declareNodeFormCurrentSyntaxTag() {
-		//System.out.println("declareCurrentSyntaxTagNode " + this.syntax.getString(this.currentSyntaxTag));
+		//AppLog.println_d("declareCurrentSyntaxTagNode " + this.syntax.getString(this.currentSyntaxTag));
 		super.declareNodeFormCurrentSyntaxTag();
 
 	}
@@ -356,15 +357,15 @@ public class JavaParserPro extends JavaParser {
 	/*
 	 @Override
 	 public void declareParentNode(int syntaxTag, int len) {
-	 System.out.println("declareParentNode " + this.syntax.getString(syntaxTag) + " len: " + len);
+	 AppLog.println_d("declareParentNode " + this.syntax.getString(syntaxTag) + " len: " + len);
 	 // Log.printlnStack(5, 18);
-	 System.out.println();
+	 AppLog.println_d();
 	 super.declareParentNode(syntaxTag, len);
 	 }//*/
 
 	@Override
 	public void declareParentNode(int syntaxTag, boolean synthetic, int len, int declarationNumber) {
-		System.out.println("declareParentNode1 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len + " declarationNumber: " + declarationNumber);
+		AppLog.println_d("declareParentNode1 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len + " declarationNumber: " + declarationNumber);
 		// Log.printlnStack(5, 18);
 		super.declareParentNode(syntaxTag, synthetic, len, declarationNumber);
 	}
@@ -372,7 +373,7 @@ public class JavaParserPro extends JavaParser {
 
 	@Override
 	public void declareParentNode(int syntaxTag, int previousOffset, int len) {
-		System.out.println("declareParentNode2 " + this.syntax.getString(syntaxTag) + " previousOffset: " + previousOffset + " len: " + len);
+		AppLog.println_d("declareParentNode2 " + this.syntax.getString(syntaxTag) + " previousOffset: " + previousOffset + " len: " + len);
 		// Log.printlnStack(5, 18);
 
 		super.declareParentNode(syntaxTag, previousOffset, len);
@@ -381,7 +382,7 @@ public class JavaParserPro extends JavaParser {
 
 	@Override
 	public void declareParentNode(int syntaxTag, boolean synthetic, int len) {
-		System.out.println("declareParentNode3 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len);
+		AppLog.println_d("declareParentNode3 " + this.syntax.getString(syntaxTag) + " synthetic: " + synthetic + " len: " + len);
 		// Log.printlnStack(5, 18);
 		super.declareParentNode(syntaxTag, synthetic, len);
 	}
@@ -393,10 +394,10 @@ public class JavaParserPro extends JavaParser {
 		try {
 			String unexpectedDeclaration = "Unexpected end of declaration";
 			if (unexpectedDeclaration.equals(errorMsg)) {
-				System.out.println(unexpectedDeclaration);
+				AppLog.println_d(unexpectedDeclaration);
 				// Log.printlnStack(5, 18);
 			} else {
-				System.out.println(errorMsg);
+				AppLog.println_d(errorMsg);
 				// Log.printlnStack(5, 18);
 			}
 		}
