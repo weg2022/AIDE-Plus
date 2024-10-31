@@ -752,18 +752,6 @@ public class Aapt2TaskFromZeroAicy {
 		return null;
 	}
 
-	public static boolean hasError(Object aaptService$bObject) {
-		if (aaptService$bObject != null) {
-			//com.aide.ui.build.android.AaptService.b b;
-			// 类 com.aide.ui.build.android.AaptService$b
-			ReflectPie on = ReflectPie.on(aaptService$bObject);
-			if (on.get("DW") != null) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * 优化
 	 */
