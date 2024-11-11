@@ -25,9 +25,10 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import io.github.zeroaicy.aide.extend.ZeroAicyClassFilePreProcessor;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
+import com.aide.codemodel.api.abstraction.CodeModel;
 
 @Keep
-public class EngineSolutionProject implements Parcelable{
+public class EngineSolutionProject implements Parcelable {
 
 
 	public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
@@ -61,43 +62,82 @@ public class EngineSolutionProject implements Parcelable{
 
 	private static final boolean enableJava17 = false;
 
-    public EngineSolutionProject(String projectNamespace, String projectPath, String str3, List<EngineSolution.File> sourceSolutionFiles, List<String> depProjectNamespaces, boolean z, String str4, String str5, String str6, String str7, boolean z2, boolean z3, boolean z4, boolean z5, String str8, List<String> list3, List<String> list4, List<String> list5){
+	/*
+
+	 EngineSolution.File 类型为CodeModel::getName()
+
+	 */
+
+	/**
+	 * 没有被依赖的EngineSolutionProject就是主项目
+	 */
+    public EngineSolutionProject(
+		// 项目名(Id) Assembly::rootNamespace
+		String projectName, 
+		
+		String projectPath, 
+		
+		// 项目路径 Assembly::configuration
+		String configuration, 
+		// 项目文件集合
+		List<EngineSolution.File> sourceSolutionFiles,
+		// 依赖的项目名
+		List<String> references,
+		
+		boolean checked, 
+		String str4, 
+		String debugOutputPath, 
+		String releaseOutputPath, 
+		String targetVersion, 
+		boolean isExternal, 
+		boolean isDebug, 
+		boolean isRelease,
+		boolean isSubProject, 
+		String str8, 
+		List<String> list3, 
+		List<String> list4, 
+		List<String> list5) {
 		// 项目名 此EngineSolutionProject唯一id
 		// 项目命名空间
-		this.projectName = projectNamespace;
-		// 
+		this.projectName = projectName;
+		
+		// rootNamespace
         this.mb = projectPath;
-		// 和projectNamespace一样
-        this.jw = str3;
+		
+		// configuration
+        this.jw = configuration;
+		
         this.fY = sourceSolutionFiles;
 
 		addKotlinSrcDir(sourceSolutionFiles);
 
-        this.qp = depProjectNamespaces;
-        this.k2 = z;
+        this.qp = references;
+        this.k2 = checked;
+		
+		//  engineSolutionProject2.zh
         this.zh = str4;
-        this.AL = str5;
-        this.w9 = str6;
+        this.AL = debugOutputPath;
+        this.w9 = releaseOutputPath;
 
 		// targetVersion
-        this.hK = str7;
+        this.hK = targetVersion;
 
 		/******************************测试Java17******************************************/
 		// 启用Java17
-		if ( EngineSolutionProject.enableJava17 ){
+		if (EngineSolutionProject.enableJava17) {
 			this.hK = "17";
-			if ( "android.jar".equals(this.projectName) 
-				|| "rt.jar".equals(this.projectName) ){
+			if ("android.jar".equals(this.projectName) 
+				|| "rt.jar".equals(this.projectName)) {
 				// 添加 core-lambda-stubs.jar依赖
 				sourceSolutionFiles.add(new EngineSolution.File(FileSystem.getParent(projectPath) + "/core-lambda-stubs.jar", "core-lambda-stubs.jar", null, false, false));
 			}
 		}
 		/******************************测试Java17******************************************/
 
-        this.cT = z2;
-        this.q7 = z3;
-        this.Z1 = z4;
-        this.n5 = z5;
+        this.cT = isExternal;
+        this.q7 = isDebug;
+        this.Z1 = isRelease;
+        this.n5 = isSubProject;
         this.Q6 = str8;
         this.kf = list3;
         this.Jl = list4;
@@ -108,17 +148,17 @@ public class EngineSolutionProject implements Parcelable{
 	/**
 	 * 添加kotlin源码路径
 	 */
-	private void addKotlinSrcDir(List<EngineSolution.File> sourceSolutionFiles){
+	private void addKotlinSrcDir(List<EngineSolution.File> sourceSolutionFiles) {
 		String javaSrcDir = null;
-		for ( EngineSolution.File file : sourceSolutionFiles ){
+		for (EngineSolution.File file : sourceSolutionFiles) {
 			// EngineSolution.File -> mb[文件类型]
-			if ( "Java".equals(EngineSolution.File.DW(file)) ){
+			if ("Java".equals(EngineSolution.File.DW(file))) {
 				// EngineSolution.File j6 -> WB
 				javaSrcDir = EngineSolution.File.j6(file);
 				break;
 			}
 		}
-		if ( javaSrcDir != null ){
+		if (javaSrcDir != null) {
 			//AppLog.d(this.projectName, "添加 " + javaSrcDir);
 			sourceSolutionFiles.add(new EngineSolution.File(javaSrcDir, "Kotlin", null, false, false));
 		}
@@ -127,7 +167,7 @@ public class EngineSolutionProject implements Parcelable{
 
 
     @Override
-    public int describeContents(){
+    public int describeContents() {
 		return 0;
     }
 
@@ -137,14 +177,14 @@ public class EngineSolutionProject implements Parcelable{
 	 * 需要将原始writeToParcel -> writeToParcelOriginal
 	 */
 	@Override
-	public void writeToParcel(Parcel dest, int flags){
+	public void writeToParcel(Parcel dest, int flags) {
 		// dest里面已有有数据
 		Parcel parcelableParcel = Parcel.obtain();
 		writeToParcelOriginal(parcelableParcel, flags);
 		ZeroAicyExtensionInterface.compressionParcel(parcelableParcel, dest);
 	}
 
-    public void writeToParcelOriginal(Parcel parcel, int flags){
+    public void writeToParcelOriginal(Parcel parcel, int flags) {
 		parcel.writeString(this.projectName);
 		parcel.writeString(this.mb);
 		parcel.writeString(this.jw);
@@ -168,7 +208,7 @@ public class EngineSolutionProject implements Parcelable{
     }
 
 
-    public EngineSolutionProject(Parcel dest){
+    public EngineSolutionProject(Parcel dest) {
 		this.projectName = dest.readString();
 		this.mb = dest.readString();
 		this.jw = dest.readString();

@@ -96,9 +96,9 @@
         <PreferenceCategory android:title="构建">
 
             <SwitchPreference
-                android:title="启用 adrt调试文件"
+                android:title="启用adrt日志注入"
                 android:key="zero_aicy_enable_adrt"
-                android:summary="关闭后将无法使用debug调试模式。重启AIDE并重新构建工程生效"
+                android:summary="仅影响debug构建，release无效，杀死AIDE并重新构建工程生效"
                 android:defaultValue="false" />
 
             <SwitchPreference

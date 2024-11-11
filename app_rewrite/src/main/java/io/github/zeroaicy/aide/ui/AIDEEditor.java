@@ -188,12 +188,13 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 	 * 文件路径，也有可能是jar里的class
 	 * 有很大的闪退风险
 	 */
-	/*
+	//*
 	@Override
 	protected OpenFileService.OpenFileModel Z1(final String filePath) {
 		// 先返回，内容异步塞入
 		return new AIDEEditorModel(filePath);
 	}
+
 	//*/
 
 	static ExecutorService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
@@ -226,7 +227,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				new Runnable(){
 					@Override
 					public void run() {
-						AppLog.d("异步读取");
+						// AppLog.d("异步读取");
 						initAsync(FileSystem.readFileOrZipEntry(AIDEEditorModel.this.filePath));
 					}
 				});
@@ -234,23 +235,23 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		}
 		// 启用后输入卡顿，可能是这个
 		/*
-		@Override
-		public void j6() {
-			// 异步
-			defaultThreadPoolService.submit(
-				new Runnable(){
-					@Override
-					public void run() {
-						j6Async();
-					}
-				});
-		}
-		public void j6Async() {
-			synchronized (this) {
-				super.j6();
-			}			
-		}
-		*/
+		 @Override
+		 public void j6() {
+		 // 异步
+		 defaultThreadPoolService.submit(
+		 new Runnable(){
+		 @Override
+		 public void run() {
+		 j6Async();
+		 }
+		 });
+		 }
+		 public void j6Async() {
+		 synchronized (this) {
+		 super.j6();
+		 }			
+		 }
+		 */
 		// OpenFileModel 由代码分析进程通过aidl调用
 		// 通过阻塞防止代码分析进程获取的是空内容
 		// 虽然可以主动通知 代码分析进程，
@@ -260,25 +261,42 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		public void J0(OpenFile openFile) {
 			if (initing.get()) {
 				try {
-					synchronized (this.lock) {
+					Object lock = this.lock;
+					synchronized (lock) {
 						// 防止死锁
-						this.lock.wait(10000);
+						lock.wait(10000);
 					}
 				}
 				catch (Throwable e) {
-					AppLog.e(TAG, "等待异步加载初始化错误", e);				}
+					AppLog.e(TAG, "等待异步加载初始化错误", e);	
+				}
 			}
 			super.J0(openFile);
 		}
+
+		@Override
+		public void close() {
+			synchronized (this.lock) {
+				this.lock.notifyAll();
+			}
+			super.close();
+		}
+
+		@Override
+		protected void finalize() throws Throwable {
+			super.finalize();
+		}
 		
+
 		@Override
 		public int getLineCount() {
 			return super.getLineCount();
 		}
-		
+
 		// 为了等待
 		private final Object lock = new Object();
 		private final AtomicBoolean initing = new AtomicBoolean(true);
+
 		public void initAsync(Reader reader) {
 			try {
 				// 读取
@@ -287,42 +305,45 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 			catch (Throwable e) {
 				AppLog.e(TAG, "异步加载初始化", e);
 			}
+			finally {
+				this.initing.set(false);
+				synchronized (this.lock) {
+					this.lock.notifyAll();
+				}
+			}
 		}
+
+
 		private void initReader(Reader reader) {
+
+			// 锁住自己
 			synchronized (this) {
-				Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
-				// 锁 textBuffers 会导致卡主线程
-				//synchronized (textBuffers) {
 				// k1()
 				this.cb = com.aide.engine.service.CodeModelFactory.findCodeModel(filePath, ServiceContainer.Hw());
 
+				Vector<TextBuffer> textBuffers = EditorModelKt.getTextBuffers(this);
 				// 需要对textBuffers操作，防止并发
-				//synchronized (textBuffers) {
 				// 重置
 				synchronized (textBuffers) {
 					textBuffers.clear();
-				}
-				char[] bufferPool = new char[0x8000];
-				com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
-				IOUtils.close(reader);
-				
-				synchronized (textBuffers) {
+
+					char[] bufferPool = new char[0x8000];
+					com.aide.ui.views.editor.v.j6(reader, new EditorModel.a(new StringBuffer(), false, getTabSize(), false), bufferPool);
+					IOUtils.close(reader);
 					// 没有内容
 					if (textBuffers.size() == 0) {
 						textBuffers.addElement(new TextBuffer());
 					}
 					textBuffers.trimToSize();
 				}
-				
+
 				this.initing.set(false);
+
 				synchronized (this.lock) {
 					// 通知代码分析进程
 					this.lock.notifyAll();
-				}
 
-				final CodeEditText.EditorView oEditorView = getOEditorView();
-				oEditorView.invalidateLayoutTask.DW();
-				oEditorView.indexingLayoutTask.DW();
+				}
 
 				// 通知代码分析进程 内容填充完毕
 				EngineService engineService = ServiceContainer.getEngineService();
@@ -330,9 +351,37 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 				engineService.ef();
 				engineService.ei();
 
-				//}
 
+				synchronized (this.lock) {
+					this.lock.notifyAll();
+				}
+
+				// 同步刷新
+				final CodeEditText.EditorView oEditorView = getOEditorView();
+				oEditorView.invalidateLayoutTask.DW();
+				oEditorView.indexingLayoutTask.DW();
+			}
+
+			synchronized (this.lock) {
+				this.lock.notifyAll();
 			}
 		}
+
+		@Override
+		public void Hw(final int p, final int p1) {
+			defaultThreadPoolService.submit(
+				new Runnable(){
+					@Override
+					public void run() {
+						HwAsync(p, p1);
+					}
+				});
+		}
+
+
+		public void HwAsync(int p, int p1) {
+			super.Hw(p, p1);
+		}
+
 	}
 }

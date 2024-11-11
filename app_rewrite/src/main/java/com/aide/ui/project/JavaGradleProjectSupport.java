@@ -718,7 +718,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
     }
 	private static EngineSolutionProject createEntryEngineSolutionProject(String projectDir, String flavor, ClassPath.Entry entry, List<ClassPath.Entry> projectClassPathEntrys, Map<String, List<String>> map) {
 
-		ArrayList<EngineSolution.File> sourceSolutionFiles = new ArrayList<>();
+		List<EngineSolution.File> sourceSolutionFiles = new ArrayList<>();
 
 		String resolveFilePath = entry.resolveFilePath(projectDir);
 		sourceSolutionFiles.add(new EngineSolution.File(resolveFilePath, "Java Binary", "", false, true));
@@ -743,7 +743,14 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				}
 			}
 		}
-		return new EngineSolutionProject(entry.getId(), resolveFilePath, resolveFilePath, sourceSolutionFiles, depProjectIds, false, "", "", "", "", false, false, false, false, "", new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
+		return new EngineSolutionProject(
+			entry.getId(), resolveFilePath, 
+			resolveFilePath, sourceSolutionFiles, 
+			depProjectIds, false, "", "", "", "", 
+			false, false, false, false, "", 
+			new ArrayList<String>(), 
+			new ArrayList<String>(),
+			new ArrayList<String>());
 
 	}
 
@@ -778,7 +785,10 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		ArrayList<String> arrayList4 = new ArrayList<>();
 		ArrayList<String> arrayList5 = new ArrayList<>();
 		ArrayList<String> arrayList6 = new ArrayList<>();
-		return new EngineSolutionProject(projectDir, projectDir, projectDir, arrayList, depProjectIds, !GradleTools.isAarEexplodedPath(projectDir), "", AndroidProjectSupport.et(projectDir, true), AndroidProjectSupport.et(projectDir, false), "1.5", false, false, false, z2, "", arrayList5, arrayList4, arrayList6);
+		boolean checked = !GradleTools.isAarEexplodedPath(projectDir);
+		String debugOutputPath = AndroidProjectSupport.et(projectDir, true);
+		String releaseOutputPath = AndroidProjectSupport.et(projectDir, false);
+		return new EngineSolutionProject(projectDir, projectDir, projectDir, arrayList, depProjectIds, checked, "", debugOutputPath, releaseOutputPath, "1.5", false, false, false, z2, "", arrayList5, arrayList4, arrayList6);
 
     }
 	private static void VH(List<String> engineSolutionProject, String projectDir, List<String> list2) {
@@ -801,7 +811,15 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		files.add(new EngineSolution.File(annotationsJarPath, "Java Binary", "", false, true));
 
 		List<String> depProjectIds =Collections.singletonList("android.jar");
-		return new EngineSolutionProject("android.jar", androidJarPath, "android.jar", files, depProjectIds, false, "", "", "", "", false, false, false, false, "", new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
+		return new EngineSolutionProject(
+			"android.jar", androidJarPath, 
+			"android.jar", files, 
+			depProjectIds, false, 
+			"", "", "", "", false, 
+			false, false, false, "", 
+			new ArrayList<String>(), 
+			new ArrayList<String>(), 
+			new ArrayList<String>());
     }
 
 	@Override
@@ -1009,41 +1027,79 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				}
 			}, null);
 	}
-	
-	
+
+
 
 	/**
 	 * 模板
 	 */
 	@Override
 	public TemplateService.TemplateGroup[] getTemplateGroups() {
-		String templateName = "Java Gradle Application";
+
+		int templateGroupId = 3;
 		String templateGroupName = "Java Application";
-		
-		int templateId = 3;
-		Template template = new TemplateService.Template(this, templateId, templateGroupName, "Gradle/Android SDK/Java", "MyJavaGradleConsoleApp", false, false, "com.aide.ui", "JAVA", "course_java", true);
-		
-		TemplateGroup javaGradleApplicationTemplateGroup = new TemplateService.TemplateGroup(templateName, template, R.drawable.ic_launcher_java, "JavaGradleConsole.zip", new String[]{"Main.java"}, (String) null);
+
+		boolean hasAppPackageName = false;
+		Template template =
+			new TemplateService.Template(
+			// 可以为null
+			JavaGradleProjectSupport.this, 
+			// 组所在序号 2是Mobile Game 3是Java项目
+			templateGroupId, 
+			// 组的名称 Android App | Mobile Game | Java Application | ....
+			// Id 与 name必须相同否则会另起一行
+			templateGroupName, 
+			// 使用了哪些特性
+			"Gradle/Android SDK/Java", 
+			// 项目默认名称
+			"MyJavaGradleConsoleApp", 
+			// 是否有App包名 一般只有Android App才需要
+			hasAppPackageName, 
+			false, 
+			// 什么用都没有
+			"com.aide.ui", 
+			// 教程
+			"JAVA", "course_java", 
+			// 是否显示[猜测]
+			true);
+
+		// 修复创建后不打开项目的bug
+		String templateName = "Java Gradle Application";
+		TemplateGroup javaGradleApplicationTemplateGroup = 
+			new TemplateService.TemplateGroup(
+			// 模板名称
+			templateName, 
+			// 模板信息
+			template, 
+			// 模板图标
+			R.drawable.ic_launcher_java, 
+			// 模板资源相对路径
+			"JavaGradleConsole.zip", 
+			// 需要打开的文件
+			new String[]{"Main.java", "build.gradle"}, 
+			// 主项目相对路径
+			"console");
+			
 		return new TemplateService.TemplateGroup[]{javaGradleApplicationTemplateGroup};
     }
-	
+
 	/*
-	
-	@Override
-	public List<Course.File> getTrainerCourses() {
-        try {
-            if (parametersEnabled) {
-                Probelytics.printlnParameters(-1751453124824682264L, this);
-            }
-            return Arrays.asList(new Course.File("course_java", 1, new String[]{"com.aide.ui", "com.aide.trainer.java"}));
-        } catch (Throwable th) {
-            if (exceptionEnabled) {
-                Probelytics.printlnException(th, -1751453124824682264L, this);
-            }
-            throw th;
-        }
-    }
-	*/
+
+	 @Override
+	 public List<Course.File> getTrainerCourses() {
+	 try {
+	 if (parametersEnabled) {
+	 Probelytics.printlnParameters(-1751453124824682264L, this);
+	 }
+	 return Arrays.asList(new Course.File("course_java", 1, new String[]{"com.aide.ui", "com.aide.trainer.java"}));
+	 } catch (Throwable th) {
+	 if (exceptionEnabled) {
+	 Probelytics.printlnException(th, -1751453124824682264L, this);
+	 }
+	 throw th;
+	 }
+	 }
+	 */
 
 	/**
 	 * 教程
@@ -1052,5 +1108,5 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	public List<com.aide.ui.trainer.Course.File> getTrainerCourses() {
 		return Collections.emptyList();
 	}
-	
+
 }

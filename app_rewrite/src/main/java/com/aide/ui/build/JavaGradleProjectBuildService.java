@@ -13,6 +13,12 @@ import com.aide.ui.services.ErrorService;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import com.aide.ui.services.ProjectService;
+import com.aide.ui.project.AndroidProjectSupport;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
+import com.aide.ui.project.internal.GradleTools;
+import com.aide.ui.util.BuildGradle;
+import com.aide.ui.build.android.SigningService;
 
 public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
@@ -88,15 +94,17 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 			if (this.buildRefresh) {
 				return;
 			}
-			List SI = ServiceContainer.getErrorService().SI();
+			//  main(String[])方法所在类
+			List<String> SI = ServiceContainer.getErrorService().SI();
 			if (ServiceContainer.isTrainerMode() && SI.size() != 1) {
 				ServiceContainer.getTrainerService().Eq();
 				return;
 			}
+			
 			if (SI.size() == 0) {
 				MessageBox.BT(ServiceContainer.getMainActivity(), "Run", "There's no main method to run in this project!");
 			} else if (SI.size() == 1) {
-				U2((String) SI.get(0));
+				U2(SI.get(0));
 			} else {
 				MessageBox.VH(ServiceContainer.getMainActivity(), "Run", SI, new ValueRunnable<String>(){
 
@@ -161,32 +169,66 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 			}
 
 		}
-		
-		
+
+		public String keyAlias;
+
+		public String keyPassword;
+
+		public String storeFilePath;
+
+		public String storePassword;
+
+
 		private void rN() {
-			
+
 			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
 			Map<String, List<String>> vy = ServiceContainer.getProjectService().vy(currentAppHome);
-            
+
 			String mainClassCacheDir = JavaGradleProjectSupport.getOutputPath(currentAppHome, this.isDebugAide);
-			
+
 			String[] classFileRootDirs = JavaGradleProjectSupport.getClassFileRootDirs(vy, isDebugAide);
-			
+
 			String[] sourceDirs = JavaGradleProjectSupport.aj(vy);
-			
+
 			String[] dependencyLibs = JavaGradleProjectSupport.cb(currentAppHome);
-			
+
 			String outDirPath = JavaGradleProjectSupport.getProjectOutputPath(currentAppHome, this.isDebugAide);
-			
+
 			String jardexPath = outDirPath + "/jardex";
-			
+
 			String aAptResourcePath = null;
-			
+
 			String[] nativeLibDirs = null;
-			
+
 			String outFilePath = JavaGradleProjectSupport.Sf(currentAppHome, this.isDebugAide);
-			
-			this.packagingService.VH(mainClassCacheDir, classFileRootDirs, sourceDirs, dependencyLibs, outDirPath, jardexPath, aAptResourcePath, nativeLibDirs, outFilePath, (String) null, (String) null, (String) null, (String) null, this.buildRefresh, AppPreferences.isOptimzeDex(), false);
+
+			// debug || release
+			ProjectService projectService = ServiceContainer.getProjectService();
+			String buildType = projectService.er();
+			String userKeystore = AppPreferences.getUserKeystore();
+			BuildGradle.SigningConfig signingConfig = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.getBuildGradlePath(currentAppHome)).getSigningConfig(ProjectService.KD(buildType));
+
+			SigningService.SigningRunnable j6 = new SigningService.SigningRunnable(){
+
+				@Override
+				public void j6(String storePath, String storePassword, String aliasName, String aliasPassword) {
+					JavaProjectBuildService.this.storeFilePath = storePath;
+					JavaProjectBuildService.this.storePassword = storePassword;
+					JavaProjectBuildService.this.keyAlias = aliasName;
+					JavaProjectBuildService.this.keyPassword = aliasPassword;
+
+				}
+			};
+			com.aide.ui.build.android.SigningService signingService = (SigningService)(Object)ServiceContainer.getSigningService();
+			signingService.Zo(userKeystore, signingConfig, j6);
+
+			this.packagingService.VH(
+				mainClassCacheDir, classFileRootDirs, sourceDirs, 
+				dependencyLibs, outDirPath, jardexPath,
+				aAptResourcePath, nativeLibDirs, outFilePath, 
+				this.storeFilePath, this.storePassword, this.keyAlias, this.keyPassword, 
+				this.buildRefresh, AppPreferences.isOptimzeDex(), false);
+				
 			this.packagingService.we();
 
 		}
@@ -194,14 +236,13 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 		public void tp(String str) {
 			this.title = null;
 			ServiceContainer.getBuildService().j6(str);
-
+			
 		}
 
 		private void u7() {
 			tp("Your project contains errors. Please fix them before running the app.");
-
 		}
-		
+
 		@Override
 		public void DW() {
 			ServiceContainer.getErrorService().u7(new ErrorService.ErrorListener(){
@@ -270,11 +311,25 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
 		@Override
 		public void FH(boolean z) {
-			if (ServiceContainer.getErrorService().a8(".java")) {
+			
+			ErrorService errorService = ServiceContainer.getErrorService();
+			
+			for(String error :  errorService.SI() ){
+				if( error.startsWith("ecj: ")){
+					u7();
+					return;
+				}
+			}
+
+			rN();
+			
+			/*
+			if ( errorService.a8(".java") ) {
 				u7();
 			} else {
 				rN();
 			}
+			/*/
 
 		}
 

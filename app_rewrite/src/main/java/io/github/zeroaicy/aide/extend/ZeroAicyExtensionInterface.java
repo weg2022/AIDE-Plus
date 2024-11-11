@@ -23,6 +23,8 @@ import com.aide.codemodel.api.util.SyntaxTreeUtils;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
 import com.aide.codemodel.language.classfile.JavaBinaryLanguage;
 import com.aide.codemodel.language.java.JavaCodeAnalyzer;
+import com.aide.codemodel.language.java.JavaCodeModel;
+import com.aide.codemodel.language.java.JavaCodeModelPro;
 import com.aide.codemodel.language.java.JavaParser;
 import com.aide.codemodel.language.java.JavaParserPro;
 import com.aide.codemodel.language.kotlin.KotlinCodeModel;
@@ -33,7 +35,7 @@ import com.aide.engine.service.CodeAnalysisEngineService;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
-import com.aide.ui.project.AndroidProjectSupport;
+import com.aide.ui.project.JavaGradleProjectSupport;
 import com.aide.ui.project.JavaProjectSupport;
 import com.aide.ui.project.JavaScriptProjectSupport;
 import com.aide.ui.project.NativeExecutableProjectSupport;
@@ -65,7 +67,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import com.aide.ui.project.JavaGradleProjectSupport;
+import io.github.zeroaicy.aide.ui.project.ZeroAicyAndroidProjectSupport;
 
 /**
  * 1.aapt2
@@ -79,29 +81,47 @@ import com.aide.ui.project.JavaGradleProjectSupport;
  * 优点是可以随时更换实现
  */
 public class ZeroAicyExtensionInterface {
-
+	/**
+	 * 编译器编译完成
+	 */
+	@Keep
+	public static void completed(Model model) {
+		if (model == null) {
+			return;
+		}
+		for (CodeModel codeModel : model.getCodeModels()) {
+			try {
+				codeModel.getCodeCompiler().completed();
+			}
+			catch (Throwable e) {				
+			}
+		}
+	}
 
 	// 预扩展 由CodeModelFactory调用 采用[源码覆盖模式]
 	public static void createCodeModels(Model model, List<String> codeModelNames, List<CodeModel> codeModels) {
 		// AIDE是根据 codeModelNames来选择是否添加 CodeModel
 		// codeModelNames来源之一 ServiceContainer.Hw()
 		// 但我不遵守😕😕😕，即表示所有项目都会支持添加的CodeModel
+
+		// codeModelNames不匹配只有词法高亮
+		// codeModelNames 应该添加🤔
 		codeModels.add(new SmaliCodeModel(model));
 		codeModels.add(new KotlinCodeModel(model));
 
-		/* 覆盖JavaCodeModel
-		 if (AppLog.isPrintLog) {
-		 // 只在共存版生效
-		 if (codeModels.get(0) instanceof JavaCodeModel) {
-		 codeModels.set(0, new Java17CodeModel(model));
-		 }
-		 }
-		 //*/
+		//* 覆盖JavaCodeModel
+		if (ContextUtil.getPackageName().endsWith("debug")) {
+			// 只在共存版生效
+			if (codeModels.get(0) instanceof JavaCodeModel) {
+				codeModels.set(0, new JavaCodeModelPro(model));
+			}
+		}
+		//*/
 	}
+
 	/**
 	 * AIDE AIDL容易崩 所以需要压缩
 	 */
-
 	/*
 	 * parcelable 需要被序列化的Parcel
 	 * 仅有Parcelable这个类数据
@@ -311,6 +331,10 @@ public class ZeroAicyExtensionInterface {
 		return SyntaxTreeUtils.getVarAttrType(JavaCodeAnalyzer$a, varNode);
 	}
 
+
+	/**
+	 * 
+	 */
 	@Keep
 	public static boolean parserLambdaExpression(JavaParser javaParser) throws Parser.a {
 		if (! (javaParser instanceof JavaParserPro)) {
@@ -568,9 +592,9 @@ public class ZeroAicyExtensionInterface {
 	@Keep
 	public static ProjectSupport[] getProjectSupports() {
 		return 
-		new ProjectSupport[]{
+			new ProjectSupport[]{
 			new JavaGradleProjectSupport(),
-			new AndroidProjectSupport(), 
+			new ZeroAicyAndroidProjectSupport(), 
 			new WebsiteProjectSupport(), 
 			new PhonegapProjectSupport(), 
 			new JavaProjectSupport(), 

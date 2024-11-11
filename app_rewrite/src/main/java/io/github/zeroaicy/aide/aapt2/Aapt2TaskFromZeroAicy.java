@@ -86,7 +86,7 @@ public class Aapt2TaskFromZeroAicy {
 			//构建刷新
 			aaptServiceArgs.buildRefresh();
 		}
-
+		
 		// 合并清单
 		AaptService$ErrorResult mergedError = aaptServiceArgs.mergedAndroidManifestxml();
 		if (mergedError != null && mergedError.errorInfo != null) {

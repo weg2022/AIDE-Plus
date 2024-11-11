@@ -8,11 +8,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,10 +30,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
-import com.aide.ui.AppCommands;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
-import com.aide.ui.command.MenuItemCommand;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSpan;
 import com.aide.ui.util.FileSystem;
@@ -51,9 +52,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-import android.graphics.Color;
 
 public class ZeroAicyMainActivity extends MainActivity {
 

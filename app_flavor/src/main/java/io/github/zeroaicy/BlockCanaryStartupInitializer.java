@@ -50,6 +50,7 @@ public class BlockCanaryStartupInitializer implements Initializer<BlockCanarySta
 }
 /*/
 public class BlockCanaryStartupInitializer{
+	public static String msg2 = ZeroAicyAIDEApplication.TAG;
 	
 }
 //*/

@@ -28,7 +28,7 @@ public class Java17CodeModel implements CodeModel {
 	Java17Language java17Language;
 	List<Language> java17Languages = new ArrayList<>();
 	
-	Java17Compiler Java17Compiler;
+	//Java17Compiler Java17Compiler;
 	
 	public Java17CodeModel(Model model) {
 		this.model = model;
@@ -39,7 +39,7 @@ public class Java17CodeModel implements CodeModel {
 			this.disable = false;
 			this.java17Language = new Java17Language(this.model);
 			this.java17Languages.add(this.java17Language);
-			this.Java17Compiler = new Java17Compiler(this.model);
+			//this.Java17Compiler = new Java17Compiler(this.model);
 			
 			this.fileSpace = this.model.fileSpace;
 			this.solutionFiles = this.fileSpace.getSolutionFiles();
@@ -67,7 +67,7 @@ public class Java17CodeModel implements CodeModel {
 	
 	@Override
 	public CodeCompiler getCodeCompiler() {
-		return this.Java17Compiler;
+		return null; // this.Java17Compiler;
 	}
 
 	@Override

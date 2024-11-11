@@ -266,7 +266,8 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 					DexingJarTask.Configuration configuration = new DexingJarTask.Configuration();
 					configuration.minSdkVersion = getMinSdk();
 					configuration.user_android_jar = getUserAndroidJar();
-					configuration.dependencyLibs = getDexingLibs();
+					configuration.dependencyLibs =  getDependencyLibs();
+
 					configuration.dexingingCount = dexingingCount;
 
 					List<DexingJarTask> tasks = new ArrayList<>();
@@ -290,12 +291,12 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 					ExecutorService threadPoolService = ThreadPoolService.getThreadPoolService(DexingJarTask.ThreadPoolServiceName, 3);
 
 					List<Future<DexingJarTask>> futures = threadPoolService.invokeAll(tasks);
-					
+
 					for (Future<DexingJarTask> future : futures) {
 						// // 这会阻塞直到任务完成或抛出异常
 						try {
 							DexingJarTask dexingJarTask = future.get();
-							
+
 							// 添加dex.zip路径
 							if (dexingJarTask.isBatchMode) {
 								dependencyLibDexs.addAll(dexingJarTask.outputDexZipFiles);
@@ -364,11 +365,13 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 					// 在阈值内
 					while (smallInputJarFilesSize < filterThreshold2 
 						   && index < needDexingLibsSize) {
+
 						String inputJarFile2 = needDexingLibs.get(index);
 						String outputDexZipFile2 = getJarDexCachePath(inputJarFile2);
 
 						long fileSize2 = new File(inputJarFile2).length();
-						// 仍然是大文件模式
+
+						// 当前文件自己就是大文件，仍然是大文件模式
 						if (fileSize2 > filterThreshold) {
 							DexingJarTask dexingJarTask = new DexingJarTask(inputJarFile2, outputDexZipFile2, configuration);
 							dexingJarTask.setTaskDoneLister(taskDoneLister);
@@ -515,7 +518,9 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 
 				// 主项目class缓存路径
 				String mainProjectClassCacheDirPath = getMainClassCacheDir();
-
+				
+				// AppLog.println_d("mainProjectClassCacheDirPath 2 " + mainProjectClassCacheDirPath);
+				
 				// 优先填充填主项目的class缓存
 				fillClassFileCache(mainProjectClassCacheDirPath, incrementalClassFiles, classFileMap);
 
@@ -523,14 +528,17 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				for (String classFileRootDir : getAllClassFileRootDirs()) {
 					checkInterrupted();
 
-					if (classFileRootDir != null 
-						|| !classFileRootDir.equals(mainProjectClassCacheDirPath)) {
-
-						// 填充子项目class缓存
-						fillClassFileCache(classFileRootDir, incrementalClassFiles, classFileMap);
+					if (classFileRootDir == null 
+						|| classFileRootDir.equals(mainProjectClassCacheDirPath)) {
+							continue;
 					}
+					// 填充子项目class缓存
+					fillClassFileCache(classFileRootDir, incrementalClassFiles, classFileMap);
 				}
-
+				String[] toArray = classFileMap.toArray(new String[classFileMap.size()]);
+				System.out.println(String.join("\n", toArray));
+				
+				System.out.println();
 				String mainClassesDexZipFilePath = getMainClassesDexZipFilePath();
 				//增量为0，不dexing
 				if (incrementalClassFiles.isEmpty()) {
@@ -611,6 +619,19 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 			public List<String> getDexingLibs() {
 				return this.dexingLibs;
 			}
+
+			private List<String> dependencyLibs;
+			public List<String> getDependencyLibs() {
+				if (this.dependencyLibs == null) {
+					List<String> dexingLibs = getDexingLibs();
+					int initialCapacity = dexingLibs.size() + this.compileOnlyLibs.size();
+					this.dependencyLibs = new ArrayList<>(initialCapacity);
+					this.dependencyLibs.addAll(dexingLibs);
+					this.dependencyLibs.addAll(this.compileOnlyLibs);
+				}
+				return this.dependencyLibs;
+			}
+
 			/**
 			 * compileOnly
 			 */
@@ -913,17 +934,34 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				if (!outDirFile.exists()) {
 					outDirFile.mkdirs();
 				}
-				//构建输出文件
-				PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(outFile));
-				//打包dex
-				packagingDexs(dexZipPathList, packagingZipOutput);
-				packagingSourceDirsResource(packagingZipOutput);
-				//打包依赖库资源
-				packagingJarResources(packagingZipOutput);
-				// 打包 libgdxNatives依赖资源
-				packagingLibgdxNativesResources(packagingZipOutput);
 
-				packagingZipOutput.close();
+				File outTempFile = File.createTempFile(outFile.getName(), ".unSigner", outDirFile);
+				
+				try {
+					//构建输出文件
+					PackagingStream packagingZipOutput = new PackagingStream(new FileOutputStream(outTempFile));
+					//打包dex
+					packagingDexs(dexZipPathList, packagingZipOutput);
+					packagingSourceDirsResource(packagingZipOutput);
+					//打包依赖库资源
+					packagingJarResources(packagingZipOutput);
+					// 打包 libgdxNatives依赖资源
+					packagingLibgdxNativesResources(packagingZipOutput);
+
+					packagingZipOutput.close();
+
+					ApkSignerService.signerApk(
+						getMinSdk(),
+						getSignaturePath(),
+						getSignatureAlias(),
+						getSignatureAliasPassword(),
+						getSignaturePassword(),
+						outTempFile, 
+						outFile);
+				}
+				finally {
+					outTempFile.delete();
+				}
 			}
 
 			private void packagingDexs(List<String> dexZipPathList, PackagingStream packagingZipOutput) throws IOException {
@@ -1335,7 +1373,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				}
 				return childFile.getAbsolutePath();
 			}
-
+			
 			@Override
 			public final void Mr() {
 				try {
@@ -1344,14 +1382,14 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				catch (Throwable e) {
 					// 将错误信息保存到日志中
 					AppLog.e("packaging()", e);
-					
+
 					if (e instanceof Error) {
 						throw (Error)e;
 					}
 					if (e instanceof RuntimeException) {
 						throw (RuntimeException)e;
 					}
-					
+
 					throw new Error(e);
 				}
 			}
@@ -1406,6 +1444,10 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 			 * 根据isBuildRefresh是否增量
 			 */
 			public void fillClassFileCache(String classCacheRootDirPath, List<String> incrementalClassFiles, Set<String> classFileSet) {
+				// 规范文件路径信息
+				// bug compile project(':/xxxxx/xxx -> 导致classCacheRootDirPath 为 //xxxxx/xxx
+				classCacheRootDirPath = new File(classCacheRootDirPath).getAbsolutePath();
+				
 				fillClassFileCacheMap(classCacheRootDirPath, new File(classCacheRootDirPath), incrementalClassFiles, classFileSet, this.isBuildRefresh());
 			}
 			/**

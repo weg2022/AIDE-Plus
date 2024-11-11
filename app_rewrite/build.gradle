@@ -36,8 +36,9 @@ dependencies {
 	// r8 必须脱糖否则只能安卓13使用
 	api project(':appAideBase')
 	//api project(':kotlin')
-	// ecj依赖这个 Only
-	compile "io.github.itsaky:nb-javac-android:17.0.0.3"
+	
+	// https://mvnrepository.com/artifact/org.eclipse.jdt/ecj
+	api "org.eclipse.jdt:ecj:3.35.0"
 	
 	api 'net.margaritov.preference.colorpicker.ColorPickerPreference:ColorPickerPreference:1.0.0' 
 }

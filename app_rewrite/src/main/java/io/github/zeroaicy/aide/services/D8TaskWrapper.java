@@ -39,6 +39,11 @@ public class D8TaskWrapper {
 	public static void runD8Task(List<String> argList, Map<String, String> environment) throws Throwable {
 		run(D8Task, argList, environment);
 	}
+	
+	public static void runD8Task(List<String> argList, Map<String, String> environment, boolean processMode) throws Throwable {
+		run(D8Task, argList, environment, processMode);
+	}
+	
 	/**
 	 * 编译多个jar且输出多个路径
 	 * argList 为通用配置 run minsdk android_sdk路径等
@@ -73,9 +78,13 @@ public class D8TaskWrapper {
 	}
 
 	private static DexClassLoader r8DexClassLoader;
+	
 	private static void run(String className, List<String> argList, Map<String, String> environment) throws Throwable {
-		
+		run(className, argList, environment, false);
+	}
+	private static void run(String className, List<String> argList, Map<String, String> environment, boolean processMode) throws Throwable {
 		AppLog.println_d("d8 classname: %s ", className);
+		AppLog.println_d("d8 argList: %s ", argList);
 		
 		String r8Path = AssetInstallationService.DW("com.android.tools.r8.zip", true);
 		// 去除写入权限
@@ -83,7 +92,7 @@ public class D8TaskWrapper {
 		if (r8ZipFile.canWrite()) {
 			r8ZipFile.setWritable(false);
 		}
-		if (!R8Task.equals(className)) {
+		if (!processMode && !R8Task.equals(className)) {
 			// 只有r8采用线进程方式
 			// D8Task D8BatchTask 采用动态加载dex的方式运行
 			// 这样可能有dex2oat优化

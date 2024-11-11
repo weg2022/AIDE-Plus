@@ -322,6 +322,7 @@ public class AaptServiceArgs{
 	//合并AndroidManifestxml
 	public AaptService$ErrorResult mergedAndroidManifestxml(){
 		// return this.argsRef.call("EQ").get();
+		
 		return this.task.mergedAndroidManifestxml();
 	}
 

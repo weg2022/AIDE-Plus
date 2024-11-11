@@ -115,7 +115,10 @@ public interface ZipEntryTransformer {
 			return zipEntry;
 		}
 	}
-
+	
+	/**
+	 * 从文件夹添加的so转换器
+	 */
 	public class NativeLibFileTransformer implements ZipEntryTransformer {
 		private boolean androidExtractNativeLibs;
 		public NativeLibFileTransformer(boolean androidExtractNativeLibs) {

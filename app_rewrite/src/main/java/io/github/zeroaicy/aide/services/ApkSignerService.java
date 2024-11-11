@@ -70,7 +70,7 @@ public class ApkSignerService {
 		PrivateKey privateKey;
 		X509Certificate certificate;
 		//自定义签名文件是存在
-		if (new File(keystorePath).exists()) {
+		if (keystorePath != null && new File(keystorePath).exists()) {
 			//支持 .pk8 与 .x509.pem签名文件
 			if (keystorePath.endsWith(".x509.pem") 
 				|| keystorePath.endsWith(".pk8")) {

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipFile;
 import java.io.FileNotFoundException;
+import com.aide.ui.services.AssetInstallationService;
 
 
 /**
@@ -155,7 +156,8 @@ public class ScopeTypeQuerier{
 	private ScopeTypeMap scopeTypeMap = new ScopeTypeMap();
 
 	public ScopeTypeQuerier(String[] dependencyLibs, ZeroAicyBuildGradle zeroAicyBuildGradle) throws Throwable{
-
+		
+		addCompileOnlyLib(AssetInstallationService.DW("core-lambda-stubs.jar", true));
 		if ( dependencyLibs == null ){
 			return;
 		}

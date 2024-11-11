@@ -10,7 +10,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DexingJarTask implements Callable<DexingJarTask>{
-
+	
+	
 	/**
 	 * 配置类
 	 */
@@ -87,6 +88,7 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 				
 			}else{
 				dexingJarLibFile(inputJarFile, outputDexZipFile, configuration);
+				
 				configuration.dexingingCount.incrementAndGet();
 			}
 			// 就用一次
@@ -136,9 +138,8 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 		try{
 			logDebug("dexing -> " + jarLibPath);
 			//dexing jar
-			// 将采用 子进程方式，防止oom
-
-			D8TaskWrapper.runD8Task(argsList, DexingJarTask.environment);
+			// 大于10MB的将采用 子进程方式，防止oom
+			D8TaskWrapper.runD8Task(argsList, DexingJarTask.environment, new File(jarLibPath).length() > 10 * 1024 * 1024);
 
 			//临时文件移动到实际输出文件
 			dexZipTempFile.renameTo(dexCacheFile);

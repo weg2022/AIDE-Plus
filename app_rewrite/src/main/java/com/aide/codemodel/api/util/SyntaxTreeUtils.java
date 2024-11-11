@@ -363,6 +363,12 @@ public class SyntaxTreeUtils {
 				if (attrReferenceKind != 0) {
 					System.out.printf(" [attrReferenceKind: %s]", attrReferenceKind);
 				}
+				int attrReferenceNode = syntaxTree.getAttrReferenceNode(node);
+				if (attrReferenceNode != 0) {
+					Entity entity = syntaxTree.getModel().entitySpace.getEntity(attrReferenceNode);
+					System.out.printf(" [attrReferenceNode: %s]", entity.getFullyQualifiedNameString());
+				}
+				
 			}			
 		}
 		catch (Throwable e) {

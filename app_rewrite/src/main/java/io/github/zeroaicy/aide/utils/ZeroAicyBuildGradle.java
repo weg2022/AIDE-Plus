@@ -31,9 +31,11 @@ import org.codehaus.groovy.antlr.parser.GroovyLexer;
 import org.codehaus.groovy.antlr.parser.GroovyRecognizer;
 
 import static com.aide.ui.util.BuildGradle.*;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class ZeroAicyBuildGradle extends BuildGradle {
-
+	
 	public static class DependencyExt extends com.aide.ui.util.BuildGradle.Dependency {
 		public static final int CompileOnly = 0x1;
 		public static final int RuntimeOnly = 0x2;
@@ -262,7 +264,7 @@ public class ZeroAicyBuildGradle extends BuildGradle {
     private void FH(String str, String str2, int i) {
 		try {
 			ArrayList<String> arrayList = new ArrayList<>();
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(((Configuration) this).configurationPath));
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(this.configurationPath));
 			int i2 = 1;
 			while (true) {
 				String readLine = bufferedReader.readLine();
@@ -1010,9 +1012,19 @@ public class ZeroAicyBuildGradle extends BuildGradle {
 
     }
 
-    public void addProjectDependency(String str) {
-		String BT = FileSystem.getRelativePath(FileSystem.getParent(FileSystem.getParent(((Configuration) this).configurationPath)), str);
-		Hw("api project('" + (":" + BT.replace("/", ":")) + "')");
+    public void addProjectDependency(String subProjectDirPath) {
+
+		String currentProjectDirPath = FileSystem.getParent(this.configurationPath);
+		// 计算相对路径
+		String currentProjectParentDir = FileSystem.getParent(currentProjectDirPath);
+		
+		Path currentProjectParentPath = Paths.get(currentProjectParentDir);
+		Path subProjectPath = Paths.get(subProjectDirPath);
+		
+		// String relativePath = FileSystem.getRelativePath(parentDir, subProjectPath);
+		String relativePath = currentProjectParentPath.relativize(subProjectPath).toString();
+		
+		Hw("api project('" + (":" + relativePath) + "')");
 
     }
 

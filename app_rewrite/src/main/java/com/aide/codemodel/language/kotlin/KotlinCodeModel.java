@@ -9,26 +9,35 @@ import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.Debugger;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Preprocessor;
+import com.aide.codemodel.api.collections.RelationOfIntInt;
+import com.aide.codemodel.api.collections.SetOfInt;
+import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import com.aide.codemodel.api.FileSpace;
+import com.aide.common.AppLog;
+import com.aide.codemodel.api.collections.OrderedMapOfIntInt;
 
 public class KotlinCodeModel implements CodeModel {
     public final Model model;
     private final KotlinLexer kotlinLexer = new KotlinLexer();
     private final KotlinLanguage myLanguage;
     private final Highlighter myHighlighter;
-	
+
 	private KotlinCodeCompiler KotlinCodeCompiler;
     public KotlinCodeModel(Model model) {
         this.model = model;
-        myLanguage = new KotlinLanguage(this);
-        myHighlighter = new Highlighter(kotlinLexer);
-		
-		if( model != null ){
-			KotlinCodeCompiler = new KotlinCodeCompiler(model, myLanguage);
+        this.myLanguage = new KotlinLanguage(this);
+        this.myHighlighter = new Highlighter(kotlinLexer);
+
+		if (model == null) {
+			return;
 		}
+		KotlinCodeCompiler = new KotlinCodeCompiler(model, myLanguage);
+		
     }
     @Override
     public long getArchiveVersion(String s) {
@@ -96,7 +105,7 @@ public class KotlinCodeModel implements CodeModel {
             SyntaxTree syntaxTree = map.get(myLanguage);
             if (syntaxTree != null)
 				syntaxTree.declareContent(syntaxTree.declareNode(0, true, new int[0], 0, 0, 1, 1));
-			    //sa.DW(sa.j6(0, true, new int[0], 0, 0, 1, 1));
+			//sa.DW(sa.j6(0, true, new int[0], 0, 0, 1, 1));
         }
     }
 

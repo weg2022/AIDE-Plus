@@ -25,7 +25,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
-	private static final String TAG = "ZeroAicyAIDEApplication ";
+	public static final String TAG = "ZeroAicyAIDEApplication 88";
 
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();

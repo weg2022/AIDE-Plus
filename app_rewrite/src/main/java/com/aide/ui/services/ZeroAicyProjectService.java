@@ -11,6 +11,7 @@ import com.aide.engine.EngineSolution;
 import com.aide.engine.service.CodeModelFactory;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
+import com.aide.ui.firebase.FireBaseLogEvent;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.project.JavaGradleProjectSupport;
 import com.aide.ui.project.internal.GradleTools;
@@ -26,8 +27,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import com.aide.ui.firebase.FireBaseLogEvent;
-import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
+import io.github.zeroaicy.aide.utils.AndroidManifestParser;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -70,6 +71,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		show.getWindow().addFlags(128);
 		show.getWindow().clearFlags(2);
 
+		//*
 		final Runnable syncTask = new Runnable(){
 			@Override
 			public void run() {
@@ -83,6 +85,18 @@ public class ZeroAicyProjectService extends ProjectService {
 				}
 			}
 		};
+		/*/
+		 Runnable syncTask = () -> {
+		 try {
+		 show.dismiss();
+		 }
+		 finally {
+		 if (onUiTask != null) {
+		 executorsService.post(onUiTask);
+		 }
+		 }
+		 };
+		 //*/
 
 		executorsService.submit(new Runnable(){
 				@Override
@@ -391,7 +405,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		// 关闭项目
 		this.resetProjectAttributeCache();
-		
+
 		// 同步代码分析进程
 		// 置空代码分析进程信息
 		this.jJ(); 
@@ -807,10 +821,10 @@ public class ZeroAicyProjectService extends ProjectService {
 			closeProject();
 			return;
 		}
-		
+
 		// reloadingProjectAsync需要置空
 		this.resetProjectAttributeCache();
-		
+
 		ServiceContainer.getDebugger().ef();
 		//在主线程执行showProgressDialog
 		executorsService.post(new Runnable(){
@@ -850,7 +864,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	public void reloadingProject() {
 		// 刷新, 需要初始化
 		this.setUnInited();
-		
+
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
@@ -888,14 +902,14 @@ public class ZeroAicyProjectService extends ProjectService {
 		// 项目中的主项目
 		this.mainAppWearApps.clear();
 		this.mainAppWearAppsCopy = null;
-		
+
 		// 项目目录(包括主项目) -> 子项目
 		this.libraryMapping.clear();
 		this.libraryMappingCopy = null;
 
 		// 初始化
 		this.resetProjectAttributeCache();
-		
+
 		if (this.currentAppHome == null) {
 			// 初始化完成
 			this.setInited();
@@ -915,7 +929,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			ZeroAicyProjectService.this.classPathEntrys = AndroidProjectSupport.getProjectClassPathEntrys(ZeroAicyProjectService.this.getCurrentAppHome(), null);
 		}
 		this.projectProperties = this.getProjectAttributeAsync();
-		
+
 		// AppLog.d(TAG, "projectProperties %s", projectProperties);
 
 		// 初始化完成
@@ -966,10 +980,10 @@ public class ZeroAicyProjectService extends ProjectService {
 			return null;
 		}
 		try {
-			
+
 			// 重定向至 ZeroAicyExtensionInterface.getProjectSupports();
 			ProjectSupport[] projectSupports = ServiceContainer.getProjectSupports();
-			
+
 			for (ProjectSupport projectSupport : projectSupports) {
 				if (projectSupport.isSupport(projectPath)) {
 					return projectSupport;
@@ -1076,8 +1090,5 @@ public class ZeroAicyProjectService extends ProjectService {
 
 	}
 	/*****************************************************************/
-
-
-
 
 }

@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import android.text.TextUtils;
+import io.github.zeroaicy.aide.utils.AndroidManifestParser;
+import com.aide.ui.ServiceContainer;
+import com.aide.ui.services.ProjectService;
 
 public class AaptService$Task {
 	// res的依赖map key res_dir_path-> value res_dir_path_list
@@ -179,14 +182,16 @@ public class AaptService$Task {
 	// 合并清单文件
     public AaptService$ErrorResult mergedAndroidManifestxml() {
         try {
-
+			// injectedAManifestMap
+			String mainProjectInjectedManifestPath = this.injectedAndroidManifestMap.get(this.mainProjectGenDir);
+			// 自动设置  android:debuggable="debuggable"属性
+			settingAndroidDebugable(mainProjectInjectedManifestPath);
+			
             if (this.subProjectGens.size() <= 0 
 				&& this.variantManifestPaths.size() <= 0) {
 				return new AaptService$ErrorResult(false);
 			}
-
-			// injectedAManifestMap
-			String mainProjectInjectedManifestPath = this.injectedAndroidManifestMap.get(this.mainProjectGenDir);
+			
 			// aManifestMap
 			String mainProjectManifestPath = this.androidManifestMap.get(mainProjectInjectedManifestPath);
 			// mergedAManifestMap
@@ -251,6 +256,18 @@ public class AaptService$Task {
             throw new Error(th);
         }
     }
+
+	private void settingAndroidDebugable(String mainProjectInjectedManifestPath) {
+		ProjectService projectService = ServiceContainer.getProjectService();
+		String currentVariant = projectService.getCurrentVariant();
+
+		boolean debuggable = 
+			currentVariant.endsWith("debug-aide")
+			|| (ZeroAicySetting.enableADRT() && currentVariant.endsWith("debug"));
+
+		// debuggable 与 xml中值不同才写入
+		AndroidManifestParser.settingAndroidDebuggable(mainProjectInjectedManifestPath, debuggable);
+	}
 
 	/**
 	 * 检查输入源是否改变
@@ -552,7 +569,7 @@ public class AaptService$Task {
         try {
             for (Map.Entry<String, String> entry : this.genPackageNameMap.entrySet()) {
                 String packageName = entry.getValue();
-				
+
 				if (TextUtils.isEmpty(packageName)) {
 					continue;
 				}

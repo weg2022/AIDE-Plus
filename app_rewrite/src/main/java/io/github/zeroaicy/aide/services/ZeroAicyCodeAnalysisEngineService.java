@@ -16,6 +16,7 @@ import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.aide.common.AppLog;
 import androidx.core.app.NotificationChannelCompat.Builder;
+import com.aide.ui.ServiceContainer;
 
 public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService {
 
@@ -32,6 +33,9 @@ public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		// 初始化 App
+		ServiceContainer.setContext(getApplicationContext());
+		
 		setNotificationAndForeground();
 
 		AppLog.d(TAG, "onCreate");
