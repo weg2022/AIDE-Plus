@@ -30,51 +30,58 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 	public static final long now = System.currentTimeMillis();
 	public static final boolean reflectAll = ReflectPie.reflectAll();
 
+	public static final boolean isCrashProcess;
 	static{
 		// 防止各种闪退，默认写入在数据目录2.
-		DebugUtil.debug();
+		// 处理Crash进程
+		isCrashProcess = handleCrashProcess();
+		if (!isCrashProcess) {
+			DebugUtil.debug();
+		}
 	}
 
 
-	public boolean handleCrashProcess() {
+	public static boolean handleCrashProcess() {
 		// 计算Crash进程名
-		String crashProcessName = this.getPackageName() + ":crash";
+		String crashProcessName = ContextUtil.getPackageName() + ":crash";
 		// 当前进程名
 		String curProcessName = ContextUtil.getProcessName();
 
 		boolean isCrashProcess = crashProcessName.equals(curProcessName)                            
 			|| curProcessName.endsWith(":crash");
-
-		if (!isCrashProcess) {
-			return false;
-		}
 		// Crash进程不做任何初始化
 		AppLog.d(TAG, "crash进程: %s", curProcessName);
-
 		return isCrashProcess;
 	}
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
+		if (isCrashProcess) {
+			return;
+		}
+		
+		
+		ContextUtil.setApplicationContext(this);
 		// 查看 是否解除反射限制
 		AppLog.d(TAG, "解除反射限制: " + reflectAll);
 
 		// 更改日志路径
 		DebugUtil.debug(this, false);
 
+		// method2();
+
 		try {
 			PackageManager packageManager = this.getPackageManager();
 			PackageInfo packageInfo = packageManager.getPackageInfo(this.getPackageName(), PackageManager.GET_ACTIVITIES);
 			String versionName = packageInfo.versionName;
 			AppLog.e("versionName", versionName);
-			
+
 		}
 		catch (Exception e) {}
 		// ZeroAicy Log附加Android Log
 		// attachLogcat();
-		// 处理Crash进程
-		handleCrashProcess();
 
 		// 捕获异常后在Activity显示
 		CrashApphandler.getInstance().onCreated();
@@ -123,7 +130,7 @@ public class ZeroAicyAIDEApplication extends AIDEApplication {
 		if (ContextUtil.isMainProcess()) {
 			if ("io.github.zeroaicy.aide".equals(getPackageName())) {
 				// 
-				Logger.onContext(this, "io.github.zeroaicy.aide1");	
+				Logger.onContext(this, "io.github.zeroaicy.aide4");
 			} else {
 				Logger.onContext(this, "io.github.zeroaicy.aide");	
 			}

@@ -40,13 +40,15 @@ public class CrashApphandler extends CrashAppLog implements CrashAppLog.OnCrashL
 	public boolean isHandle = false;
 	@Override
 	public void onCrash(String crashInfo){
+		
 		if ( CrashActivity.getErrorLog() != null ){
 			return; 
 		}
-
+		
 		if ( isHandle ){
 			return;
 		}
+		
 		isHandle = true;
 		
 		Context context = CrashApphandler.this.mContext;
@@ -56,6 +58,7 @@ public class CrashApphandler extends CrashAppLog implements CrashAppLog.OnCrashL
 		if ( context == null ){
 			context = ContextUtil.getContext();
 		}
+		
 		Intent intent = new Intent(context, io.github.zeroaicy.util.crash.CrashActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.putExtra(CrashApphandler.CrashActivityKey, crashInfo);
@@ -63,15 +66,15 @@ public class CrashApphandler extends CrashAppLog implements CrashAppLog.OnCrashL
 		context.startActivity(intent);
 		//退出活动，因为退出了所以启动活动前仍会走Application
 		//如果错误点在Application则会重复启动
-		android.os.Process.killProcess(android.os.Process.myPid());
-		System.exit(-1);
-
+		// System.exit(-1);
+		// android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
     @Override
     public void sendCrashLogToServer(File folder, File file){
 		Log.e("*********", "文件夹:" + folder.getAbsolutePath() + " - " + file.getAbsolutePath() + "");
     }
+	
 	@Override
 	public void init(Context context){
 		super.init(context);

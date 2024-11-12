@@ -16,6 +16,22 @@ public class ContextUtil{
 	private static Context CONTEXT_INSTANCE;
 
 	private static ReflectPie activityThreadReflect;
+	
+	/**
+	 * 最好在Application设置一下
+	 */
+	public static void setApplicationContext(Context context) {
+		if( context == null ){
+			return;
+		}
+		Context applicationContext = context.getApplicationContext();
+		if (applicationContext == null) {
+			CONTEXT_INSTANCE = context;
+			return;
+		}
+		CONTEXT_INSTANCE = applicationContext;
+	}
+	
 	public static ReflectPie getActivityThread(){
 		if ( activityThreadReflect != null && activityThreadReflect.get() != null ){
 			return activityThreadReflect;

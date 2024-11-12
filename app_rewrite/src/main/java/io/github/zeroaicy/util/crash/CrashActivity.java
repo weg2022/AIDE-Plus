@@ -51,7 +51,6 @@ public class CrashActivity extends Activity{
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
 		menu.add(android.R.string.copy).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
-
 				@Override
 				public boolean onMenuItemClick(MenuItem p1){
 					copyText(log);

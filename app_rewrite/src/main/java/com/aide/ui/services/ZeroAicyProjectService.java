@@ -732,9 +732,11 @@ public class ZeroAicyProjectService extends ProjectService {
 		// EngineService$EngineServiceConnection::onServiceConnected() -> EngineService::Mr()
 		// jJ() 
 		// 通知执行 jJAsync()
-		if (this.engineServiceConnectionLock == null) return;
-
-		synchronized (this.engineServiceConnectionLock) {
+		Object engineServiceConnectionLock = this.engineServiceConnectionLock;
+		if (engineServiceConnectionLock == null) return;
+		
+		synchronized (engineServiceConnectionLock) {
+			// 
 			Object lock = this.engineServiceConnectionLock;
 			// 置空锁
 			this.engineServiceConnectionLock = null;

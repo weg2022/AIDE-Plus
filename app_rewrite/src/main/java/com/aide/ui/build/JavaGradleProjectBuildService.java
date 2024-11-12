@@ -19,10 +19,12 @@ import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import com.aide.ui.project.internal.GradleTools;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.build.android.SigningService;
+import com.aide.ui.MainActivity;
 
 public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
 	public static JavaGradleProjectBuildService.JavaProjectBuildService javaProjectBuildService = new JavaGradleProjectBuildService.JavaProjectBuildService();
+
 	@Override
 	public a VH() {
 		return o8.a.JAVA;
@@ -63,10 +65,6 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 		javaProjectBuildService.startCompile();
 	}
 
-
-	boolean Zo;
-	boolean isDebugAide;
-
 	public void buildProject(boolean buildRefresh, String buildType) {
 		javaProjectBuildService.buildProject(buildRefresh, buildType);
 	}
@@ -100,7 +98,7 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 				ServiceContainer.getTrainerService().Eq();
 				return;
 			}
-			
+
 			if (SI.size() == 0) {
 				MessageBox.BT(ServiceContainer.getMainActivity(), "Run", "There's no main method to run in this project!");
 			} else if (SI.size() == 1) {
@@ -118,11 +116,15 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
 		public void U2(String str) {
 			String Sf = JavaGradleProjectSupport.Sf(ServiceContainer.getProjectService().getCurrentAppHome(), this.isDebugAide);
+			MainActivity mainActivity = ServiceContainer.getMainActivity();
 			if (ServiceContainer.isTrainerMode()) {
-				ServiceContainer.getMainActivity().Ws(false);
-				RunTrainerJavaActivity.lg(ServiceContainer.getMainActivity(), AppPreferences.isLightTheme(), Sf, str, this.isDebugAide, 15);
+				mainActivity.Ws(false);
+				RunTrainerJavaActivity.lg(mainActivity, AppPreferences.isLightTheme(), Sf, str, this.isDebugAide, 15);
 			} else {
-				RunJavaActivity.a8(ServiceContainer.getMainActivity(), AppPreferences.isLightTheme(), Sf, str, this.isDebugAide);
+				RunJavaActivity.a8(mainActivity, 
+								   AppPreferences.isLightTheme(),
+								   Sf, str, 
+								   this.isDebugAide);
 			}
 		}
 
@@ -206,10 +208,10 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 			ProjectService projectService = ServiceContainer.getProjectService();
 			String buildType = projectService.er();
 			String userKeystore = AppPreferences.getUserKeystore();
+
+
 			BuildGradle.SigningConfig signingConfig = ZeroAicyExtensionInterface.getBuildGradle().getConfiguration(GradleTools.getBuildGradlePath(currentAppHome)).getSigningConfig(ProjectService.KD(buildType));
-
 			SigningService.SigningRunnable j6 = new SigningService.SigningRunnable(){
-
 				@Override
 				public void j6(String storePath, String storePassword, String aliasName, String aliasPassword) {
 					JavaProjectBuildService.this.storeFilePath = storePath;
@@ -219,6 +221,7 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
 				}
 			};
+
 			com.aide.ui.build.android.SigningService signingService = (SigningService)(Object)ServiceContainer.getSigningService();
 			signingService.Zo(userKeystore, signingConfig, j6);
 
@@ -228,7 +231,7 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 				aAptResourcePath, nativeLibDirs, outFilePath, 
 				this.storeFilePath, this.storePassword, this.keyAlias, this.keyPassword, 
 				this.buildRefresh, AppPreferences.isOptimzeDex(), false);
-				
+
 			this.packagingService.we();
 
 		}
@@ -236,7 +239,7 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 		public void tp(String str) {
 			this.title = null;
 			ServiceContainer.getBuildService().j6(str);
-			
+
 		}
 
 		private void u7() {
@@ -311,25 +314,25 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 
 		@Override
 		public void FH(boolean z) {
-			
+
 			ErrorService errorService = ServiceContainer.getErrorService();
-			
-			for(String error :  errorService.SI() ){
-				if( error.startsWith("ecj: ")){
+
+			for (String error :  errorService.SI()) {
+				if (error.startsWith("ecj: ")) {
 					u7();
 					return;
 				}
 			}
 
 			rN();
-			
+
 			/*
-			if ( errorService.a8(".java") ) {
-				u7();
-			} else {
-				rN();
-			}
-			/*/
+			 if ( errorService.a8(".java") ) {
+			 u7();
+			 } else {
+			 rN();
+			 }
+			 /*/
 
 		}
 
@@ -345,14 +348,23 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 		}
 
 		public void buildProject(boolean buildRefresh, String variant) {
+
 			ServiceContainer.getOpenFileService().KD(false, false);
+
 			ServiceContainer.getMainActivity().getAIDEEditorPager().Eq();
+
 			this.buildRefresh = buildRefresh;
+
 			this.isDebugAide = "debug-aide".equals(variant);
+			
 			ServiceContainer.getErrorService().j3();
+
 			ServiceContainer.getBuildService().J8(this, ServiceContainer.DW().Hw());
+
 			notifyProgress("Building...", 0, false);
+
 			lg();
+
 			ServiceContainer.DW().gn(this);
 		}
 

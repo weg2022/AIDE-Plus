@@ -217,7 +217,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 				System.exit(-1);
 			}else{
 				//退出
-				System.exit(-1);
+				// System.exit(-1);
 			}
 		}
 		catch (Throwable e){
@@ -233,7 +233,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	private boolean hanlderException(Throwable throwable){
 		try{
 			if ( throwable == null ){
-				return false;
+				return true;
 			}
 			new Thread(){
 				@Override
@@ -350,6 +350,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
                     buffer.append(entry.getKey() + ":" + entry.getValue() + "\n");
                 }
             }
+			
             Writer writer = new StringWriter();
             PrintWriter printWriter = new PrintWriter(writer);
             ex.printStackTrace(printWriter);

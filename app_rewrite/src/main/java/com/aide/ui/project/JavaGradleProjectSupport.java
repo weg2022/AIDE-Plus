@@ -954,11 +954,6 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 	}
 
 	@Override
-	public String sh(String string) {
-		return null;
-	}
-
-	@Override
 	public String tp(String string) {
 		return null;
 	}
@@ -968,11 +963,68 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		return false;
 	}
 
-	@Override
-	public String v5(String string) {
-		return null;
-	}
+	/**
+	 * debug com.adrt.SET_BREAKPOINTS
+	 */
 
+	/**
+	 * 与 sh 互为逆运算
+	 * 根据源码绝对路径找到相对路径 [全类名]
+	 */
+	@Override
+	public String v5(String str) {
+		ProjectService projectService = ServiceContainer.getProjectService();
+		String Ev = Ev(projectService.getLibraryMapping(),
+					   projectService.getFlavor(), 
+					   FileSystem.getParent(str));
+
+		if (Ev == null) {
+			return str;
+		}
+		return Ev.replace('.', '/') + "/" + FileSystem.getName(str);
+	}
+	
+	/**
+	 * 与 v5 互为逆运算
+	 * 根据源码相对路径[全类名]找到 绝对路径
+	 */
+	public String sh(String str) {
+		String[] aj = aj(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getFlavor());
+		if (!str.startsWith("/")) {
+			str = "/" + str;
+		}
+		for (String str2 : aj) {
+			String str3 = str2 + str;
+			if (FileSystem.exists(str3)) {
+				return str3;
+			}
+		}
+		return null;
+    }
+	
+	public static String Ev(Map<String, List<String>> map, String flavor, String str2) {
+		for (String str3 : aj(map, flavor)) {
+			if (FileSystem.isPrefix(str3, str2)) {
+				return FileSystem.getRelativePath(str3, str2).replace('/', '.');
+			}
+		}
+		return null;
+    }
+	public static String[] aj(Map<String, List<String>> map, String flavor) {
+		ArrayList<String> arrayList = new ArrayList<>();
+		for (String projectDir : map.keySet()) {
+			if (!GradleTools.isAarEexplodedPath(projectDir)) {
+				for (ClassPath.Entry entry : getProjectClassPathEntrys(projectDir)) {
+					if (entry.isSrcKind()) {
+						arrayList.add(entry.resolveFilePath(projectDir));
+					}
+				}
+			}
+		}
+		String[] strArr = new String[arrayList.size()];
+		arrayList.toArray(strArr);
+		return strArr;
+    }
 	// GradleTools.getAndroidMkPath
 	@Override
 	public boolean vy(String dirPath) {
@@ -1079,7 +1131,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			new String[]{"Main.java", "build.gradle"}, 
 			// 主项目相对路径
 			"console");
-			
+
 		return new TemplateService.TemplateGroup[]{javaGradleApplicationTemplateGroup};
     }
 

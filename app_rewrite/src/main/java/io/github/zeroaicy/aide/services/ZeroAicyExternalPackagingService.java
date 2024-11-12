@@ -535,10 +535,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 					// 填充子项目class缓存
 					fillClassFileCache(classFileRootDir, incrementalClassFiles, classFileMap);
 				}
-				String[] toArray = classFileMap.toArray(new String[classFileMap.size()]);
-				System.out.println(String.join("\n", toArray));
 				
-				System.out.println();
 				String mainClassesDexZipFilePath = getMainClassesDexZipFilePath();
 				//增量为0，不dexing
 				if (incrementalClassFiles.isEmpty()) {
