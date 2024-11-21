@@ -38,6 +38,7 @@ import android.widget.Toast;
 import com.aide.ui.trainer.Course;
 import com.aide.ui.services.TemplateService.TemplateGroup;
 import com.aide.ui.services.TemplateService.Template;
+import android.text.Html;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -156,9 +157,14 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 				continue;
 			}
 			if (!mainAppWearApps.contains(projectDir)) {
-				projectAttributeSb.append("<b>Library ").append(projectDir).append("</b><br/><br/>");
+				projectAttributeSb.append("<b>Library ")
+					.append(projectDir)
+					.append("</b><br/><br/>");
 			} else {
-				projectAttributeSb.append("<b>Java Project ").append(projectDir).append("</b><br/><br/>").append("<i>Library Projects:</i><br/><br/>");
+				projectAttributeSb.append("<b>Java Project ")
+					.append(projectDir)
+					.append("</b><br/><br/>")
+					.append("<i>Library Projects:</i><br/><br/>");
 			}
 
 			// ServiceContainer.getProjectService().getLibraryMapping()
@@ -181,7 +187,8 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			if (!hasAddLabelHeader) {
 				projectAttributeSb.append("&lt;none&gt;<br/><br/>");
 			}
-			// String str5 = str3 + "<i>Libraries:</i><br/><br/>";
+
+
 			projectAttributeSb.append("<i>Libraries:</i><br/><br/>");
 
 			//  getProjectLibPaths
@@ -189,11 +196,15 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			// AppLog.d(TAG, "projectLibPaths %s", Arrays.toString(projectLibPaths));
 			//重置
 			hasAddLabelHeader = false;
+
 			for (String projectLibPath : projectLibPaths) {
 				if (!FileSystem.exists(projectLibPath)) {
 					projectAttributeSb.append("(NOT FOUND) ");
 				}
-				projectAttributeSb.append(projectLibPath).append("<br/><br/>");
+				projectAttributeSb.append(projectLibPath)
+					// 换行
+					.append("<br/><br/>");
+
 				hasAddLabelHeader = true;
 			}
 
@@ -983,7 +994,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		}
 		return Ev.replace('.', '/') + "/" + FileSystem.getName(str);
 	}
-	
+
 	/**
 	 * 与 v5 互为逆运算
 	 * 根据源码相对路径[全类名]找到 绝对路径
@@ -1001,7 +1012,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 		}
 		return null;
     }
-	
+
 	public static String Ev(Map<String, List<String>> map, String flavor, String str2) {
 		for (String str3 : aj(map, flavor)) {
 			if (FileSystem.isPrefix(str3, str2)) {

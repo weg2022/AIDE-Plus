@@ -316,7 +316,14 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 		public void FH(boolean z) {
 
 			ErrorService errorService = ServiceContainer.getErrorService();
-
+			
+			if (errorService.a8(".java")) {
+                u7();
+            } else {
+                rN();
+            }
+			
+			/*
 			for (String error :  errorService.SI()) {
 				if (error.startsWith("ecj: ")) {
 					u7();
@@ -325,7 +332,7 @@ public class JavaGradleProjectBuildService implements IBuildService, abcd.o8 {
 			}
 
 			rN();
-
+			*/
 			/*
 			 if ( errorService.a8(".java") ) {
 			 u7();
