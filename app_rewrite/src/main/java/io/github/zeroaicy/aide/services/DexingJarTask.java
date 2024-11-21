@@ -131,7 +131,10 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 
 		List<String> argsList = new ArrayList<>();
 		D8TaskWrapper.fillD8Args(argsList, minSdkVersion, false, true, user_android_jar, dependencyLibs, dexZipTempFile.getAbsolutePath());
-
+		
+		
+		argsList.add("--globals-output");
+		argsList.add(jarLibPath + "--globals.zip");
 		//添加需要编译的jar(输入文件)
 		argsList.add(jarLibPath);
 
@@ -191,6 +194,7 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 				argsList.add(librarie);
 			}
 		}
+		
 		// 批量处理
 		D8TaskWrapper.runD8BatchTask(inputJarFiles, outputDexZipFiles, argsList, DexingJarTask.environment);
 		

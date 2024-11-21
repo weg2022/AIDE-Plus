@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutorService;
 import android.content.Intent;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
+import com.aide.ui.util.FileSystem;
 
 public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 	@Override
@@ -402,9 +403,27 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				String user_androidjar = null;
 				// 合并*.jar.dex
 				D8TaskWrapper.fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, dependencyMergerFile);
-
+				
+				// 处理 record
+				for( String outputDexZipFile : dependencyLibDexs){
+					// 根据合并时的 输入 jar.dex.zip 文件 计算globals文件
+					String outputDexZipPath = outputDexZipFile + "--globals.zip";
+					
+					File globalsZipFile = new File(outputDexZipPath);
+					if( !globalsZipFile.exists() 
+						|| !globalsZipFile.isFile()
+						// 空zip 22 bytes
+						|| globalsZipFile.length() <= 22){
+						continue;
+					}
+					
+					argsList.add("--globals");
+					argsList.add(outputDexZipPath);
+				}
+				
 				//输入dexs
 				argsList.addAll(dependencyLibDexs);
+				
 				try {
 					// 将采用 子进程方式，防止oom
 					D8TaskWrapper.runD8Task(argsList, environment);
@@ -1132,13 +1151,17 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 
 		public String getUserAndroidJar() {
 			String defaultAndroidJar = getNoBackupFilesDirPath() + "/.aide/android.jar";
+			
 			String userAndroidJar = ZeroAicySetting.getDefaultSpString("user_androidjar", noBackupFilesDirPath);
-
+			
+			
 			if (TextUtils.isEmpty(userAndroidJar)) {
-				// 确保androidJar文件存在
-				if (!new File(userAndroidJar).exists()) {
-					return defaultAndroidJar;
-				}
+				return defaultAndroidJar;
+			}
+			// 确保androidJar文件存在
+			File file = new File(userAndroidJar);
+			if (!file.exists() || !file.isFile()) {
+				return defaultAndroidJar;
 			}
 			return userAndroidJar;
 		}
