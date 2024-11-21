@@ -43,11 +43,21 @@ public class PomXml extends Configuration<PomXml> {
 	}
 
 	public void setPackaging(String packaging) {
-		if ("bundle".equals(packaging)) {
+		if (!".jar".equals(packaging)
+			&& !"aar".equals(packaging)
+			&& !"pom".equals(packaging)
+			&& !"bom".equals(packaging)
+			) {
+			packaging = "jar";
+		}
+
+		if ("bundle".equals(packaging)
+			|| "takari-jar".equals(packaging)) {
 			this.packaging = "jar";
 		} else {
 			this.packaging = packaging;
 		}
+
 	}
 	public String getPackaging() {
 		return this.packaging;
@@ -267,13 +277,13 @@ public class PomXml extends Configuration<PomXml> {
 			if (version.endsWith("]")) {
 				version = versions[index];
 			} else if (version.endsWith(")")) {
-				if( index > 0){
+				if (index > 0) {
 					index--;
 				}
 				version = versions[index];
 			}
 		}
-		
+
 		ArtifactNode artifactNode = new ArtifactNode(groupId, artifactId, version);
 		// 本质是 type
 		artifactNode.packaging = type;
