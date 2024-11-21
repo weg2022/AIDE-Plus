@@ -7,6 +7,9 @@
 	<string name="command_files_open_aide_termux">此目录中打开终端</string>
 	<string name="command_run_from_gradle">运行Gradle</string>
 	
+	<string name="commit_options_menu_select_all">全选</string>
+	<string name="commit_options_menu_inverse">反选</string>
+	
 	 <!-- 新增的 -->
 	<string name="trainer_language">zh</string>
 	

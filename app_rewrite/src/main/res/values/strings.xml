@@ -10,5 +10,7 @@
 	<string name="refresh_maven_repository_tips">Tips</string>
 	<string name="refresh_maven_repository_tips_message">Are you sure you want to refresh Maven warehouse?</string>
 	
+	<string name="commit_options_menu_select_all">SelectAll</string>
+	<string name="commit_options_menu_inverse">Inverse</string>
 	
 </resources>

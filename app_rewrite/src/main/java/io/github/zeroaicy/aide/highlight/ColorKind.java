@@ -44,6 +44,7 @@ public enum ColorKind {
 
 	// NORMAL -> ITALIC
 	// "代码注释颜色"
+	// -> #FF9B9B9B
     COMMENT("Comment", "代码注释颜色", R.color.editor_syntax_comment_light, R.color.editor_syntax_comment, Typeface.ITALIC),
 
 

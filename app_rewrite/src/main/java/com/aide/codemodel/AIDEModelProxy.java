@@ -40,12 +40,9 @@ public class AIDEModelProxy extends Model{
 	
 	public AIDEModelProxy(
 		StructureCallback structureCallback, 
-		HighlighterCallback 
-		highlighterCallback, 
-		SymbolSearcherCallback 
-		symbolSearcherCallback, 
-		CodeCompleterCallback 
-		codeCompleterCallback, 
+		HighlighterCallback highlighterCallback, 
+		SymbolSearcherCallback symbolSearcherCallback, 
+		CodeCompleterCallback codeCompleterCallback, 
 		RefactoringCallback refactoringCallback,
 		UsageSearcherCallback usageSearcherCallback, 
 		CodeMetricsCallback codeMetricsCallback, 

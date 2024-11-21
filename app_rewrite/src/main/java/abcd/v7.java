@@ -13,13 +13,23 @@ import com.aide.codemodel.api.FileSpace;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.language.xml.XmlCodeModel;
-import io.github.zeroaicy.aide.completion.XmlCompletionUtils;
-import java.util.HashMap;
-import io.github.zeroaicy.util.reflect.ReflectPie;
-import java.util.Map;
-import java.io.File;
+import com.aide.common.AppLog;
 import com.aide.ui.project.internal.GradleTools;
+import io.github.zeroaicy.aide.aaptcompiler.ResourceUtils;
+import io.github.zeroaicy.aide.completion.XmlCompletionUtils;
 import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
+import io.github.zeroaicy.util.reflect.ReflectPie;
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import io.github.zeroaicy.readclass.classInfo.JavaViewUtils;
+import java.io.IOException;
+import androidx.appcompat.view.menu.MenuItemWrapperICS;
+import java.util.concurrent.atomic.AtomicBoolean;
+import com.android.aaptcompiler.ResourceTable;
+import io.github.zeroaicy.util.ContextUtil;
 
 
 /**
@@ -40,7 +50,7 @@ import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 
 @Keep
 public class v7 {
-
+	public static boolean isInitAndroidSDK;
     @Keep
     private Model model;
 
@@ -48,12 +58,29 @@ public class v7 {
 
 	private ReflectPie fileSpaceReflect;
 
+	private static final String TAG = "v7";
+
     @Keep
     public v7(Model model) {
         this.model = model;
+		
 		if (model != null) {
 			this.fileSpace = model.fileSpace;
 			this.fileSpaceReflect = ReflectPie.on(this.fileSpace);
+
+			if (isInitAndroidSDK) {
+				return;
+			}
+			isInitAndroidSDK = true;
+			ThreadPoolService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
+			defaultThreadPoolService.submit(new Runnable(){
+					@Override
+					public void run() {
+						XmlCompletionUtils.initAndroidSDK(ContextUtil.getContext());
+					}
+				});
+			AppLog.println_e("<init>");
+
 		}
     }
 
@@ -65,6 +92,7 @@ public class v7 {
 
     @Keep
     public void FH(SyntaxTree syntaxTree, int line, int column) {
+		// AppLog.println_d("FH: %s ", syntaxTree.getFile());
 		init();
 		XmlCompletionUtils.completionTag(model, syntaxTree, line, column);
     }
@@ -84,60 +112,78 @@ public class v7 {
         return fileEntry.getCodeModel() instanceof XmlCodeModel;
     }
 
-	boolean inted = false;
+	private static AtomicBoolean inited = new AtomicBoolean(false);
 	private void init() {
-		if (inted) {
+		if (inited.get()) {
 			return;
 		}
-		ThreadPoolService defaultThreadPoolService = ThreadPoolService.getDefaultThreadPoolService();
-		defaultThreadPoolService.submit(new Runnable(){
-				@Override
-				public void run() {
-					initAsync();
-				}
-			});
+		inited.set(true);
+		
+		initAsync();
 	}
 
 
 	public void initAsync() {
-
-		XmlCompletionUtils.initAndroidSDK();
+		AppLog.println_e("initAsync");
 		
-		HashMap<Integer, FileSpace.Assembly> assemblyMap = getAssemblyMap();
-		synchronized (assemblyMap) {
-			// 遍历创建项目
-			for (Map.Entry<Integer, FileSpace.Assembly> entry : assemblyMap.entrySet()) {
-				FileSpace.Assembly assembly = entry.getValue();
+		HashMap<Integer, FileSpace.Assembly> assemblyMap = new HashMap<Integer, FileSpace.Assembly>(getAssemblyMap());
+		
+		// synchronized (assemblyMap) {
 
-				String assemblyName = FileSpace.Assembly.VH(assembly);
-				if ("rt.jar".equals(assemblyName)
-					|| "android.jar".equals(assemblyName)) {
-					continue;
-				}
-				String projectPath = FileSpace.Assembly.Zo(assembly);
-				File projectFile = new File(projectPath);
+		// 遍历创建项目
+		ResourceUtils resourceUtil = XmlCompletionUtils.getResourceUtil();
+		JavaViewUtils javaViewUtils = XmlCompletionUtils.getJavaViewUtils();
 
-				if (projectFile.isFile()) {
-					// jar没有
-					return;
-				}
+		Set<String> loadJarPaths = new HashSet<>();
+		Set<File> resDirs = new HashSet<>();
+		
+		for (Map.Entry<Integer, FileSpace.Assembly> entry : assemblyMap.entrySet()) {
 
-				if (GradleTools.isAndroidGradleProject(projectPath)) {
+			FileSpace.Assembly assembly = entry.getValue();
 
-					File resDir = new File(projectFile, "src/main/res");
-					if (resDir.exists()) {
-						XmlCompletionUtils.getResourceUtil().forPackage("app", resDir);
-					}
-					return;
-				}
+			String projectPath = FileSpace.Assembly.Zo(assembly);
 
-				File resDir = new File(projectFile, "res");
-				if (resDir.exists()) {
-					XmlCompletionUtils.getResourceUtil().forPackage("app", resDir);
-				}
+			String assemblyName = FileSpace.Assembly.VH(assembly);
+			if ("rt.jar".equals(assemblyName)
+				|| "android.jar".equals(assemblyName)) {
+				continue;
+			}
+
+			File projectFile = new File(projectPath);
+			if (projectFile.isFile()) {
+				// jar没有
+				continue;
+			}
+			
+			// gradle项目必然是没有classes.jar的
+			File resDir;
+			if (GradleTools.isGradleProject(projectPath)) {
+				resDir = new File(projectFile, "src/main/res");
+			}else{
+				resDir = new File(projectFile, "res");
+			}
+			
+			if (resDir.exists()) {
+				resDirs.add(resDir);
+			}
+
+			File classesJarFile = new File(projectFile, "classes.jar");
+			if (classesJarFile.exists()) {
+				loadJarPaths.add(classesJarFile.getAbsolutePath());
 			}
 		}
-
+		// 置空 appResourceTable
+		resourceUtil.removeTable("app");
+		
+		ResourceTable appResourceTable = resourceUtil.forPackage("app", resDirs.toArray(new File[resDirs.size()]));
+		
+		
+		try {
+			javaViewUtils.loadJar(loadJarPaths);
+		}
+		catch (IOException e) {
+			AppLog.e(e);
+		}
 	}
 	/**
 	 * AssemblyId -> Assembly[assemblyName，assembly路径，]

@@ -7,6 +7,7 @@ package io.github.zeroaicy.aide.extend;
 import android.app.Activity;
 import android.os.Parcel;
 import android.text.TextUtils;
+import android.widget.ArrayAdapter;
 import androidx.annotation.Keep;
 import com.aide.codemodel.api.Entity;
 import com.aide.codemodel.api.EntitySpace;
@@ -29,9 +30,13 @@ import com.aide.codemodel.language.java.JavaParser;
 import com.aide.codemodel.language.java.JavaParserPro;
 import com.aide.codemodel.language.kotlin.KotlinCodeModel;
 import com.aide.codemodel.language.smali.SmaliCodeModel;
+import com.aide.codemodel.language.xml.XmlLanguage;
+import com.aide.codemodel.language.xml.XmlTools;
 import com.aide.common.AppLog;
+import com.aide.engine.SourceEntity;
 import com.aide.engine.SyntaxStyleType;
 import com.aide.engine.service.CodeAnalysisEngineService;
+import com.aide.ui.AIDEEditor;
 import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.packagingservice.ExternalPackagingService;
@@ -50,9 +55,12 @@ import com.aide.ui.services.ZeroAicyTrainerService;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
+import io.github.zeroaicy.aide.codemodel.language.ZeroAicyXmlTools;
+import io.github.zeroaicy.aide.completion.EditorCompletionAdapter;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 import io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
+import io.github.zeroaicy.aide.ui.project.ZeroAicyAndroidProjectSupport;
 import io.github.zeroaicy.aide.utils.Utils;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.util.ContextUtil;
@@ -67,7 +75,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import io.github.zeroaicy.aide.ui.project.ZeroAicyAndroidProjectSupport;
+import com.aide.ui.scm.GitStatus;
+import io.github.zeroaicy.aide.activity.ZeroAicyCommitActivity;
 
 /**
  * 1.aapt2
@@ -600,5 +609,29 @@ public class ZeroAicyExtensionInterface {
 			new JavaProjectSupport(), 
 			new NativeExecutableProjectSupport(),
 			new JavaScriptProjectSupport()};
+	}
+	
+	/**
+	 *  Tools必然重构 符号更换底包是麻烦
+	 */
+	@Keep
+	public static XmlTools getXmlTools(Model model, XmlLanguage xmlLanguage, boolean p) {
+		return new ZeroAicyXmlTools(model, xmlLanguage, p);
+	}
+	
+	/**
+	 * 必须返回 ArrayAdapter
+	 */
+	@Keep
+	public static ArrayAdapter getEditorCompletionAdapter(AIDEEditor aideEditor, List<SourceEntity> sourceEntitys){
+		return new EditorCompletionAdapter(aideEditor, sourceEntitys);
+	}
+	
+	/**
+	 * 必须返回 替换 CommitActivity实现
+	 */
+	@Keep
+	public static void startCommitActivity(Activity activity, GitStatus gitStatus, String gitBranch) {
+		ZeroAicyCommitActivity.startCommitActivity(activity, gitStatus, gitBranch);
 	}
 }

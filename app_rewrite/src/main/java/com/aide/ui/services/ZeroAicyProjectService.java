@@ -709,7 +709,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		// 完成EngineServiceConnection，执行 jJ
 		// 同步EngineService
-		jJ();
+		this.jJ();
 	}
 
 	/*******************************************************************/
@@ -752,6 +752,7 @@ public class ZeroAicyProjectService extends ProjectService {
 	protected void jJAsync() {
 		//super.jJ();
 		EngineService engineService = ServiceContainer.getEngineService();
+		
 		if (this.currentAppHome != null 
 			&& this.pojectSupport != null) {
 			engineService.setEngineSolution(this.pojectSupport.makeEngineSolution());
@@ -759,8 +760,12 @@ public class ZeroAicyProjectService extends ProjectService {
 			// 置空
 			engineService.setEngineSolution(new EngineSolution(new ArrayList(), (String) null, CodeModelFactory.findCodeModels(ServiceContainer.Hw()), ServiceContainer.Hw()));
 		}
+		
 		engineService.ef();
 		engineService.ei();
+		
+		engineService.ei();
+		
 	}
 
 	// [ProjectService$f, ProjectService$d] 通过 FH()调用
@@ -1034,7 +1039,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.init();
 
 		// 刷新远程端[代码分析器]
-		jJ();
+		this.jJ();
 	}
 
 	/*****************************************************************/

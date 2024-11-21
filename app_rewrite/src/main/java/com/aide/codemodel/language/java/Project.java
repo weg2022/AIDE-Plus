@@ -144,7 +144,7 @@ public class Project {
 
 
 	String bootclasspath;
-	public void addBootClasspath(String bootclasspath) {
+	public void setBootClasspath(String bootclasspath) {
 		this.bootclasspath = bootclasspath;
 	}
 

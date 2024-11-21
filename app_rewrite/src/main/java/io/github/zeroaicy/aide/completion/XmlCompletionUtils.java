@@ -1,8 +1,59 @@
 package io.github.zeroaicy.aide.completion;
 
+import java.util.*;
+
+import android.content.Context;
+import android.util.Pair;
+import com.aide.codemodel.api.ClassType;
+import com.aide.codemodel.api.EntitySpace;
+import com.aide.codemodel.api.FileEntry;
+import com.aide.codemodel.api.IdentifierSpace;
+import com.aide.codemodel.api.Member;
+import com.aide.codemodel.api.Model;
+import com.aide.codemodel.api.Namespace;
+import com.aide.codemodel.api.SyntaxTree;
+import com.aide.codemodel.api.Type;
+import com.aide.codemodel.api.collections.ListOf;
+import com.aide.codemodel.api.collections.MapOfInt;
+import com.aide.common.AppLog;
+import com.aide.ui.project.AndroidProjectSupport;
+import com.aide.ui.project.WearAppProjectSupport;
+import com.aide.ui.util.FileSystem;
+import com.android.SdkConstants;
+import com.android.aapt.Resources;
+import com.android.aaptcompiler.AaptResourceType;
+import com.android.aaptcompiler.AttributeResource;
+import com.android.aaptcompiler.ConfigDescription;
+import com.android.aaptcompiler.Reference;
+import com.android.aaptcompiler.ResourceConfigValue;
+import com.android.aaptcompiler.ResourceEntry;
+import com.android.aaptcompiler.ResourceGroup;
+import com.android.aaptcompiler.ResourceTable;
+import com.android.aaptcompiler.ResourceTablePackage;
+import com.android.aaptcompiler.Styleable;
+import io.github.zeroaicy.aide.aaptcompiler.ApiVersionsUtils;
+import io.github.zeroaicy.readclass.classInfo.JavaViewUtils;
+import io.github.zeroaicy.aide.aaptcompiler.ResourceUtils;
+import io.github.zeroaicy.aide.aaptcompiler.WidgetTableUtils;
+import io.github.zeroaicy.aide.aaptcompiler.interfaces.widgets.Widget;
+import io.github.zeroaicy.aide.aaptcompiler.interfaces.widgets.WidgetTable;
+import io.github.zeroaicy.aide.aaptcompiler.permissions.Permission;
+import io.github.zeroaicy.aide.aaptcompiler.utils.PatternsKt;
+import io.github.zeroaicy.aide.aaptcompiler.utils.StyleUtils;
+import io.github.zeroaicy.util.ContextUtil;
+import io.github.zeroaicy.util.Log;
+import java.io.File;
+import java.io.IOException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static com.android.SdkConstants.ATTR_MODULE_NAME;
 import static com.android.SdkConstants.REQUEST_FOCUS;
-import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TAG_ADAPTIVE_ICON;
 import static com.android.SdkConstants.TAG_ANIMATED_SELECTOR;
 import static com.android.SdkConstants.TAG_ANIMATED_VECTOR;
@@ -64,83 +115,11 @@ import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.VIEW_PKG_PREFIX;
 import static com.android.SdkConstants.VIEW_TAG;
 import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
-import static com.android.aapt.Resources.Attribute.FormatFlags.BOOLEAN;
-import static com.android.aapt.Resources.Attribute.FormatFlags.COLOR;
-import static com.android.aapt.Resources.Attribute.FormatFlags.DIMENSION;
-import static com.android.aapt.Resources.Attribute.FormatFlags.ENUM;
-import static com.android.aapt.Resources.Attribute.FormatFlags.FLAGS;
-import static com.android.aapt.Resources.Attribute.FormatFlags.INTEGER;
-import static com.android.aapt.Resources.Attribute.FormatFlags.REFERENCE;
-import static com.android.aapt.Resources.Attribute.FormatFlags.STRING;
 import static com.android.aaptcompiler.AaptResourceType.ATTR;
 import static com.android.aaptcompiler.AaptResourceType.BOOL;
 import static com.android.aaptcompiler.AaptResourceType.DIMEN;
 import static com.android.aaptcompiler.AaptResourceType.STYLEABLE;
 import static io.github.zeroaicy.aide.aaptcompiler.ResourceUtilsKt.PCK_ANDROID;
-
-import android.content.Context;
-import android.util.Pair;
-
-import com.aide.codemodel.api.ClassType;
-import com.aide.codemodel.api.FileEntry;
-import com.aide.codemodel.api.IdentifierSpace;
-import com.aide.codemodel.api.Member;
-import com.aide.codemodel.api.Model;
-import com.aide.codemodel.api.Namespace;
-import com.aide.codemodel.api.SyntaxTree;
-import com.aide.codemodel.api.collections.ListOf;
-import com.aide.codemodel.api.collections.MapOfInt;
-import com.aide.common.AppLog;
-import com.aide.ui.project.AndroidProjectSupport;
-import com.aide.ui.project.WearAppProjectSupport;
-import com.aide.ui.util.FileSystem;
-import com.android.SdkConstants;
-import com.android.aapt.Resources;
-import com.android.aaptcompiler.AaptResourceType;
-import com.android.aaptcompiler.AttributeResource;
-import com.android.aaptcompiler.ConfigDescription;
-import com.android.aaptcompiler.Reference;
-import com.android.aaptcompiler.ResourceConfigValue;
-import com.android.aaptcompiler.ResourceEntry;
-import com.android.aaptcompiler.ResourceGroup;
-import com.android.aaptcompiler.ResourceTable;
-import com.android.aaptcompiler.ResourceTablePackage;
-import com.android.aaptcompiler.Styleable;
-
-import org.apache.bcel.classfile.JavaClass;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-
-import io.github.zeroaicy.aide.aaptcompiler.ApiVersionsUtils;
-import io.github.zeroaicy.aide.aaptcompiler.JavaViewUtils;
-import io.github.zeroaicy.aide.aaptcompiler.ResourceUtils;
-import io.github.zeroaicy.aide.aaptcompiler.WidgetTableUtils;
-import io.github.zeroaicy.aide.aaptcompiler.interfaces.widgets.Widget;
-import io.github.zeroaicy.aide.aaptcompiler.interfaces.widgets.WidgetTable;
-import io.github.zeroaicy.aide.aaptcompiler.permissions.Permission;
-import io.github.zeroaicy.aide.aaptcompiler.utils.PatternsKt;
-import io.github.zeroaicy.aide.aaptcompiler.utils.StyleUtils;
-import io.github.zeroaicy.util.ContextUtil;
-import io.github.zeroaicy.util.Log;
-import java.util.stream.Stream;
 
 
 public class XmlCompletionUtils {
@@ -148,116 +127,116 @@ public class XmlCompletionUtils {
 
     /// Tags: Resources
     public static final String[] RESOURCES_TAGS = {
-            TAG_RESOURCES,
-            TAG_STRING,
-            TAG_ARRAY,
-            TAG_STYLE,
-            TAG_ITEM,
-            TAG_GROUP,
-            TAG_STRING_ARRAY,
-            TAG_PLURALS,
-            TAG_INTEGER_ARRAY,
-            TAG_COLOR,
-            TAG_DIMEN,
-            TAG_DRAWABLE,
-            TAG_MENU,
-            TAG_ENUM,
-            TAG_FLAG,
-            TAG_ATTR,
-            TAG_DECLARE_STYLEABLE,
-            TAG_EAT_COMMENT,
-            TAG_SKIP,
-            TAG_PUBLIC,
-            TAG_PUBLIC_GROUP,
-            TAG_STAGING_PUBLIC_GROUP,
-            TAG_STAGING_PUBLIC_GROUP_FINAL
+		TAG_RESOURCES,
+		TAG_STRING,
+		TAG_ARRAY,
+		TAG_STYLE,
+		TAG_ITEM,
+		TAG_GROUP,
+		TAG_STRING_ARRAY,
+		TAG_PLURALS,
+		TAG_INTEGER_ARRAY,
+		TAG_COLOR,
+		TAG_DIMEN,
+		TAG_DRAWABLE,
+		TAG_MENU,
+		TAG_ENUM,
+		TAG_FLAG,
+		TAG_ATTR,
+		TAG_DECLARE_STYLEABLE,
+		TAG_EAT_COMMENT,
+		TAG_SKIP,
+		TAG_PUBLIC,
+		TAG_PUBLIC_GROUP,
+		TAG_STAGING_PUBLIC_GROUP,
+		TAG_STAGING_PUBLIC_GROUP_FINAL
     };
     /// Tags: Layouts
     public static final String[] LAYOUTS_TAGS = {
-            VIEW_TAG,
-            VIEW_INCLUDE,
-            VIEW_MERGE,
-            VIEW_FRAGMENT,
-            REQUEST_FOCUS,
-            TAG
+		VIEW_TAG,
+		VIEW_INCLUDE,
+		VIEW_MERGE,
+		VIEW_FRAGMENT,
+		REQUEST_FOCUS,
+		SdkConstants.TAG
     };
     /// Tags: Navigation
     public static final String[] NAVIGATION_TAGS = {
-            TAG_INCLUDE,
-            TAG_DEEP_LINK,
-            TAG_NAVIGATION,
-            TAG_FRAGMENT,
-            TAG_ARGUMENT,
-            ATTR_MODULE_NAME
+		TAG_INCLUDE,
+		TAG_DEEP_LINK,
+		TAG_NAVIGATION,
+		TAG_FRAGMENT,
+		TAG_ARGUMENT,
+		ATTR_MODULE_NAME
     };
     /// Tags: Drawables
     public static final String[] DRAWABLE_TAGS = {
-            TAG_ANIMATION_LIST,
-            TAG_ANIMATED_SELECTOR,
-            TAG_ANIMATED_VECTOR,
-            TAG_BITMAP,
-            TAG_CLIP_PATH,
-            TAG_GRADIENT,
-            TAG_INSET,
-            TAG_LAYER_LIST,
-            TAG_NINE_PATCH,
-            TAG_PATH,
-            TAG_RIPPLE,
-            TAG_ROTATE,
-            TAG_SHAPE,
-            TAG_SELECTOR,
-            TAG_TRANSITION,
-            TAG_VECTOR,
-            TAG_LEVEL_LIST
+		TAG_ANIMATION_LIST,
+		TAG_ANIMATED_SELECTOR,
+		TAG_ANIMATED_VECTOR,
+		TAG_BITMAP,
+		TAG_CLIP_PATH,
+		TAG_GRADIENT,
+		TAG_INSET,
+		TAG_LAYER_LIST,
+		TAG_NINE_PATCH,
+		TAG_PATH,
+		TAG_RIPPLE,
+		TAG_ROTATE,
+		TAG_SHAPE,
+		TAG_SELECTOR,
+		TAG_TRANSITION,
+		TAG_VECTOR,
+		TAG_LEVEL_LIST
     };
     /// Tags: Data-Binding
     public static final String[] DATA_BINDING_TAGS = {
-            TAG_LAYOUT,
-            TAG_DATA,
-            TAG_VARIABLE,
-            TAG_IMPORT
+		TAG_LAYOUT,
+		TAG_DATA,
+		TAG_VARIABLE,
+		TAG_IMPORT
     };
     /// Tags: XML
     public static final String[] XML_TAGS = {
-            TAG_HEADER,
-            TAG_APPWIDGET_PROVIDER
+		TAG_HEADER,
+		TAG_APPWIDGET_PROVIDER
     };
     /// Tags: MENU
     public static final String[] MENU_TAGS = {
-            TAG_ITEM,
-            TAG_GROUP,
-            TAG_MENU
+		TAG_ITEM,
+		TAG_GROUP,
+		TAG_MENU
     };
     /// Font family tag
     public static final String[] FONT_TAGS = {
-            TAG_FONT_FAMILY,
-            TAG_FONT
+		TAG_FONT_FAMILY,
+		TAG_FONT
     };
     /// Tags: Adaptive icon
     public static final String[] ADAPTIVE_ICON_TAGS = {
-            TAG_ADAPTIVE_ICON,
-            TAG_MASKABLE_ICON
+		TAG_ADAPTIVE_ICON,
+		TAG_MASKABLE_ICON
     };
     /// Tags: anim
     public static final String[] ANIMATION_TAGS = new String[]{
-            "translate",
-            "scale",
-            "rotate",
-            "alpha",
-            "set"
+		"translate",
+		"scale",
+		"rotate",
+		"alpha",
+		"set"
     };
     /// Tags: animator
     public static final String[] ANIMATOR_TAGS = {
-            "objectAnimator",
-            "animator",
-            "propertyValuesHolder",
-            "set"
+		"objectAnimator",
+		"animator",
+		"propertyValuesHolder",
+		"set"
     };
     /// Tags: colors
     public static final String[] COLORS_TAGS = {
-            TAG_SELECTOR,
-            TAG_GRADIENT,
-            TAG_ITEM
+		TAG_SELECTOR,
+		TAG_GRADIENT,
+		TAG_ITEM
     };
     private static final String MANIFEST_TAG_PREFIX = "AndroidManifest";
     private static final String NAMESPACE_PREFIX = "http://schemas.android.com/apk/res/";
@@ -268,109 +247,165 @@ public class XmlCompletionUtils {
     private static final String NAMESPACE_TOOLS_NAME = "tools";
     /// dimensionUnits
     private static final String[] DIMENSION_UNITS = {
-            SdkConstants.UNIT_DP,
-            SdkConstants.UNIT_SP,
-            SdkConstants.UNIT_PX,
-            SdkConstants.UNIT_IN,
-            SdkConstants.UNIT_MM,
-            SdkConstants.UNIT_PT
+		SdkConstants.UNIT_DP,
+		SdkConstants.UNIT_SP,
+		SdkConstants.UNIT_PX,
+		SdkConstants.UNIT_IN,
+		SdkConstants.UNIT_MM,
+		SdkConstants.UNIT_PT
     };
     private static ResourceUtils resourceUtil;
     private static ApiVersionsUtils apiVersionsUtil;
     private static WidgetTableUtils widgetTableUtil;
     private static ListOf<Member> mEntitySpace;
     private static JavaViewUtils javaViewUtils;
-
+	
+	// emmm😳
     public static File getPlatformDir() {
-        return new File(FileSystem.getNoBackupFilesDirPath(), ".aide/sdk");
+        return new File(FileSystem.getNoBackupFilesDirPath(), ".aide");
     }
 
-    public static void initAndroidSDK() {
+    public static synchronized void initAndroidSDK(Context context) {
         try {
+			if( getResourceUtil() != null ){
+				// 已initAndroidSDK
+				return;
+			}
             var now = System.currentTimeMillis();
-            Context ctx = ContextUtil.getContext();
-            var platformDir = getPlatformDir();
-            if (platformDir.exists() && platformDir.isDirectory()) {
+			
+            File platformDir = getPlatformDir();
+			
+			// data,zip 根目录是 data
+			File androidSdkDataDir = new File(platformDir, "data");
+            
+			if (androidSdkDataDir.exists() && androidSdkDataDir.isDirectory()) {
                 initAndroidSdkData();
-                Log.i(XmlCompletionUtils.class.getSimpleName(), "platformDir exists");
+                Log.i(TAG, "platformDir exists");
             } else {
-                FileSystem.unZip(ctx.getAssets().open("data.zip"), Objects.requireNonNull(platformDir.getParentFile()).getAbsolutePath(), true);
+				// data,zip 根目录是 data
+                FileSystem.unZip(context.getAssets().open("data.zip"), platformDir.getAbsolutePath(), true);
                 initAndroidSdkData();
             }
+			
             AppLog.d("解压耗时", (System.currentTimeMillis() - now) + "ms");
-        } catch (IOException e) {
+        }
+		catch (IOException e) {
             e.printStackTrace();
             AppLog.e("initAndroidSDK", e.getMessage(), e);
         }
     }
-
+	
+	
     private static void initAndroidSdkData() {
+		
         resourceUtil = ResourceUtils.getInstance(getPlatformDir());
         apiVersionsUtil = ApiVersionsUtils.getInstance(getPlatformDir());
         widgetTableUtil = WidgetTableUtils.getInstance(getPlatformDir());
         javaViewUtils = JavaViewUtils.getInstance();
     }
 
+	public static final String TAG = "XmlCompletionUtils";
+
     /// 已完成 tag 补全
     public static void completionTag(final Model model, SyntaxTree syntaxTree, int line, int column) {
         model.codeCompleterCallback.listStarted();
         // 提示节点
-        String fileName = getParentName(syntaxTree);
+        String parentFileName = getParentName(syntaxTree);
         FileEntry file = syntaxTree.getFile();
-        Log.d("fileName", syntaxTree.getFile().getFullNameString());
+		AppLog.d(TAG, "fileName %s ", file.getFullNameString());
+
         if (file.getFullNameString().equals("AndroidManifest.xml")) {
             XmlCompletionUtils.completionManifestTag(model);
-        } else if (fileName.startsWith("layout")) {
-            final var androidNamespace = model.entitySpace.getRootNamespace().getMemberNamespace(model.identifierSpace.get("android"));
-            JavaViewUtils.Companion.getJavaViewClasses().forEach(new BiConsumer<String, JavaClass>() {
-                @Override
-                public void accept(String s, JavaClass javaClass) {
-                    Namespace memberNamespace;
-                    String className;
-                    if (s.startsWith(WIDGET_PKG_PREFIX)) {
-                        className = StyleUtils.getSimpleName(s);
-                        memberNamespace = androidNamespace.getMemberNamespace(model.identifierSpace.get("widget")).getMemberNamespace(model.identifierSpace.get(className));
-                    } else if (s.startsWith(VIEW_PKG_PREFIX)) {
-                        className = StyleUtils.getSimpleName(s);
-                        memberNamespace = androidNamespace.getMemberNamespace(model.identifierSpace.get("view")).getMemberNamespace(model.identifierSpace.get(className));
-                    } else {
-                        className = s;
-                        memberNamespace = getSimpleClass(s, model);
-                    }
-                    model.codeCompleterCallback.aM(memberNamespace, className);
-                }
-            });
+        } else if (parentFileName.startsWith("layout")) {
+			
+			AppLog.d(TAG, "layout ");
+			
+			IdentifierSpace identifierSpace = model.identifierSpace;
+            EntitySpace entitySpace = model.entitySpace;
+
+			Namespace rootNamespace = entitySpace.getRootNamespace();
+			
+			int androidIdentifierId = identifierSpace.get("android");
+			Namespace androidNamespace = rootNamespace.getMemberNamespace(androidIdentifierId);
+			
+            Set<String> javaViewClasses = getJavaViewUtils().getJavaViewClasses();
+			AppLog.d(TAG, "javaViewClasses size %s ", javaViewClasses.size());
+			
+			for (String s : javaViewClasses) {
+				
+				Type type;
+				String className = StyleUtils.getSimpleName(s);
+				int classNameIdentifierId = identifierSpace.get(className);
+				
+				if (s.startsWith(WIDGET_PKG_PREFIX)) {
+					int widgetIdentifierId = identifierSpace.get("widget");
+					Namespace androidWidgetNamespace = androidNamespace.getMemberNamespace(widgetIdentifierId);
+
+					type = androidWidgetNamespace.getAllMemberClassTypes().get(classNameIdentifierId);
+
+					// new XmlClassType(
+					// entitySpace.d
+
+				} else if (s.startsWith(VIEW_PKG_PREFIX)) {
+					int viewIdentifierId = identifierSpace.get("view");
+
+					// VIEW_PKG_PREFIX
+					Namespace androidViewNamespace = androidNamespace.getMemberNamespace(viewIdentifierId);
+					type = androidViewNamespace.getAllMemberClassTypes().get(classNameIdentifierId);
+				} else {
+					
+					Namespace classNamespace = getClassNamespace(s, model);
+					MapOfInt<ClassType> allMemberClassTypes = classNamespace.getAllMemberClassTypes();
+					type = allMemberClassTypes.get(classNameIdentifierId);
+					if( type == null ){
+						AppLog.d(TAG, "classNamespace %s ", classNamespace.getFullyQualifiedNameString());
+						AppLog.d(TAG, "ClassType %s ", s);
+						AppLog.d(TAG, "allMemberClassTypes size %s ", allMemberClassTypes.size());
+						
+						AppLog.println_d();
+						
+					}
+				}
+				if( type != null ){
+					model.codeCompleterCallback.aM(type, className);
+				}else{
+					// AppLog.d(TAG, "not found ClassType %s ", s);
+					// AppLog.println_d();
+				}
+			}
+
             codeCompletion(LAYOUTS_TAGS, model);
             codeCompletion(DATA_BINDING_TAGS, model);
-        } else if (fileName.startsWith("xml")) {
+			
+        } else if (parentFileName.startsWith("xml")) {
             codeCompletion(XML_TAGS, model);
-        } else if (fileName.startsWith("values")) {
+        } else if (parentFileName.startsWith("values")) {
             Arrays.stream(RESOURCES_TAGS).forEach(new Consumer<String>() {
-                @Override
-                public void accept(String s) {
-                    String prefix;
-                    Namespace memberNamespace = model.entitySpace.getRootNamespace().getMemberNamespace(model.identifierSpace.get(s));
-                    if (s.equals(TAG_RESOURCES)) {
-                        prefix = s + ">\\n\\t|\\n</" + s + ">";
-                    } else {
-                        prefix = s + " name=\\\"|\\\"></" + s + ">";
-                    }
-                    model.codeCompleterCallback.aM(memberNamespace, prefix);
-                }
-            });
-        } else if (fileName.startsWith("menu")) {
+					@Override
+					public void accept(String s) {
+						String prefix;
+						Namespace memberNamespace = model.entitySpace.getRootNamespace().getMemberNamespace(model.identifierSpace.get(s));
+						if (s.equals(TAG_RESOURCES)) {
+							prefix = s + ">\\n\\t|\\n</" + s + ">";
+						} else {
+							prefix = s + " name=\\\"|\\\"></" + s + ">";
+						}
+						model.codeCompleterCallback.aM(memberNamespace, prefix);
+					}
+				});
+        } else if (parentFileName.startsWith("menu")) {
             codeCompletion(MENU_TAGS, model);
-        } else if (fileName.startsWith("anim")) {
+        } else if (parentFileName.startsWith("anim")) {
             codeCompletion(ANIMATION_TAGS, model);
-        } else if (fileName.startsWith("color")) {
+        } else if (parentFileName.startsWith("color")) {
             codeCompletion(COLORS_TAGS, model);
-        } else if (fileName.startsWith("font")) {
+        } else if (parentFileName.startsWith("font")) {
             codeCompletion(FONT_TAGS, model);
-        } else if (fileName.startsWith("animator")) {
+        } else if (parentFileName.startsWith("animator")) {
             codeCompletion(ANIMATOR_TAGS, model);
-        } else if (fileName.startsWith("navigation")) {
+        } else if (parentFileName.startsWith("navigation")) {
             codeCompletion(NAVIGATION_TAGS, model);
-        } else if (fileName.startsWith("drawable")) {
+        } else if (parentFileName.startsWith("drawable")) {
             codeCompletion(DRAWABLE_TAGS, model);
             codeCompletion(ADAPTIVE_ICON_TAGS, model);
         }
@@ -402,8 +437,8 @@ public class XmlCompletionUtils {
             }
             var namespace = entry.getValue();
             String pck = namespace.contains(SdkConstants.URI_PREFIX)
-                    ? namespace.substring(namespace.indexOf(SdkConstants.URI_PREFIX) + SdkConstants.URI_PREFIX.length())
-                    : namespace;
+				? namespace.substring(namespace.indexOf(SdkConstants.URI_PREFIX) + SdkConstants.URI_PREFIX.length())
+				: namespace;
             Set<ResourceTablePackage> packages = new HashSet<>();
             for (ResourceTable table : tables) {
                 if (NAMESPACE_AUTO.equals(entry.getValue())) {
@@ -459,7 +494,14 @@ public class XmlCompletionUtils {
         String parent = syntaxTree.getIdentifierString(syntaxTree.getChildNode(syntaxTree.getChildNode(syntaxTree.getParentNode(index), 1), 2));
         /// 已经输入的用来判断是否是以 @ 开头
         String prefix = syntaxTree.getLiteralString(syntaxTree.getChildNode(syntaxTree.getChildNode(index, 2), 1));
-
+		
+		AppLog.d(TAG, "ns %s ", text);
+		AppLog.d(TAG, "ns %s ", ns);
+		AppLog.d(TAG, "ns %s ", parent);
+		AppLog.d(TAG, "ns %s ", prefix);
+		AppLog.println_d();
+		
+		
         /// 补全name属性
         if ("name".equals(text) && "android".equals(ns)) {
             if (parent.equals("action")) {
@@ -502,7 +544,8 @@ public class XmlCompletionUtils {
 
         var attr = findAttr(tables, namespace, ns, text);
 
-        if (!prefix.startsWith("@")) {
+        if (!prefix.startsWith("@")
+			&& attr != null) {
             addValuesForAttr(attr, ns, text, model);
             return;
         }
@@ -527,11 +570,11 @@ public class XmlCompletionUtils {
             String newPrefix = matcher.group(4) != null ? matcher.group(4) : "";
 
             addValues(valType, newPrefix, new Function<String, Boolean>() {
-                @Override
-                public Boolean apply(String s) {
-                    return s.equals(valPck);
-                }
-            }, model);
+					@Override
+					public Boolean apply(String s) {
+						return s.equals(valPck);
+					}
+				}, model);
             return;
         }
 
@@ -571,12 +614,12 @@ public class XmlCompletionUtils {
 						return type.getTagName().equals(typeStr);
 					}
 				})
-                    .findFirst()
-                    .orElse(null);
+				.findFirst()
+				.orElse(null);
             if (valType == null) {
                 return; // No match found, exit
             }
-            addValues(valType, newPrefix,model);
+            addValues(valType, newPrefix, model);
         }
 
 
@@ -599,10 +642,10 @@ public class XmlCompletionUtils {
 				public Stream<ResourceTablePackage> apply(ResourceTable table) {
 					return table.getPackages().stream();
 				}
-				
-					
-				}) // 展平所有包
-                .collect(Collectors.<ResourceTablePackage>toList());
+
+
+			}) // 展平所有包
+			.collect(Collectors.<ResourceTablePackage>toList());
         for (ResourceTablePackage pck : packages) {
             createEnumOrFlagCompletionItem(pck.getName(), pck.getName(), model);
         }
@@ -624,29 +667,29 @@ public class XmlCompletionUtils {
 
 
     public static AttributeResource findAttr(
-            Set<ResourceTable> tables,
-            String namespace,
-            String pck,
-            String attr
+		Set<ResourceTable> tables,
+		String namespace,
+		String pck,
+		String attr
     ) {
         if (!namespace.equals(SdkConstants.AUTO_URI) && pck.equals(SdkConstants.ANDROID_NS_NAME)) {
             // AndroidX dependencies include attribute declarations with the 'android' package
             // Those must not be included when completing values
             ResourceTablePackage frameworkPackage = ResourceUtils.getCOMPLETION_FRAMEWORK_RES() != null
-                    ? ResourceUtils.getCOMPLETION_FRAMEWORK_RES().findPackage(SdkConstants.ANDROID_NS_NAME)
-                    : null;
+				? ResourceUtils.getCOMPLETION_FRAMEWORK_RES().findPackage(SdkConstants.ANDROID_NS_NAME)
+				: null;
 
             ResourceGroup attrGroup = frameworkPackage != null
-                    ? frameworkPackage.findGroup(ATTR, null)
-                    : null;
+				? frameworkPackage.findGroup(ATTR, null)
+				: null;
 
             ResourceEntry attrEntry = attrGroup != null
-                    ? attrGroup.findEntry(attr, null)
-                    : null;
+				? attrGroup.findEntry(attr, null)
+				: null;
 
             ResourceConfigValue resourceItem = attrEntry != null
-                    ? attrEntry.findValue(new ConfigDescription(), "")
-                    : null;
+				? attrEntry.findValue(new ConfigDescription(), "")
+				: null;
             var _attrEntry = resourceItem != null ? resourceItem.getValue() : null;
             if (_attrEntry instanceof AttributeResource) {
                 return (AttributeResource) _attrEntry;
@@ -674,8 +717,8 @@ public class XmlCompletionUtils {
     }
 
     private static AttributeResource findAttr(
-            List<ResourceTablePackage> packages,
-            String attr
+		List<ResourceTablePackage> packages,
+		String attr
     ) {
         for (ResourceTablePackage pck : packages) {
             ResourceGroup attrGroup = pck.findGroup(ATTR, null);
@@ -697,32 +740,35 @@ public class XmlCompletionUtils {
     }
 
     private static void addValuesForAttr(
-            AttributeResource attr,
-            String pck,
-            String prefix,
-            Model model
+		AttributeResource attr,
+		String pck,
+		String prefix,
+		Model model
     ) {
+		if( attr == null ){
+			return;
+		}
         if (attr.getTypeMask() == Resources.Attribute.FormatFlags.REFERENCE_VALUE) {
             completeReferences(prefix, model);
         } else {
             // 检查特定属性格式
-            if (hasType(attr, STRING)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.STRING)) {
                 addValues(AaptResourceType.STRING, prefix, model);
             }
 
-            if (hasType(attr, INTEGER)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.INTEGER)) {
                 addValues(AaptResourceType.INTEGER, prefix, model);
             }
 
-            if (hasType(attr, COLOR)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.COLOR)) {
                 addValues(AaptResourceType.COLOR, prefix, model);
             }
 
-            if (hasType(attr, BOOLEAN)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.BOOLEAN)) {
                 addValues(BOOL, prefix, model);
             }
 
-            if (hasType(attr, DIMENSION)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.DIMENSION)) {
                 if (!prefix.isEmpty() && Character.isDigit(prefix.charAt(0))) {
                     addConstantDimensionValues(prefix, model);
                 } else {
@@ -730,17 +776,18 @@ public class XmlCompletionUtils {
                 }
             }
 
-            if (hasType(attr, INTEGER)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.INTEGER)) {
                 addValues(AaptResourceType.INTEGER, prefix, model);
             }
 
-            if (hasType(attr, ENUM) || hasType(attr, FLAGS)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.ENUM)
+				|| hasType(attr, Resources.Attribute.FormatFlags.FLAGS)) {
                 for (AttributeResource.Symbol symbol : attr.getSymbols()) {
                     createEnumOrFlagCompletionItem(pck, symbol.getSymbol().getName().getEntry(), model);
                 }
             }
 
-            if (hasType(attr, REFERENCE)) {
+            if (hasType(attr, Resources.Attribute.FormatFlags.REFERENCE)) {
                 completeReferences(prefix, model);
             }
         }
@@ -777,10 +824,10 @@ public class XmlCompletionUtils {
     }
 
     private static void addValues(
-            AaptResourceType type,
-            String prefix,
-            Function<String, Boolean> checkPck,
-            Model model
+		AaptResourceType type,
+		String prefix,
+		Function<String, Boolean> checkPck,
+		Model model
     ) {
         if (checkPck == null) {
             checkPck = new Function<String, Boolean>() {
@@ -814,11 +861,11 @@ public class XmlCompletionUtils {
                     ResourceGroup group = pck.findGroup(type, null);
                     if (group != null) {
                         var foundEntries = findEntries(group.getEntries$aaptcompiler_release(), null, new Predicate<String>() {
-                            @Override
-                            public boolean test(String s) {
-                                return true;
-                            }
-                        });
+								@Override
+								public boolean test(String s) {
+									return true;
+								}
+							});
                         if (!foundEntries.isEmpty()) {
                             entries.add(new Pair<String, List<ResourceEntry>>(pck.getName(), foundEntries));
                         }
@@ -839,10 +886,10 @@ public class XmlCompletionUtils {
     }
 
     private static void createAttrValueCompletionItem(
-            String pck,
-            String type,
-            String name,
-            Model model
+		String pck,
+		String type,
+		String name,
+		Model model
     ) {
         StringBuilder sb = new StringBuilder();
         sb.append("@");
@@ -857,16 +904,16 @@ public class XmlCompletionUtils {
     }
 
     private static void addValues(
-            AaptResourceType type,
-            String prefix,
-            Model model
+		AaptResourceType type,
+		String prefix,
+		Model model
     ) {
         addValues(type, prefix, new Function<String, Boolean>() {
-            @Override
-            public Boolean apply(String s) {
-                return true; // 默认函数
-            }
-        }, model);
+				@Override
+				public Boolean apply(String s) {
+					return true; // 默认函数
+				}
+			}, model);
     }
 
     private static String getParentName(SyntaxTree syntaxTree) {
@@ -878,25 +925,25 @@ public class XmlCompletionUtils {
         if (completionManifestAttrRes == null)
             completionManifestAttrRes = resourceUtil.getManifestAttrTable();
         var styleables = completionManifestAttrRes.findPackage(PCK_ANDROID)
-                .findGroup(STYLEABLE, null);
+			.findGroup(STYLEABLE, null);
 
         if (styleables != null) {
             findEntries(styleables.getEntries$aaptcompiler_release(), null, new Predicate<String>() {
-                @Override
-                public boolean test(String s) {
-                    return s.startsWith(MANIFEST_TAG_PREFIX);
-                }
-            }).stream().map(new Function<ResourceEntry, String>() {
-                @Override
-                public String apply(ResourceEntry resourceEntry) {
-                    return transformToTagName(resourceEntry.getName(), MANIFEST_TAG_PREFIX);
-                }
-            }).forEach(new Consumer<String>() {
-                @Override
-                public void accept(String s) {
-                    model.codeCompleterCallback.listElementKeywordFound(s);
-                }
-            });
+					@Override
+					public boolean test(String s) {
+						return s.startsWith(MANIFEST_TAG_PREFIX);
+					}
+				}).stream().map(new Function<ResourceEntry, String>() {
+					@Override
+					public String apply(ResourceEntry resourceEntry) {
+						return transformToTagName(resourceEntry.getName(), MANIFEST_TAG_PREFIX);
+					}
+				}).forEach(new Consumer<String>() {
+					@Override
+					public void accept(String s) {
+						model.codeCompleterCallback.listElementKeywordFound(s);
+					}
+				});
         }
 
 
@@ -923,7 +970,8 @@ public class XmlCompletionUtils {
                                 }
                                 model.codeCompleterCallback.aM(classType2, fullyQualifiedNameString);
                             }
-                        } catch (Throwable ignored) {
+                        }
+						catch (Throwable ignored) {
                         }
                     }
                 }
@@ -948,7 +996,8 @@ public class XmlCompletionUtils {
                             if (classType3.isSubClassTypeOf(classType)) {
                                 model.codeCompleterCallback.aM(classType3, fullyQualifiedNameString2.substring(length2 + 1));
                             }
-                        } catch (Throwable ignored) {
+                        }
+						catch (Throwable ignored) {
                         }
                     }
                 }
@@ -980,7 +1029,7 @@ public class XmlCompletionUtils {
 
     public static Set<ResourceTable> findAllModuleResourceTables() {
         Set<ResourceTable> sourceResTables = ResourceUtils.getCOMPLETION_MODULE_RES();
-        return new HashSet<>(sourceResTables);
+        return new HashSet<ResourceTable>(sourceResTables);
     }
 
     public static Set<ResourceTable> findResourceTables(String nsUri) {
@@ -1084,7 +1133,8 @@ public class XmlCompletionUtils {
         try {
             Iterator<Map.Entry<String, String>> it = AndroidProjectSupport.Z1(hashMap, null).entrySet().iterator();
             return it.hasNext() ? WearAppProjectSupport.gn(it.next().getValue(), null, null) : "";
-        } catch (Throwable th) {
+        }
+		catch (Throwable th) {
             th.printStackTrace();
             return "";
         }
@@ -1170,23 +1220,42 @@ public class XmlCompletionUtils {
 
     private static void codeCompletion(String[] strings, final Model model) {
         Arrays.stream(strings).forEach(new Consumer<String>() {
-            @Override
-            public void accept(String s) {
-                Namespace memberNamespace = model.entitySpace.getRootNamespace().getMemberNamespace(model.identifierSpace.get(s));
-                model.codeCompleterCallback.aM(memberNamespace, s);
-            }
-        });
+				@Override
+				public void accept(String s) {
+					Namespace memberNamespace = model.entitySpace.getRootNamespace().getMemberNamespace(model.identifierSpace.get(s));
+					model.codeCompleterCallback.aM(memberNamespace, s);
+				}
+			});
     }
 
-    private static Namespace getSimpleClass(String clazzName, final Model model) {
-        final Namespace[] namespace = {model.entitySpace.getRootNamespace()};
-        Arrays.stream(clazzName.split("[.$]")).forEach(new Consumer<String>() {
-            @Override
-            public void accept(String s) {
-                namespace[0] = namespace[0].getMemberNamespace(model.identifierSpace.get(s));
-            }
-        });
-        return namespace[0];
+    private static Namespace getClassNamespace(String clazzName, final Model model) {
+        
+		String[] namespaceArrays = clazzName.split("[.$]");
+		// 最后一位是类名不处理
+		Namespace namespace = model.entitySpace.getRootNamespace();
+		for (int index = 0, size = namespaceArrays.length - 1; index < size; index++){
+			String s = namespaceArrays[index];
+			Namespace memberNamespace = namespace.getMemberNamespace(model.identifierSpace.get(s));
+			if( memberNamespace == null){
+				break;
+			}
+			namespace = memberNamespace;
+		}
+		
+		return namespace;
+		
+//		final Namespace[] namespaces = {model.entitySpace.getRootNamespace()};
+//		Arrays.stream(clazzName.split("[.$]")).forEach(new Consumer<String>() {
+//				@Override
+//				public void accept(String s) {
+//					Namespace memberNamespace = namespaces[0].getMemberNamespace(model.identifierSpace.get(s));
+//					if( memberNamespace == null){
+//						return;
+//					}
+//					namespaces[0] = memberNamespace;
+//				}
+//			});
+//        return namespaces[0];
     }
 
     /**
@@ -1194,9 +1263,9 @@ public class XmlCompletionUtils {
      * 查找attr
      */
     private static Set<Styleable> findNodeStyleables(
-            String nodeName,
-            String parentName,
-            ResourceGroup styleables
+		String nodeName,
+		String parentName,
+		ResourceGroup styleables
     ) {
         WidgetTable widgets = widgetTableUtil.getWidgetTable();
         if (widgets == null) {
@@ -1229,12 +1298,12 @@ public class XmlCompletionUtils {
      * 添加组件的样式attr
      */
     private static Set<Styleable> findStyleablesForWidget(
-            ResourceGroup styleables,
-            WidgetTable widgets,
-            Widget widget,
-            String parentName,
-            boolean addFromParent,
-            String suffix
+		ResourceGroup styleables,
+		WidgetTable widgets,
+		Widget widget,
+		String parentName,
+		boolean addFromParent,
+		String suffix
     ) {
         Set<Styleable> result = new HashSet<>();
 
@@ -1247,13 +1316,13 @@ public class XmlCompletionUtils {
         // 根据布局参数添加属性
         if (addFromParent && parentName != null) {
             Widget parentWidget = parentName.contains(".") ?
-                    widgets.getWidget(parentName) :
-                    widgets.findWidgetWithSimpleName(parentName);
+				widgets.getWidget(parentName) :
+				widgets.findWidgetWithSimpleName(parentName);
 
             if (parentWidget != null) {
                 result.addAll(findStyleablesForWidget(
-                        styleables, widgets, parentWidget, parentName, false, "_Layout"
-                ));
+								  styleables, widgets, parentWidget, parentName, false, "_Layout"
+							  ));
             } else {
                 result.addAll(findLayoutParams(styleables, parentName));
             }
@@ -1263,28 +1332,28 @@ public class XmlCompletionUtils {
     }
 
     private static void addWidgetStyleable(
-            ResourceGroup styleables,
-            Widget widget,
-            Set<Styleable> result,
-            String suffix
+		ResourceGroup styleables,
+		Widget widget,
+		Set<Styleable> result,
+		String suffix
     ) {
         addWidgetStyleable(styleables, widget.getSimpleName(), result, suffix);
     }
 
     // 重载方法以提供 `suffix` 的默认值
     private static void addWidgetStyleable(
-            ResourceGroup styleables,
-            Widget widget,
-            Set<Styleable> result
+		ResourceGroup styleables,
+		Widget widget,
+		Set<Styleable> result
     ) {
         addWidgetStyleable(styleables, widget, result, "");
     }
 
     private static void addWidgetStyleable(
-            ResourceGroup styleables,
-            String widget,
-            Set<Styleable> result,
-            String suffix
+		ResourceGroup styleables,
+		String widget,
+		Set<Styleable> result,
+		String suffix
     ) {
         Styleable entry = findStyleableEntry(styleables, widget + suffix);
         if (entry != null) {
@@ -1294,9 +1363,9 @@ public class XmlCompletionUtils {
 
     // 重载方法以提供 `suffix` 的默认值
     private static void addWidgetStyleable(
-            ResourceGroup styleables,
-            String widget,
-            Set<Styleable> result
+		ResourceGroup styleables,
+		String widget,
+		Set<Styleable> result
     ) {
         addWidgetStyleable(styleables, widget, result, "");
     }
@@ -1318,11 +1387,11 @@ public class XmlCompletionUtils {
     }
 
     private static void addSuperclassStyleables(
-            ResourceGroup styleables,
-            WidgetTable widgets,
-            Widget widget,
-            Set<Styleable> result,
-            String suffix
+		ResourceGroup styleables,
+		WidgetTable widgets,
+		Widget widget,
+		Set<Styleable> result,
+		String suffix
     ) {
         for (String superclass : widget.getSuperclasses()) {
             // 当遇到 ViewGroup 超类时，添加 margin layout 参数
@@ -1340,11 +1409,11 @@ public class XmlCompletionUtils {
     }
 
     private static Set<Styleable> findStyleablesForName(
-            ResourceGroup styleables,
-            String nodeName,
-            String parentName,
-            boolean addFromParent,
-            String suffix
+		ResourceGroup styleables,
+		String nodeName,
+		String parentName,
+		boolean addFromParent,
+		String suffix
     ) {
         Set<Styleable> result = new HashSet<>();
 
@@ -1373,9 +1442,9 @@ public class XmlCompletionUtils {
 
     /// 重载方法以提供默认参数
     private static Set<Styleable> findStyleablesForName(
-            ResourceGroup styleables,
-            String nodeName,
-            String parentName
+		ResourceGroup styleables,
+		String nodeName,
+		String parentName
     ) {
         return findStyleablesForName(styleables, nodeName, parentName, false, "");
     }
@@ -1403,10 +1472,10 @@ public class XmlCompletionUtils {
 
     // 重载方法以提供 `suffix` 的默认值
     public void addSuperclassStyleables(
-            ResourceGroup styleables,
-            WidgetTable widgets,
-            Widget widget,
-            Set<Styleable> result
+		ResourceGroup styleables,
+		WidgetTable widgets,
+		Widget widget,
+		Set<Styleable> result
     ) {
         addSuperclassStyleables(styleables, widgets, widget, result, "");
     }

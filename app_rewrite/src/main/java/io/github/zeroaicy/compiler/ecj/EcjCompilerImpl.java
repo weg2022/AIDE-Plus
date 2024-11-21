@@ -28,46 +28,57 @@ import org.eclipse.jdt.internal.compiler.util.Util;
 import io.github.zeroaicy.compiler.ecj.util.EmptyWrite;
 import org.eclipse.jdt.internal.compiler.batch.ClasspathUtils;
 import java.util.Arrays;
+import org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 
 public class EcjCompilerImpl extends Main {
 	public JavaFileManager fileManager;
-	
+
 	public DiagnosticListener<? super JavaFileObject> diagnosticListener;
 
 
 	protected PrintWriter err;
 	private String[] expandedCommandLine = new String[0];
-	
+
 	private static PrintWriter PrintWriter = new PrintWriter(new EmptyWrite());
-	public static PrintWriter getPrintWriter(){
+
+	public void setCompilerRequestor(ICompilerRequestor compilerRequestor) {
+		this.compilerRequestor = compilerRequestor;
+	}
+
+	public ICompilerRequestor getCompilerRequestor() {
+		return compilerRequestor;
+	}
+	public static PrintWriter getPrintWriter() {
 		return PrintWriter;
 	}
-	public EcjCompilerImpl(){
+	public EcjCompilerImpl() {
 		super(getPrintWriter(), getPrintWriter(), false);
 	}
-	
-	public EcjCompilerImpl( PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished ) {
+
+	public EcjCompilerImpl(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished) {
 		super(outWriter, errWriter, systemExitWhenFinished);
 	}
 
-	public EcjCompilerImpl( PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map<String, String> customDefaultOptions ) {
+	public EcjCompilerImpl(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map<String, String> customDefaultOptions) {
 		super(outWriter, errWriter, systemExitWhenFinished, customDefaultOptions);
 	}
 
-	public EcjCompilerImpl( PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress ) {
+	public EcjCompilerImpl(PrintWriter outWriter, PrintWriter errWriter, boolean systemExitWhenFinished, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress) {
 		super(outWriter, errWriter, systemExitWhenFinished, customDefaultOptions, compilationProgress);
 	}
 
-	public void setDiagnosticListener( DiagnosticListener<? super JavaFileObject> diagnosticListener ) {
+	public void setDiagnosticListener(DiagnosticListener<? super JavaFileObject> diagnosticListener) {
 		this.diagnosticListener = diagnosticListener;
 	}
 
-	public DiagnosticListener<? super JavaFileObject> getDiagnosticListener( ) {
+	public DiagnosticListener<? super JavaFileObject> getDiagnosticListener() {
 		return this.diagnosticListener;
 	}
 
 	@Override
-	protected void initialize( PrintWriter outWriter, PrintWriter errWriter, boolean systemExit, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress ) {
+	protected void initialize(PrintWriter outWriter, PrintWriter errWriter, boolean systemExit, Map<String, String> customDefaultOptions, CompilationProgress compilationProgress) {
 		super.initialize(outWriter, errWriter, systemExit, customDefaultOptions, compilationProgress);
 		this.err = errWriter;
 		// this.logger = new Logger(this, outWriter, errWriter);
@@ -99,14 +110,14 @@ public class EcjCompilerImpl extends Main {
 
 
 	@Override
-	public boolean compile( String[] argv ) {
+	public boolean compile(String[] argv) {
 		return super.compile(argv);
 	}
 
 	// compile() call
 	@Override
-	public void configure( String[] argv ) {
-		if ( ( argv == null ) || ( argv.length == 0 ) ) {
+	public void configure(String[] argv) {
+		if ((argv == null) || (argv.length == 0)) {
 			// 打印用法
 			printUsage();
 			return;
@@ -115,33 +126,33 @@ public class EcjCompilerImpl extends Main {
 		super.configure(argv);
 	}
 
-	private void fillExpandedCommandLine( String[] argv ) throws IllegalArgumentException {
+	private void fillExpandedCommandLine(String[] argv) throws IllegalArgumentException {
 		int index = -1;
 		int argCount = argv.length;
 		// expand the command line if necessary
 		boolean needExpansion = false;
-		loop: for ( int i = 0; i < argCount; i++ ) {
-			if ( argv[i].startsWith("@") ) { //$NON-NLS-1$
+		loop: for (int i = 0; i < argCount; i++) {
+			if (argv[i].startsWith("@")) { //$NON-NLS-1$
 				needExpansion = true;
 				break loop;
 			}
 		}
 
 		String[] newCommandLineArgs = null;
-		if ( needExpansion ) {
+		if (needExpansion) {
 			newCommandLineArgs = new String[argCount];
 			index = 0;
-			for ( int i = 0; i < argCount; i++ ) {
+			for (int i = 0; i < argCount; i++) {
 				String[] newArgs = null;
 				String arg = argv[i].trim();
-				if ( arg.startsWith("@") ) { //$NON-NLS-1$
+				if (arg.startsWith("@")) { //$NON-NLS-1$
 					try {
 						LineNumberReader reader = new LineNumberReader(new StringReader(new String(Util.getFileCharContent(new File(arg.substring(1)), null))));
 						StringBuilder buffer = new StringBuilder();
 						String line;
-						while ( ( line = reader.readLine() ) != null ) {
+						while ((line = reader.readLine()) != null) {
 							line = line.trim();
-							if ( !line.startsWith("#") ) { //$NON-NLS-1$
+							if (!line.startsWith("#")) { //$NON-NLS-1$
 								buffer.append(line).append(" "); //$NON-NLS-1$
 							}
 						}
@@ -152,10 +163,10 @@ public class EcjCompilerImpl extends Main {
 							this.bind("configure.invalidexpansionargumentname", arg)); //$NON-NLS-1$
 					}
 				}
-				if ( newArgs != null ) {
+				if (newArgs != null) {
 					int newCommandLineArgsLength = newCommandLineArgs.length;
 					int newArgsLength = newArgs.length;
-					System.arraycopy(newCommandLineArgs, 0, ( newCommandLineArgs = new String[newCommandLineArgsLength + newArgsLength - 1] ), 0, index);
+					System.arraycopy(newCommandLineArgs, 0, (newCommandLineArgs = new String[newCommandLineArgsLength + newArgsLength - 1]), 0, index);
 					System.arraycopy(newArgs, 0, newCommandLineArgs, index, newArgsLength);
 					index += newArgsLength;
 				} else {
@@ -165,7 +176,7 @@ public class EcjCompilerImpl extends Main {
 			index = -1;
 		} else {
 			newCommandLineArgs = argv;
-			for ( int i = 0; i < argCount; i++ ) {
+			for (int i = 0; i < argCount; i++) {
 				newCommandLineArgs[i] = newCommandLineArgs[i].trim();
 			}
 		}
@@ -176,14 +187,14 @@ public class EcjCompilerImpl extends Main {
 
 	// compile() call
 	@Override
-	public void performCompilation( ) {
+	public void performCompilation() {
 		super.performCompilation();
 
 	}
 
 	// performCompilation() call
 	@Override
-	protected void initializeAnnotationProcessorManager( ) {
+	protected void initializeAnnotationProcessorManager() {
 		//super.initializeAnnotationProcessorManager();
 
 		AbstractAnnotationProcessorManager annotationManager = new BatchAnnotationProcessorManager();
@@ -195,11 +206,11 @@ public class EcjCompilerImpl extends Main {
 	}
 
 	@Override
-	protected void setPaths( ArrayList<String> bootclasspaths, String sourcepathClasspathArg, ArrayList<String> sourcepathClasspaths, ArrayList<String> classpaths, String modulePath, String moduleSourcepath, ArrayList<String> extdirsClasspaths, ArrayList<String> endorsedDirClasspaths, String customEncoding ) {
+	protected void setPaths(ArrayList<String> bootclasspaths, String sourcepathClasspathArg, ArrayList<String> sourcepathClasspaths, ArrayList<String> classpaths, String modulePath, String moduleSourcepath, ArrayList<String> extdirsClasspaths, ArrayList<String> endorsedDirClasspaths, String customEncoding) {
 		// super.setPaths(bootclasspaths, sourcepathClasspathArg, sourcepathClasspaths, classpaths, modulePath, moduleSourcepath, extdirsClasspaths, endorsedDirClasspaths, customEncoding);
 
 
-		if ( this.complianceLevel == 0 ) {
+		if (this.complianceLevel == 0) {
 			String version = this.options.get(CompilerOptions.OPTION_Compliance);
 			this.complianceLevel = CompilerOptions.versionToJdkLevel(version);
 		}
@@ -210,7 +221,7 @@ public class EcjCompilerImpl extends Main {
 		long jdkLevel = validateClasspathOptions(bootclasspaths, endorsedDirClasspaths, extdirsClasspaths);
 
 		// 安卓中releaseVersion为null
-		if ( this.releaseVersion != null && this.complianceLevel < jdkLevel ) {
+		if (this.releaseVersion != null && this.complianceLevel < jdkLevel) {
 			// TODO: Revisit for access rules
 			// allPaths = new ArrayList<FileSystem.Classpath>();
 			// allPaths.add(
@@ -231,7 +242,7 @@ public class EcjCompilerImpl extends Main {
 		List<FileSystem.Classpath> msp = handleModuleSourcepath(moduleSourcepath);
 
 		ArrayList<FileSystem.Classpath> sourcepaths = new ArrayList<>();
-		if ( sourcepathClasspathArg != null ) {
+		if (sourcepathClasspathArg != null) {
 			processPathEntries(DEFAULT_SIZE_CLASSPATH, sourcepaths,
 							   sourcepathClasspathArg, customEncoding, true, false);
 		}
@@ -265,14 +276,14 @@ public class EcjCompilerImpl extends Main {
 		allPaths.toArray(this.checkedClasspaths);
 		this.logger.logClasspath(this.checkedClasspaths);
 
-		if ( this.annotationPaths != null 
-			&& CompilerOptions.ENABLED.equals(this.options.get(CompilerOptions.OPTION_AnnotationBasedNullAnalysis)) ) {
-			for ( FileSystem.Classpath c : this.checkedClasspaths ) {
-				if ( c instanceof ClasspathJar )
+		if (this.annotationPaths != null 
+			&& CompilerOptions.ENABLED.equals(this.options.get(CompilerOptions.OPTION_AnnotationBasedNullAnalysis))) {
+			for (FileSystem.Classpath c : this.checkedClasspaths) {
+				if (c instanceof ClasspathJar)
 				// ( (ClasspathJar) c ).annotationPaths = this.annotationPaths;
 					ClasspathUtils.setAnnotationPaths((ClasspathJar) c, this.annotationPaths);
 
-				else if ( c instanceof ClasspathJrt )
+				else if (c instanceof ClasspathJrt)
 				// ( (ClasspathJrt) c ).annotationPaths = this.annotationPaths;
 					ClasspathUtils.setAnnotationPaths((ClasspathJrt) c, this.annotationPaths);
 			}
@@ -280,12 +291,12 @@ public class EcjCompilerImpl extends Main {
 	}
 
 	@Override
-	protected long validateClasspathOptions( ArrayList<String> bootclasspaths, ArrayList<String> endorsedDirClasspaths, ArrayList<String> extdirsClasspaths ) {
+	protected long validateClasspathOptions(ArrayList<String> bootclasspaths, ArrayList<String> endorsedDirClasspaths, ArrayList<String> extdirsClasspaths) {
 
 		// complianceLevel > 1.8[java8] 且设置了 -bootclasspath
 		// 处理编译Java8以上不能设置 -bootclasspath的问题
-		if ( this.complianceLevel > ClassFileConstants.JDK1_8 && 
-			bootclasspaths != null && bootclasspaths.size() > 0 ) {
+		if (this.complianceLevel > ClassFileConstants.JDK1_8 && 
+			bootclasspaths != null && bootclasspaths.size() > 0) {
 
 			long jdkLevel = CompilerOptions.versionToJdkLevel(CompilerOptions.getLatestVersion());
 			return jdkLevel;
@@ -295,19 +306,58 @@ public class EcjCompilerImpl extends Main {
 
 
 	@Override
-	public DefaultProblemFactory getProblemFactory( ) {
+	public DefaultProblemFactory getProblemFactory() {
 		return new DefaultProblemFactory();
 	}
+
+	ICompilerRequestor compilerRequestor;
 	@Override
-	public ICompilerRequestor getBatchRequestor( ) {
+	public ICompilerRequestor getBatchRequestor() {
+		if (compilerRequestor != null) {
+			return this.compilerRequestor;
+		}
+		//*
 		DiagnosticListener<? super JavaFileObject > diagnosticListener = getDiagnosticListener();
-		if ( diagnosticListener == null ) {
+		if (diagnosticListener == null) {
 			return super.getBatchRequestor();
 		}
 		return new EclipseCompilerRequestor(this, diagnosticListener, getDefaultProblemFactory());
+		//*/
+
+		/*
+		 return new ICompilerRequestor(){
+
+		 @Override
+		 public void acceptResult(CompilationResult compilationResult) {
+		 CategorizedProblem[] problems = compilationResult.getAllProblems();
+
+		 if (problems == null) {
+		 return;
+		 }
+		 for (CategorizedProblem rawProblem : problems) {
+
+		 DefaultProblem problem = (DefaultProblem) rawProblem;
+		 int line = problem.getSourceLineNumber();
+		 int column = problem.column;
+		 int endColumn = (problem.column + problem.getSourceEnd() - problem.getSourceStart()) + 1;
+
+		 String msg = problem.getMessage();
+		 if (problem.isError()) {
+		 // AppLog.d("JavaCodeAnalyzer:: ECJ 错误文件(" + syntaxTree.getFile().getPathString() + ")");
+		 errorTable.Hw(syntaxTree.getFile(), syntaxTree.getLanguage(), line, column, line, endColumn, msg, 20);
+		 } else {
+		 // AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
+		 errorTable.Hw(syntaxTree.getFile(), syntaxTree.getLanguage(), line, column, line, endColumn, msg, 49);
+		 }
+
+		 // AppLog.d("JavaCodeAnalyzer:: ECJ 位置(" + line + "," + column + "," + line + "," + endColumn + ")");
+		 // AppLog.d("JavaCodeAnalyzer:: ECJ 信息 " + msg);
+		 }
+		 }
+		 };*/
 	}
 
-	public DefaultProblemFactory getDefaultProblemFactory( ) {
+	public DefaultProblemFactory getDefaultProblemFactory() {
 		return new DefaultProblemFactory(this.compilerLocale);
 	}
 } 

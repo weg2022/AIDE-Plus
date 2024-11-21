@@ -1,71 +1,186 @@
+//
+// Decompiled by Jadx - 907ms
+//
 package com.aide.codemodel.language.java;
-import com.aide.codemodel.api.Model;
-import com.aide.codemodel.api.abstraction.CodeCompiler;
-import com.aide.codemodel.api.abstraction.Syntax;
-import io.github.zeroaicy.util.reflect.ReflectPie;
-import com.aide.codemodel.api.EntitySpace;
-import com.aide.codemodel.api.ErrorTable;
-import com.aide.codemodel.api.IdentifierSpace;
-import io.github.zeroaicy.util.reflect.ReflectPieException;
-import java.io.Reader;
+
+import abcd.g6;
+import android.util.SparseArray;
 import com.aide.codemodel.api.FileEntry;
-import java.util.Map;
-import com.aide.codemodel.api.abstraction.Language;
+import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.SyntaxTreeStyles;
+import com.aide.codemodel.api.abstraction.CodeCompiler;
+import com.aide.codemodel.api.abstraction.CodeModel;
+import com.aide.codemodel.api.abstraction.Debugger;
+import com.aide.codemodel.api.abstraction.Language;
+import com.aide.codemodel.api.abstraction.Preprocessor;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public class JavaCodeModelPro extends JavaCodeModel {
-	//ECJJavaCodeCodeCompiler ecjJavaCodeCodeCompiler;
+public class JavaCodeModelPro implements CodeModel {
+
+    private final JSharpCommentsLanguage jsharpCommentsLanguage;
+
+
+
+    private JavaCompiler javaCompiler;
+    private JavaDebugger javaDebugger;
+
+
+	private g6 jSharpCommentsParser;
 	
-	ErrorTable errorTable2;
-	JavaLanguage language;
+	private JavaLexer javaLexer;
+	private JavaParser javaParser;
+    private final JavaLanguagePro javaLanguage;
 	
-	
-	public JavaCodeModelPro(Model model) {
-		super(model);
-		
-		if( model == null){
+    private final Model model;
+    public JavaCodeModelPro(Model model) {
+		this.model = model;
+		this.javaLanguage = new JavaLanguagePro(model, this);
+		this.jsharpCommentsLanguage = new JSharpCommentsLanguage(model, false);
+		if (model == null) {
 			return;
 		}
-		System.out.println("替换 JavaCodeModel");
-		this.errorTable2 = model.errorTable;
-		IdentifierSpace identifierSpace = model.identifierSpace;
-		EntitySpace entitySpace = model.entitySpace;
-		
-		
-		ReflectPie that = ReflectPie.on(this);
-		
-		String javaLanguageFieldName = "javaLanguage";
-		ReflectPie javaLanguageReflectPie = that.field(javaLanguageFieldName);
-		this.language = javaLanguageReflectPie.get();		
-		javaLanguageReflectPie.set("DW", new JavaSyntaxPro(model.identifierSpace));
 
-		JavaSyntax javaSyntax = (JavaSyntax) language.getSyntax();
+		// 仅在debug版本中替换
+		this.javaCompiler = new JavaCompiler(model, this.javaLanguage);
+		this.javaDebugger = new JavaDebugger(model, this.javaLanguage, this);
+		this.javaLexer = new JavaLexer(model.identifierSpace, model.errorTable, false, this.javaLanguage, this.jsharpCommentsLanguage);
+		this.javaParser = new JavaParserPro(model.identifierSpace, model.errorTable, model.entitySpace, this.javaLanguage.getSyntax(), false);
+		this.jSharpCommentsParser = new g6(model);
 
-		String javaParserFieldName = "javaParser";
-		that.set(javaParserFieldName, new JavaParserPro(identifierSpace, model.errorTable, entitySpace, javaSyntax, false));
+    }
+	
+	
+	
+    @Override
+    public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeStyles> map) {
+		this.javaLexer.Zo(fileEntry, reader, false, false, false, false, map.get(this.javaLanguage), map.get(this.jsharpCommentsLanguage));
+    }
+	
+    @Override
+    public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean z) {
+		initEnv();
+		ProjectEnvironment.fillFileEntry(this.projectEnvironments, model, fileEntry);
 		
-	}
+		SyntaxTreeStyles makeSyntaxTreeStyles = this.model.U2.makeSyntaxTreeStyles();
+		SyntaxTreeStyles makeSyntaxTreeStyles2 = this.model.U2.makeSyntaxTreeStyles();
+		this.javaLexer.Zo(fileEntry, reader, z && map.containsKey(this.javaLanguage), z && map.containsKey(this.jsharpCommentsLanguage), map.containsKey(this.javaLanguage), map.containsKey(this.jsharpCommentsLanguage), makeSyntaxTreeStyles, makeSyntaxTreeStyles2);
+		if (map.containsKey(this.javaLanguage)) {
+			this.javaParser.init(makeSyntaxTreeStyles, fileEntry, z, map.get(this.javaLanguage));
+		}
+		this.model.U2.DW(makeSyntaxTreeStyles);
+		if (map.containsKey(this.jsharpCommentsLanguage)) {
+			this.jSharpCommentsParser.j6(makeSyntaxTreeStyles2, fileEntry, z, map.get(this.jsharpCommentsLanguage));
+		}
+		this.model.U2.DW(makeSyntaxTreeStyles2);
 
+    }
+
+    @Override
+    public String[] getArchiveEntries(String str) {
+        return null;
+    }
+
+    @Override
+    public Reader getArchiveEntryReader(String str, String str2, String str3) {
+        return null;
+    }
+
+    @Override
+    public long getArchiveVersion(String str) {
+        return 0L;
+    }
+
+    @Override
+    public CodeCompiler getCodeCompiler() {
+        return this.javaCompiler;
+    }
+
+    @Override
+    public Debugger getDebugger() {
+        return this.javaDebugger;
+    }
+
+    @Override
+    public String[] getDefaultFilePatterns() {
+        return new String[]{"*.java"};
+    }
+
+    @Override
+    public String[] getExtendFilePatterns() {
+        return new String[0];
+    }
+	
 	@Override
-	public CodeCompiler getCodeCompiler() {
-		return super.getCodeCompiler();
-	}
+    public List<Language> getLanguages() {
+		ArrayList<Language> arrayList = new ArrayList<>();
+		arrayList.add(this.javaLanguage);
+		arrayList.add(this.jsharpCommentsLanguage);
+		return arrayList;
+    }
 
-	@Override
-	public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean p){
-		super.fillSyntaxTree(fileEntry, reader, map, p);
-	}
+    @Override
+	public String getName() {
+        return "Java";
+    }
 
+    @Override
+	public Preprocessor getPreprocessor() {
+        return null;
+    }
+
+    @Override
+	public boolean isSupportArchiveFile() {
+        return false;
+    }
+	
 	@Override
-	public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTreeStyles> map){
-		// TODO: Implement this method
-		super.fillSyntaxTree(fileEntry, reader, map);
-		
-		// errorTable2.clearNonParserErrors(fileEntry, this.language);
-		
+    public void closeArchive() {
+
+    }
+
+	
+    @Override
+    public void processVersion(FileEntry fileEntry, Language language) {
+
+    }
+
+    @Override
+    public boolean u7() {
+        return false;
+    }
+
+    @Override
+    public void update() {
+		this.javaCompiler.createClassWriter();
+    }
+	
+	
+	SparseArray<ProjectEnvironment> projectEnvironments;
+	public void initEnv() {
+		Model model = this.model;
+		if (model == null || this.projectEnvironments != null) {
+			return;
+		}
+		projectEnvironments = new SparseArray<>();
+		ProjectEnvironment.init(model, this.projectEnvironments);
 	}
 	
 	
-
+	public void reset(){
+		if( this.projectEnvironments == null ){
+			return;
+		}
+		for( int index = 0, size = projectEnvironments.size(); index < size; index++){
+			ProjectEnvironment projectEnvironment = projectEnvironments.valueAt(index);
+			projectEnvironment.reset();
+		}
+		projectEnvironments.clear();
+		projectEnvironments = null;
+	}
+	
 }
+
