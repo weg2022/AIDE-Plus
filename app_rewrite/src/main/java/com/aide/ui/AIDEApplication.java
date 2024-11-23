@@ -13,8 +13,8 @@ import com.probelytics.Probelytics;
 public class AIDEApplication extends MultiDexApplication{
 	public void onCreate() {
         super.onCreate();
-		// 开启错误打印
-		Probelytics.VH(this, 0, "0", "0", true, false, "", "", "");
+		// 开启错误打印 
+		// Probelytics.VH(this, 0, "0", "0", true, false, "", "", "");
 		// 比较烦probelytics还是不用这个了
 		//iy.VH(this, 1615898270903L, "androidRelease", "fe5d2222", true, false, "https://probes.probelytics.com/project/iF0snISTR5Ko3hbTUY88bg/audience/dev/current.probes2", "https://probes.probelytics.com/project/iF0snISTR5Ko3hbTUY88bg/audience/public/current.probes2", "https://ingest.probelytics.com/api/report/v1alpha1/data/project/iF0snISTR5Ko3hbTUY88bg2");
 		

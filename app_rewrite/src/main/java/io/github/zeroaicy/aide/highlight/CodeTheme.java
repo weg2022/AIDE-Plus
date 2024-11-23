@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import android.content.SharedPreferences.Editor;
+import java.util.Map.Entry;
 
 public class CodeTheme {
 	public static final int NORMAL = 0;      //普通样式
@@ -27,7 +28,9 @@ public class CodeTheme {
 			edit.putInt(key + "_typefaceStyle", colorKind.getTypefaceStyle());			
 		}
 		long value = combineInt2Long(colorKind.getColor(context, true), colorKind.getColor(context, true));
-		edit.putLong(key, value).apply();
+		// edit.putLong(key, value).apply();
+		edit.putString(key, Long.toHexString(value).toUpperCase()).apply();
+
 	}
 
 	public static void restore(boolean isLight) {
@@ -50,20 +53,32 @@ public class CodeTheme {
 
 
 		// 加载自定义高亮
-		Map<String, ?> customColorMap = codeThemePreferences.getAll();
+		Map<String, Object> customColorMap = new HashMap<String, Object>(codeThemePreferences.getAll());
+		for(Map.Entry<String, ?> entry : customColorMap.entrySet()){
+			Object value = entry.getValue();
+			// 处理旧版
+			if (value instanceof Long) {
+				Long colors = (Long) value;
+				SharedPreferences.Editor edit = codeThemePreferences.edit();
+				String key = entry.getKey();
+				String colorHexString = Long.toHexString(colors).toUpperCase();
+				edit.remove(key).putString(key, colorHexString).apply();
+				
+				customColorMap.put(key, colorHexString);
+				continue;
+			}
+			
+			if (!(value instanceof String)) {
+				String key = entry.getKey();
+				customColorMap.remove(key);
+			}
 		
-		customColorMap.entrySet().removeIf(new Predicate<Map.Entry<String, ?>>(){
-				@Override
-				public boolean test(Map.Entry<String, ?> entry) {
-					// 过滤非int类型
-					// || entry.getKey().endsWith("_t")
-					return !(entry.getValue() instanceof Long);
-				}
-			});
+		}
 
 		// 填充自定义高亮
 		for (Map.Entry<String, ?> entry : customColorMap.entrySet()) {
-			long colorValue = (Long) entry.getValue();
+			// 无符号16进制
+			long colorValue = Long.parseUnsignedLong((String) entry.getValue(), 16);
 			int[] values = separateLong2int(colorValue);
 			int lightColor = values[0];
 			int darkColor = values[1];
@@ -80,7 +95,7 @@ public class CodeTheme {
 				colorKind.setTypefaceStyle(typefaceStyle);				
 			}
 		}
-		
+
 	}
 
 
