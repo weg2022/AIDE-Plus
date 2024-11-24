@@ -77,6 +77,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import com.aide.ui.scm.GitStatus;
 import io.github.zeroaicy.aide.activity.ZeroAicyCommitActivity;
+import com.aide.ui.scm.ExternalGitService;
+import io.github.zeroaicy.aide.scm.ZeroAicyExternalGitService;
 
 /**
  * 1.aapt2
@@ -423,6 +425,13 @@ public class ZeroAicyExtensionInterface {
 	//打包服务替换
 	public static Class<?extends ExternalPackagingService> getExternalPackagingServiceClass() {
 		return ZeroAicyExternalPackagingService.class;
+	}
+	
+	/**
+	 * 替换 ExternalGitService服务
+	 */
+	public static Class<?extends ExternalGitService> getExternalGitService() {
+		return ZeroAicyExternalGitService.class;
 	}
 
 	//替换ClassFilePreProcessor实现

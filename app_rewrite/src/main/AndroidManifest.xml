@@ -197,10 +197,17 @@
                     android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-
+		
+		<!-- com.aide.ui.scm.ExternalGitService -->
+		<service
+            android:name="io.github.zeroaicy.aide.scm.ZeroAicyExternalGitService"
+            android:exported="false"
+            android:process=":GitService" />
+		
+		<!-- 结束 -->
+			
         <activity
             android:exported="true"
-
 			android:name="com.dropbox.client2.android.AuthActivity"
             android:launchMode="singleTask"
             android:configChanges="keyboard|orientation">
@@ -342,10 +349,7 @@
             android:screenOrientation="user"
             android:configChanges="keyboard|keyboardHidden|locale" />
 
-		<service
-            android:name="com.aide.ui.scm.ExternalGitService"
-            android:exported="false"
-            android:process=":GitService" />
+		
         <receiver
             android:name="com.aide.ui.debugger.ADRTReceiver"
             android:exported="true">
