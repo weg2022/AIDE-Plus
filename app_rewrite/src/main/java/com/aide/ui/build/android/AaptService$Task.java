@@ -573,13 +573,11 @@ public class AaptService$Task {
 				if (TextUtils.isEmpty(packageName)) {
 					continue;
 				}
-				AppLog.d("AAPT2", "packageName: %s", packageName);
-                File buildConfigJavaParentDirectory = new File(entry.getKey(), packageName.replace('.', File.separatorChar));
+				File buildConfigJavaParentDirectory = new File(entry.getKey(), packageName.replace('.', File.separatorChar));
                 if (!buildConfigJavaParentDirectory.exists() 
-					&& !buildConfigJavaParentDirectory.mkdirs()) {
-					if (!buildConfigJavaParentDirectory.exists()) {
-						throw new IOException("Could not create directory " + buildConfigJavaParentDirectory);
-					}
+					&& !buildConfigJavaParentDirectory.mkdirs()
+					&& !buildConfigJavaParentDirectory.exists()) {
+					throw new IOException("Could not create directory " + buildConfigJavaParentDirectory);
                 }
                 File buildConfigJavaFile = new File(buildConfigJavaParentDirectory, "BuildConfig.java");
                 if (!this.XL || !buildConfigJavaFile.exists()) {
