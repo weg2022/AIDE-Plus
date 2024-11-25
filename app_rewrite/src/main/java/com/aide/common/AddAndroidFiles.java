@@ -12,6 +12,7 @@ import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSystem;
 import java.io.File;
+import com.aide.ui.services.ProjectService;
 
 /**
  * 安卓项目 添加xxx文件
@@ -29,18 +30,38 @@ public class AddAndroidFiles {
 		if (Zo(dirPath)) {
 			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.command_files_add_new_class, R.string.dialog_create_message, "", new ValueRunnable<String>(){
 					@Override
-					public void acceptValue(String name) {
-						if (name.endsWith(".java")) {
-							name = name.substring(0, name.length() - 5);
+					public void acceptValue(String className) {
+						if (className.endsWith(".java")) {
+							className = className.substring(0, className.length() - 5);
 						}
-						String javaPath = dirPath + File.separator + name + ".java";
-						String Ev = AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getFlavor(), dirPath);
-						String content = "";
-						if (Ev.length() > 0) {
-							content = "package " + Ev + ";\n\n";
+						try {
+
+							String javaFilePath = dirPath + File.separator + className + ".java";
+
+							// 如果类名中包含路径
+							int classNameStart = className.lastIndexOf('/');
+							if (classNameStart > 0) {
+								className = className.substring(classNameStart + 1);
+							}
+							// 确保文件父目录存在
+							String javaFileParentPath = FileSystem.getParent(javaFilePath);
+							if (!FileSystem.exists(javaFileParentPath)) FileSystem.mkdirs(javaFileParentPath);
+
+							ProjectService projectService = ServiceContainer.getProjectService();
+							String sourceContent = "";
+							
+							// 包名
+							String packageName = AndroidProjectSupport.Ev(projectService.getLibraryMapping(), projectService.getFlavor(), javaFileParentPath);
+							if (packageName.length() > 0) {
+								sourceContent = "package " + packageName + ";\n\n";
+							}
+
+							FileSystem.writeStringToFile(javaFilePath, sourceContent + "public class " + className + "\n{\n}");
+							valueRunnable.acceptValue(javaFilePath);
 						}
-						FileSystem.writeStringToFile(javaPath, content + "public class " + name + "\n{\n}");
-						valueRunnable.acceptValue(javaPath);
+						catch (Throwable e) {
+							MessageBox.P8(ServiceContainer.getMainActivity(), "Create Java Class", e);
+						}
 					}
 				});
 		} else if (v5(dirPath)) {
@@ -79,23 +100,6 @@ public class AddAndroidFiles {
 		return R.drawable.file_new;
     }
 
-	/**
-	 * 返回 command_files_add具体名称
-	 */
-	@Keep
-	public static int getAddTypeName2(String dirPath) {
-		// Java源码目录
-		// class
-		if (dirPath.contains("/java")) {
-			return R.string.command_files_add_new_class;				
-		}
-		// xml
-		if (v5(dirPath)) {
-			// 是layout目录
-			return R.string.command_files_add_new_xml;
-		}
-		return 0;
-    }
 
 	// old method 
     public static int getAddTypeName(String dirPath) {
@@ -128,11 +132,11 @@ public class AddAndroidFiles {
 
 
 	public static boolean isJavaSourceDir(String dirPath) {
-		if( TextUtils.isEmpty(dirPath) ){
+		if (TextUtils.isEmpty(dirPath)) {
 			return false;
 		}
-		if( dirPath.contains("/java")
-		   || dirPath.contains("/aidl")){
+		if (dirPath.contains("/java")
+			|| dirPath.contains("/aidl")) {
 			return true;
 		}
 		return false;
@@ -141,10 +145,29 @@ public class AddAndroidFiles {
 		return !TextUtils.isEmpty(dirPath) && dirPath.lastIndexOf("res/") > 0;
 	}
 
+
+
 	/**
 	 * 是否是源码路径
 	 */
     private static boolean ZoOld(String dirPath) {
 		return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getFlavor(), dirPath) != null;
+    }
+
+	/**
+	 * 返回 command_files_add具体名称
+	 */
+	public static int getAddTypeName2(String dirPath) {
+		// Java源码目录
+		// class
+		if (dirPath.contains("/java")) {
+			return R.string.command_files_add_new_class;				
+		}
+		// xml
+		if (v5(dirPath)) {
+			// 是layout目录
+			return R.string.command_files_add_new_xml;
+		}
+		return 0;
     }
 }
