@@ -1,6 +1,8 @@
 package io.github.zeroaicy.aide.scm;
 
 
+import org.eclipse.jgit.api.*;
+
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.Process;
@@ -13,7 +15,6 @@ import com.aide.ui.scm.IExternalGitService;
 import com.aide.ui.scm.IExternalGitServiceListener;
 import com.aide.ui.scm.ModifiedFile;
 import com.aide.ui.util.FileSystem;
-import com.probelytics.Probelytics;
 import io.github.zeroaicy.util.IOUtils;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,21 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CheckoutResult;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.errors.NoRemoteRepositoryException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Config;
@@ -60,6 +46,7 @@ import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.SystemReader;
+import android.text.TextUtils;
 
 /* loaded from: /storage/emulated/0/AppProjects1/.ZeroAicy/git/AIDE+/build/jadx/gitImpl.dex */
 public class ZeroAicyExternalGitService extends ExternalGitService {
@@ -72,7 +59,7 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
     public IBinder onBind(Intent intent) {
 		AppLog.i("ZeroAicyExternalGitService bound - pid " + Process.myPid() + " id " + System.identityHashCode(this));
 		FileSystem.init(this);
-		
+
 		return this.gitServiceImpl;
     }
 
@@ -83,12 +70,24 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
 
     }
 
+	class UserConfigSystemReader extends DefaultSystemReader {
+
+		UserConfigSystemReader(GitServiceImpl gitServiceImpl, SystemReader systemReader, ZeroAicyExternalGitService ZeroAicyExternalGitService) {
+			super(systemReader);
+		}
+
+		@Override
+		public FileBasedConfig openJGitConfig(Config config, FS fs) {
+			return openUserConfig(config, fs);
+		}
+
+		@Override
+		public FileBasedConfig openUserConfig(Config config, FS fs) {
+			return new FileBasedConfig(config, new File(FileSystem.getCacheDir(), ".gitconfig"), fs);
+		}
+	}
     private static class DefaultSystemReader extends SystemReader {
         private SystemReader defaultSystemReader;
-
-        static {
-            Probelytics.onClass(DefaultSystemReader.class);
-        }
 
         public DefaultSystemReader(SystemReader systemReader) {
 			this.defaultSystemReader = systemReader;
@@ -297,19 +296,7 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
 
         }
 
-		class UserConfigSystemReader extends DefaultSystemReader {
-
-            UserConfigSystemReader(GitServiceImpl gitServiceImpl, SystemReader systemReader, ZeroAicyExternalGitService ZeroAicyExternalGitService) {
-                super(systemReader);
-            }
-
-            @Override // com.aide.ui.scm.ZeroAicyExternalGitService.DefaultSystemReader
-            public FileBasedConfig openUserConfig(Config config, FS fs) {
-                return new FileBasedConfig(config, new File(FileSystem.getCacheDir(), ".gitconfig"), fs);
-            }
-        }
-
-        private String AL;
+        private String userEmail;
 
         private boolean fY;
 
@@ -319,7 +306,7 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
 
         private Object qp;
 
-        private String zh;
+        private String userName;
 
         public GitServiceImpl(ZeroAicyExternalGitService ZeroAicyExternalGitService) {
 			this.jw = new Object();
@@ -328,7 +315,7 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
 			FS.DETECTED.setUserHome(new File(this.k2));
 			SystemReader.setInstance(new UserConfigSystemReader(this, SystemReader.getInstance(), ZeroAicyExternalGitService));
 		}
-		
+
         private void AR(IExternalGitServiceListener IExternalGitServiceListener, String str, Throwable th) {
 			AppLog.e(th);
 
@@ -448,48 +435,58 @@ public class ZeroAicyExternalGitService extends ExternalGitService {
         }
 
         private void aq(GitConfiguration gitConfiguration) {
-            FileWriter fileWriter = null;
             synchronized (this.qp) {
-				if (gitConfiguration.jw != null && gitConfiguration.jw.endsWith(".ssh")) {
-					String substring = gitConfiguration.jw.substring(0, gitConfiguration.jw.length() - 4);
-					if (!substring.equals(this.k2)) {
-						this.k2 = substring;
+
+				String sshFilePath = gitConfiguration.jw;
+				if (sshFilePath != null 
+					&& sshFilePath.endsWith(".ssh")) {
+
+					String sshFileParentDir = sshFilePath.substring(0, sshFilePath.length() - 4);
+
+					boolean isUpdate = sshFileParentDir.equals(this.k2);
+					if (!isUpdate) {
+						this.k2 = sshFileParentDir;
 						FS.DETECTED.setUserHome(new File(this.k2));
 						SshSessionFactory.setInstance((SshSessionFactory) null);
 					}
 				}
-				if (gitConfiguration.WB != null 
-					&& gitConfiguration.WB.length() != 0 
-					&& gitConfiguration.mb != null 
-					&& gitConfiguration.mb.length() != 0) {
 
-					if (!gitConfiguration.WB.equals(this.zh) 
-						|| !gitConfiguration.mb.equals(this.AL)) {
+				String userName = gitConfiguration.WB;
+				String userEmail = gitConfiguration.mb;
 
+				if (!TextUtils.isEmpty(userName)
+					&& !TextUtils.isEmpty(userEmail)) {
+						// 是否需要更新
+					boolean isUpdate = !userName.equals(this.userName) 
+						|| !userEmail.equals(this.userEmail);
+						
+					if (isUpdate) {
+						FileWriter fileWriter = null;
+						
 						try {
-							fileWriter = new FileWriter(new File(FileSystem.getCacheDir(), ".gitconfig"));
+							File gitconfigFile = new File(FileSystem.getCacheDir(), ".gitconfig");
+							// 删除文件
+							gitconfigFile.delete();
+
+							fileWriter = new FileWriter(gitconfigFile);
+
 							PrintWriter printWriter = new PrintWriter(fileWriter);
 							printWriter.println("[user]");
-							printWriter.println("\tname = " + gitConfiguration.WB.trim());
-							printWriter.println("\temail = " + gitConfiguration.mb.trim());
-							this.zh = gitConfiguration.WB;
-							this.AL = gitConfiguration.mb;
+							printWriter.println("\tname = " + userName.trim());
+							printWriter.println("\temail = " + userEmail.trim());
+
+							this.userName = userName;
+							this.userEmail = gitConfiguration.mb;
 						}
 						catch (Exception e) {
 							AppLog.e(e);
-							if (fileWriter != null) {
-								try {
-									fileWriter.close();
-								}
-								catch (IOException e3) {
-									e = e3;
-									AppLog.e(e);
-								}
-							}
 						}
+						finally {
+							IOUtils.close(fileWriter);
+						}
+
 					}
 				}
-				new File(FileSystem.getCacheDir(), ".gitconfig").delete();
 			}
 		}
 
