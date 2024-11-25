@@ -29,7 +29,7 @@ import java.util.Map;
  */
 
 //基于线程的错误日志
-public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
+public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler {
 
     private static final String TAG = "CrashAppLog";
 
@@ -58,7 +58,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
      */
     private Thread.UncaughtExceptionHandler mUncaughtExceptionHandler;
 
-	public void setOnCrashListener(OnCrashListener onCrashListener){
+	public void setOnCrashListener(OnCrashListener onCrashListener) {
 		this.onCrashListener = onCrashListener;
 	}
     /**
@@ -68,7 +68,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
      */
     public abstract void sendCrashLogToServer(File folder, File file);
 
-    public interface OnCrashListener{
+    public interface OnCrashListener {
         public void onCrash(String crashInfo);
     }
     /**
@@ -80,20 +80,20 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	}
 	public OnCrashListener onCrashListener;
 	//无参构造
-	public void init(){
+	public void init() {
 		init(null);
 	}
 
-	public void init(Context context){
-		try{
-			if ( context != null ){
+	public void init(Context context) {
+		try {
+			if (context != null) {
 				// 尽量保存ApplicationContext
 				Context applicationContext = context.getApplicationContext();
 				if (applicationContext != null) {
 					context = applicationContext;
 				}
 				setContext(context);
-			}else{
+			} else {
 				//反射构造
 				setContext(ContextUtil.getContext());
 			}
@@ -107,19 +107,19 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 			/**
 			 * 使用当前的类为异常处理类
 			 */
-			if ( defaultUncaughtExceptionHandler != this ){
+			if (defaultUncaughtExceptionHandler != this) {
 				//如果不是自己则设置[系统默认的异常处理类]
 				this.mUncaughtExceptionHandler = defaultUncaughtExceptionHandler;
 
 				Thread.setDefaultUncaughtExceptionHandler(this);
 			}
 			Thread currentThread = Thread.currentThread();
-			if ( currentThread.getUncaughtExceptionHandler() != this ){
+			if (currentThread.getUncaughtExceptionHandler() != this) {
 				currentThread.setUncaughtExceptionHandler(this);
 			}
 
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.e(TAG, "init - " + e.getMessage());
 		}
 	}
@@ -128,19 +128,19 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
      * 获取应用信息
      * @param mContext
      */
-    private void collectAppInfo(Context mContext){
+    private void collectAppInfo(Context mContext) {
 
-        try{
-            if ( this.mContext == null ){
+        try {
+            if (this.mContext == null) {
                 return ;
 			}
             PackageManager packageManager = mContext.getPackageManager();
 
-            if ( packageManager != null ){
+            if (packageManager != null) {
 				this.mContext.getApplicationInfo();
 				//当前app信息
                 PackageInfo packageInfo = packageManager.getPackageInfo(mContext.getPackageName(), PackageManager.GET_ACTIVITIES);
-                if ( packageInfo != null ){
+                if (packageInfo != null) {
 
                     String versionName = packageInfo.versionName;
                     String versionCode = "" + packageInfo.versionCode;
@@ -154,7 +154,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
             }
 
         }
-		catch (Throwable e){
+		catch (Throwable e) {
             Log.e(TAG, "collectAppInfo - ", e);
         }
     }
@@ -162,31 +162,31 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	/**
 	 * 收集设备信息
 	 */
-	public static void collectDeviceInfo(Map<String, String> crashAppLog){
+	public static void collectDeviceInfo(Map<String, String> crashAppLog) {
 		/**
 		 * 获取手机型号，系统版本，以及SDK版本
 		 */
-		try{
+		try {
 			crashAppLog.put("手机型号:", android.os.Build.MODEL);
 			crashAppLog.put("系统版本", "" + android.os.Build.VERSION.SDK);
 			crashAppLog.put("Android版本", android.os.Build.VERSION.RELEASE);
 
 			Field[] fields = Build.class.getFields();
 
-			if ( fields != null && fields.length > 0 ){
-				for ( Field field : fields ){
-					if ( field != null ){
+			if (fields != null && fields.length > 0) {
+				for (Field field : fields) {
+					if (field != null) {
 						field.setAccessible(true);
 						String valueString;
 						Object fieldValue = field.get(null);
-						if ( fieldValue instanceof String[] ){
+						if (fieldValue instanceof String[]) {
 							StringBuilder sb = new StringBuilder();
 							String[] StringArray = (String[])fieldValue;
-							for ( String temp: StringArray ){
+							for (String temp: StringArray) {
 								sb.append(temp).append(", ");
 							}
 							valueString = sb.toString();
-						}else{
+						} else {
 							valueString = String.valueOf(fieldValue);
 						}
 						crashAppLog.put(field.getName(), valueString);
@@ -195,7 +195,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 			}
 
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.e(TAG, "collectDeviceInfo", e);
 		}
 	}
@@ -206,21 +206,21 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	 * @param throwable
 	 */
 	@Override
-	public void uncaughtException(Thread thread, Throwable throwable){
-		try{
-			if ( !hanlderException(throwable) && mUncaughtExceptionHandler != null ){
+	public void uncaughtException(Thread thread, Throwable throwable) {
+		try {
+			if (!hanlderException(throwable) && mUncaughtExceptionHandler != null) {
 				/**
 				 * 如果此异常不处理则由系统自己处理
 				 */
 				this.mUncaughtExceptionHandler.uncaughtException(thread, throwable);
 				//退出
 				System.exit(-1);
-			}else{
+			} else {
 				//退出
 				// System.exit(-1);
 			}
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.e(TAG, "uncaughtThrowable - " + e.getMessage());
 		}
 	}
@@ -230,19 +230,21 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	 * @param throwable
 	 * @return
 	 */
-	private boolean hanlderException(Throwable throwable){
-		try{
-			if ( throwable == null ){
+	private boolean hanlderException(Throwable throwable) {
+		try {
+			if (throwable == null) {
 				return true;
 			}
+
 			new Thread(){
 				@Override
-				public void run(){
+				public void run() {
 					Looper.prepare();
 					Toast.makeText(mContext, "异常日志保存在 " + CAHCE_CRASH_LOG + "目录", 1).show();
 					Looper.loop();
 				}
 			}.start();
+
 			//收集应用信息
 			collectAppInfo(this.mContext);
 			//收集设备信息
@@ -259,7 +261,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 
 			//结束进程
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.e(TAG, "hanlderThrowable - " + e.getMessage());
 			return false;
 		}
@@ -270,26 +272,26 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	 * 最大文件数量
 	 * @param limitLogCount
 	 */
-	private void limitAppLogCount(int limitLogCount){
+	private void limitAppLogCount(int limitLogCount) {
 
-		try{
+		try {
 
 			File file = new File(CAHCE_CRASH_LOG);
-			if ( !file.exists() ){
+			if (!file.exists()) {
 				file.mkdirs();
 			}
 
-			if ( file != null && file.isDirectory() ){
+			if (file != null && file.isDirectory()) {
 
 				File[] files = file.listFiles(new CrashLogFliter());
 
-				if ( files != null && files.length > 0 ){
+				if (files != null && files.length > 0) {
 
 					Arrays.sort(files, comparator);
 
-					if ( files.length > LIMIT_LOG_COUNT ){
+					if (files.length > LIMIT_LOG_COUNT) {
 
-						for ( int i = 0 ; i < files.length - LIMIT_LOG_COUNT ;i++ ){
+						for (int i = 0 ; i < files.length - LIMIT_LOG_COUNT ;i++) {
 
 							files[i].delete();
 						}
@@ -299,7 +301,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 			}
 
 		}
-		catch (Throwable e){
+		catch (Throwable e) {
 			Log.e(TAG, "limitAppLogCount - " + e.getMessage());
 		}
 	}
@@ -310,11 +312,11 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	 */
 	private Comparator<File> comparator = new Comparator<File>() {
 		@Override
-		public int compare(File l, File r){
+		public int compare(File l, File r) {
 
-			if ( l.lastModified() > r.lastModified() )
+			if (l.lastModified() > r.lastModified())
 				return 1;
-			if ( l.lastModified() < r.lastModified() )
+			if (l.lastModified() < r.lastModified())
 				return -1;
 
 			return 0;
@@ -324,10 +326,10 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
 	/**
 	 * 过滤.log的文件
 	 */
-	public class CrashLogFliter implements FileFilter{
+	public class CrashLogFliter implements FileFilter {
 		@Override
-		public boolean accept(File file){
-			if ( file.getName().endsWith(".log") )
+		public boolean accept(File file) {
+			if (file.getName().endsWith(".log"))
 				return true;
 			return false;
 		}
@@ -339,24 +341,24 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
      * 写入文件中
      * @param ex
      */
-    private void writerCrashLogToFile(Throwable ex){
+    private void writerCrashLogToFile(Throwable ex) {
 
-        try{
+        try {
 
             StringBuffer buffer = new StringBuffer();
 
-            if ( crashAppLog != null && crashAppLog.size() > 0 ){
-                for ( Map.Entry<String, String> entry : crashAppLog.entrySet() ){
+            if (crashAppLog != null && crashAppLog.size() > 0) {
+                for (Map.Entry<String, String> entry : crashAppLog.entrySet()) {
                     buffer.append(entry.getKey() + ":" + entry.getValue() + "\n");
                 }
             }
-			
+
             Writer writer = new StringWriter();
             PrintWriter printWriter = new PrintWriter(writer);
             ex.printStackTrace(printWriter);
             Throwable cause = ex.getCause();
 
-            while ( cause != null ){
+            while (cause != null) {
                 cause.printStackTrace(printWriter);
                 cause = cause.getCause();
             }
@@ -373,27 +375,37 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
             String s = buffer.toString();
 			writerToFile(s);
 
-			if ( onCrashListener != null ){
+			if (onCrashListener != null) {
 				onCrashListener.onCrash(s);
 			}
-
+			// 3s后退出
+			new Thread(){
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(3000);
+						System.exit(-1);
+					}
+					catch (InterruptedException e) {}
+				}
+			}.start();
         }
-		catch (Throwable e){
+		catch (Throwable e) {
             Log.e(TAG, "writerCrashLogToFile - " + e.getMessage());
         }
     }
 
 	private static int curtTimer = 0;
 
-    protected void writerToFile_Test(final String s){
+    protected void writerToFile_Test(final String s) {
 		this.writerToFile(s);
 	}
 
 	/**
 	 * 写入文件
 	 */
-    private void writerToFile(final String s){
-        try{
+    private void writerToFile(final String s) {
+        try {
 			/**
              * 创建日志文件名称
              */
@@ -406,7 +418,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
              */
             File folder = new File(CAHCE_CRASH_LOG);
 
-            if ( !folder.exists() )
+            if (!folder.exists())
                 folder.mkdirs();
 
             /**
@@ -414,7 +426,7 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
              */
             File file = new File(folder.getAbsolutePath() + File.separator + fileName);
 
-            if ( !file.exists() )
+            if (!file.exists())
                 file.createNewFile();
 
             FileWriter fileWriter = new FileWriter(file);
@@ -427,26 +439,26 @@ public abstract class CrashAppLog implements Thread.UncaughtExceptionHandler{
             sendCrashLogToServer(folder, file);
 
         }
-		catch (Throwable e){
+		catch (Throwable e) {
             Log.e(TAG, "writerToFile - " + e.getMessage());
         }
     }
 
 
 
-    public int getLIMIT_LOG_COUNT(){
+    public int getLIMIT_LOG_COUNT() {
         return LIMIT_LOG_COUNT;
     }
 
-    public void setLIMIT_LOG_COUNT(int LIMIT_LOG_COUNT){
+    public void setLIMIT_LOG_COUNT(int LIMIT_LOG_COUNT) {
         this.LIMIT_LOG_COUNT = LIMIT_LOG_COUNT;
     }
 
-    public String getCAHCE_CRASH_LOG(){
+    public String getCAHCE_CRASH_LOG() {
         return CAHCE_CRASH_LOG;
     }
 
-    public void setCAHCE_CRASH_LOG(String CAHCE_CRASH_LOG){
+    public void setCAHCE_CRASH_LOG(String CAHCE_CRASH_LOG) {
         this.CAHCE_CRASH_LOG = CAHCE_CRASH_LOG;
     }
 }
