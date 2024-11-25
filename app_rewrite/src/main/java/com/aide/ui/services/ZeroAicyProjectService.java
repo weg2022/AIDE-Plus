@@ -408,7 +408,7 @@ public class ZeroAicyProjectService extends ProjectService {
 
 		// 同步代码分析进程
 		// 置空代码分析进程信息
-		this.jJ(); 
+		this.jJ(); // 关闭项目
 
 		// 同步主线程 已关闭项目
 		executorsService.post(new Runnable(){
@@ -560,7 +560,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			public void run() {
 				// 赋值 pojectSupport
 				ZeroAicyProjectService.this.init();
-				ZeroAicyProjectService.this.jJ();
+				ZeroAicyProjectService.this.jJ(); // 切换项目
 
 			}
 		};
@@ -734,7 +734,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		// 通知执行 jJAsync()
 		Object engineServiceConnectionLock = this.engineServiceConnectionLock;
 		if (engineServiceConnectionLock == null) return;
-		
+
 		synchronized (engineServiceConnectionLock) {
 			// 
 			Object lock = this.engineServiceConnectionLock;
@@ -750,22 +750,26 @@ public class ZeroAicyProjectService extends ProjectService {
 	 * 必将在executorsService运行且只有一个线程
 	 */
 	protected void jJAsync() {
+
 		//super.jJ();
 		EngineService engineService = ServiceContainer.getEngineService();
-		
-		if (this.currentAppHome != null 
-			&& this.pojectSupport != null) {
-			engineService.setEngineSolution(this.pojectSupport.makeEngineSolution());
-		} else {
-			// 置空
-			engineService.setEngineSolution(new EngineSolution(new ArrayList(), (String) null, CodeModelFactory.findCodeModels(ServiceContainer.Hw()), ServiceContainer.Hw()));
+		if (engineService == null) {
+			return;
 		}
 		
-		engineService.ef();
-		engineService.ei();
-		
-		engineService.ei();
-		
+		synchronized (engineService) {
+			
+			if (this.currentAppHome != null 
+				&& this.pojectSupport != null) {
+				engineService.setEngineSolution(this.pojectSupport.makeEngineSolution());
+			} else {
+				// 置空
+				engineService.setEngineSolution(new EngineSolution(new ArrayList(), (String) null, CodeModelFactory.findCodeModels(ServiceContainer.Hw()), ServiceContainer.Hw()));
+			}
+			engineService.ef();
+			engineService.ei();
+			engineService.ei();
+		}
 	}
 
 	// [ProjectService$f, ProjectService$d] 通过 FH()调用
@@ -833,6 +837,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.resetProjectAttributeCache();
 
 		ServiceContainer.getDebugger().ef();
+		
 		//在主线程执行showProgressDialog
 		executorsService.post(new Runnable(){
 				@Override
@@ -842,8 +847,10 @@ public class ZeroAicyProjectService extends ProjectService {
 					final Runnable asynTask = new Runnable(){
 						@Override
 						public void run() {
+							// 修复重载项目后 依赖信息未重置
+							ZeroAicyProjectService.this.init();
 							// 向代码分析进程
-							ZeroAicyProjectService.this.jJ();
+							ZeroAicyProjectService.this.jJ(); // 重新载入项目
 						}
 					};
 
