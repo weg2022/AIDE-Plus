@@ -13,6 +13,9 @@ import com.aide.ui.rewrite.R;
 import com.aide.ui.util.FileSystem;
 import java.io.File;
 import com.aide.ui.services.ProjectService;
+import com.aide.ui.MainActivity;
+import io.github.zeroaicy.util.Log;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 /**
  * 安卓项目 添加xxx文件
@@ -28,7 +31,8 @@ public class AddAndroidFiles {
 	@Keep
     public static void DW(final String dirPath, final ValueRunnable<String> valueRunnable) {
 		if (Zo(dirPath)) {
-			MessageBox.XL(ServiceContainer.getMainActivity(), R.string.command_files_add_new_class, R.string.dialog_create_message, "", new ValueRunnable<String>(){
+			MainActivity mainActivity = ServiceContainer.getMainActivity();
+			MessageBox.XL(mainActivity, R.string.command_files_add_new_class, R.string.dialog_create_message, "", new ValueRunnable<String>(){
 					@Override
 					public void acceptValue(String className) {
 						if (className.endsWith(".java")) {
@@ -45,22 +49,27 @@ public class AddAndroidFiles {
 							}
 							// 确保文件父目录存在
 							String javaFileParentPath = FileSystem.getParent(javaFilePath);
+
+							// mkdir
 							if (!FileSystem.exists(javaFileParentPath)) FileSystem.mkdirs(javaFileParentPath);
 
 							ProjectService projectService = ServiceContainer.getProjectService();
-							String sourceContent = "";
-							
+
+							// 内容
+							String sourceContent = String.format("/**\n * @Author %s\n * @AIDE AIDE+\n*/\n", ZeroAicySetting.getDefaultSpString("git_user_name", ""));
+
 							// 包名
 							String packageName = AndroidProjectSupport.Ev(projectService.getLibraryMapping(), projectService.getFlavor(), javaFileParentPath);
-							if (packageName.length() > 0) {
+							if (!TextUtils.isEmpty(packageName)) {
+								
 								sourceContent = "package " + packageName + ";\n\n";
 							}
 
-							FileSystem.writeStringToFile(javaFilePath, sourceContent + "public class " + className + "\n{\n}");
+							FileSystem.writeStringToFile(javaFilePath, sourceContent + "public class " + className + "{\n\n}");
 							valueRunnable.acceptValue(javaFilePath);
 						}
 						catch (Throwable e) {
-							MessageBox.P8(ServiceContainer.getMainActivity(), "Create Java Class", e);
+							MessageBox.P8(ServiceContainer.getMainActivity(), "Create Java Class",  new Throwable(Log.getStackTraceString(e)));
 						}
 					}
 				});
