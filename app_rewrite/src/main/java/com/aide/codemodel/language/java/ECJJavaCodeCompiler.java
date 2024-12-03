@@ -36,9 +36,13 @@ public class ECJJavaCodeCompiler implements com.aide.codemodel.api.abstraction.C
 	private Language language;
 	private final Model model;
 
-	public ECJJavaCodeCompiler(Language language, Model model) {
-		this.language = language;
+	public ECJJavaCodeCompiler(Model model, Language language) {
 		this.model = model;
+		this.language = language;
+	}
+
+	public void createClassWriter() {
+		// TODO: Implement this method
 	}
 
 	@Override

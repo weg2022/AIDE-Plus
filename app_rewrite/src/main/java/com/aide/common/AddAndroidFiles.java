@@ -16,6 +16,7 @@ import com.aide.ui.services.ProjectService;
 import com.aide.ui.MainActivity;
 import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import java.io.IOException;
 
 /**
  * 安卓项目 添加xxx文件
@@ -32,6 +33,7 @@ public class AddAndroidFiles {
     public static void DW(final String dirPath, final ValueRunnable<String> valueRunnable) {
 		if (Zo(dirPath)) {
 			MainActivity mainActivity = ServiceContainer.getMainActivity();
+			
 			MessageBox.XL(mainActivity, R.string.command_files_add_new_class, R.string.dialog_create_message, "", new ValueRunnable<String>(){
 					@Override
 					public void acceptValue(String className) {
@@ -41,7 +43,9 @@ public class AddAndroidFiles {
 						try {
 
 							String javaFilePath = dirPath + File.separator + className + ".java";
-
+							if( FileSystem.exists(javaFilePath)){
+								throw new IOException(javaFilePath + " already exists"); 
+							}
 							// 如果类名中包含路径
 							int classNameStart = className.lastIndexOf('/');
 							if (classNameStart > 0) {
@@ -51,17 +55,18 @@ public class AddAndroidFiles {
 							String javaFileParentPath = FileSystem.getParent(javaFilePath);
 
 							// mkdir
-							if (!FileSystem.exists(javaFileParentPath)) FileSystem.mkdirs(javaFileParentPath);
-
+							if (!FileSystem.exists(javaFileParentPath)){
+								FileSystem.mkdirs(javaFileParentPath);
+							}
+							
+							
 							ProjectService projectService = ServiceContainer.getProjectService();
-
 							// 内容
 							String sourceContent = String.format("/**\n * @Author %s\n * @AIDE AIDE+\n*/\n", ZeroAicySetting.getDefaultSpString("git_user_name", ""));
 
 							// 包名
 							String packageName = AndroidProjectSupport.Ev(projectService.getLibraryMapping(), projectService.getFlavor(), javaFileParentPath);
 							if (!TextUtils.isEmpty(packageName)) {
-								
 								sourceContent = "package " + packageName + ";\n\n";
 							}
 

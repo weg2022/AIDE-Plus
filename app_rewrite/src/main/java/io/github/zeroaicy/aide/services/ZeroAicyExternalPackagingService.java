@@ -602,7 +602,10 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 					argsList.add("--lib");
 					argsList.add(compileOnlyLib);
 				}
-
+				
+				argsList.add("--globals-output");
+				argsList.add(getDefaultClassDexGlobalsPath());
+				
 				//添加需要编译的jar
 				argsList.addAll(dexingClassFiles);
 
@@ -620,7 +623,13 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				String user_androidjar = null; 
 				// 合并 AIDE编译的 *.class.dex
 				D8TaskWrapper.fillD8Args(argsList, getMinSdk(), false, false, user_androidjar, null, outDexZipPath);
-
+				
+				String defaultClassDexGlobalsPath = getDefaultClassDexGlobalsPath();
+				if (new File(defaultClassDexGlobalsPath).isFile()) {
+					argsList.add("--globals");
+					argsList.add(defaultClassDexGlobalsPath);
+				}
+				
 				//输入dexs
 				argsList.addAll(classeDexFiles);
 				// 将采用 子进程方式，防止oom
@@ -1563,6 +1572,10 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 			public String getDefaultClassDexCacheDirPath() {
 				return defaultClassDexCacheDirPath;
 			}
+			public String getDefaultClassDexGlobalsPath() {
+				return getDefaultClassDexCacheDirPath() + "/globals.zip";
+			}
+			
 
 			/**
 			 * 返回class dexing后的dex缓存路径

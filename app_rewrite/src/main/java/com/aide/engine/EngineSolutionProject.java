@@ -29,8 +29,14 @@ import com.aide.codemodel.api.abstraction.CodeModel;
 
 @Keep
 public class EngineSolutionProject implements Parcelable {
-
-
+	public static String getKind(EngineSolution.File file){
+		return EngineSolution.File.DW(file);
+	}
+	public static String getPath(EngineSolution.File file){
+		return EngineSolution.File.j6(file);
+	}
+	
+	
 	public static final Parcelable.Creator<EngineSolutionProject> CREATOR = new EngineSolutionProject$a();
 
 	// id
@@ -42,7 +48,7 @@ public class EngineSolutionProject implements Parcelable {
     final boolean Z1;
     final boolean cT;
 
-    final List<EngineSolution.File> fY;
+    public final List<EngineSolution.File> fY;
 
 	// targetVersion
     final String hK;

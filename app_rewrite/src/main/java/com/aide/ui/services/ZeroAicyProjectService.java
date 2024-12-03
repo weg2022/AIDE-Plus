@@ -446,14 +446,23 @@ public class ZeroAicyProjectService extends ProjectService {
 	/*****************************************************************/
 
 	public void sGAsync() {
-		super.verifyResourcesDownload();
+		try {
+			if (ServiceContainer.isShutdowned()) {
+				return;
+			}
+			if (ServiceContainer.getMavenService() == null) {
+				return;
+			}
+			super.verifyResourcesDownload();
+		}
+		catch (Throwable e) {
+		}
 	}
 	/**
 	 * verifyResourcesDownload
 	 */
 	@Override
 	public boolean verifyResourcesDownload() {
-
 		executorsService.submit(new Runnable(){
 				@Override
 				public void run() {
@@ -756,9 +765,9 @@ public class ZeroAicyProjectService extends ProjectService {
 		if (engineService == null) {
 			return;
 		}
-		
+
 		synchronized (engineService) {
-			
+
 			if (this.currentAppHome != null 
 				&& this.pojectSupport != null) {
 				engineService.setEngineSolution(this.pojectSupport.makeEngineSolution());
@@ -837,7 +846,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.resetProjectAttributeCache();
 
 		ServiceContainer.getDebugger().ef();
-		
+
 		//在主线程执行showProgressDialog
 		executorsService.post(new Runnable(){
 				@Override

@@ -42,7 +42,8 @@ dependencies {
 	//api project(':kotlin')
 	
 	// https://mvnrepository.com/artifact/org.eclipse.jdt/ecj
-	api "org.eclipse.jdt:ecj:3.35.0"
+	// api "org.eclipse.jdt:ecj:3.39.0:sources"
+	api "org.eclipse.jdt:ecj:3.39.0"
 	
 	api 'net.margaritov.preference.colorpicker.ColorPickerPreference:ColorPickerPreference:1.0.0' 
 	

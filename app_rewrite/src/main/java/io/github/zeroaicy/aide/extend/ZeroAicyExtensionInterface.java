@@ -547,7 +547,9 @@ public class ZeroAicyExtensionInterface {
 		activity.runOnUiThread(new Runnable(){
 				@Override
 				public void run() {
-					activity.showDialog(id);
+					if( !activity.isFinishing()){
+						activity.showDialog(id);						
+					}
 				}
 			});
 	}

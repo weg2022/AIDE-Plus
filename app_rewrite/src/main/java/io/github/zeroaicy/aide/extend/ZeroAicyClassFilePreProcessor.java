@@ -128,7 +128,6 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 				}
 
 			}
-
 			return Arrays.asList(listZipNames.toArray(new String[listZipNames.size()]));
 		}
 		catch (Exception zipException) {
@@ -142,17 +141,17 @@ public class ZeroAicyClassFilePreProcessor extends ClassFilePreProcessor {
 
 	// -> collectClassAndJavaFiles
 	@Override
-	public void collectClassAndJavaFiles(String str, String str2, Vector<String> vector) {
+	public void collectClassAndJavaFiles(String directoryPath, String str2, Vector<String> vector) {
         try {
             if (str2.length() > 0) {
                 str2 = str2 + File.separator;
             }
-            String[] childNames = new File(str + File.separatorChar).list();
+            String[] childNames = new File(directoryPath + File.separatorChar).list();
 			if (childNames == null) {
 				return;
 			}
 			for (String childName : childNames) {
-				String childPath = str + File.separatorChar + childName;
+				String childPath = directoryPath + File.separatorChar + childName;
 				if (new File(childPath).isDirectory()) {
 					collectClassAndJavaFiles(childPath, str2 + childName, vector);
 				}

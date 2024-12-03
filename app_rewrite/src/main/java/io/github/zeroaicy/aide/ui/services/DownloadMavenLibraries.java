@@ -85,7 +85,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, mavenMetadataUrl, mavenMetadataPath, false);
 		}
 		catch (Throwable unused) {
-			AppLog.d(TAG, "Maven仓库%s错误 -> %s\n %s", remoteRepository.repositorieURL, mavenMetadataUrl, Log.getStackTraceString(unused));
+			AppLog.d(TAG, "Maven仓库%s -> %s\n %s", remoteRepository.repositorieURL, mavenMetadataUrl, Log.getStackTraceString(unused));
 			return false;
 		}
 		// 检查文件是否存在
@@ -195,7 +195,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 					}
 					catch (Throwable e) {
 						AppLog.d("仓库" + remoteRepository.repositorieURL + "错误 mavenMetadataUrl: ", e);
-
+						AppLog.e("Maven Download 仓库 ", remoteRepository.repositorieURL, e);
 						continue;
 					}
 				}
@@ -222,7 +222,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 	public boolean downloadArtifactFile(BuildGradle.RemoteRepository remoteRepository, BuildGradle.MavenDependency dependency, String version, String artifactType, int count) {
 
 		String artifactUrl = MavenService.getArtifactUrl(remoteRepository, dependency, version, artifactType);
-
+		
 		String artifactPath = MavenService.getArtifactPath(remoteRepository, dependency, version, artifactType);
 
 		File artifactFile = new File(artifactPath);
@@ -254,7 +254,7 @@ public class DownloadMavenLibraries implements Callable<Void> {
 			DownloadService.downloadFile(this.downloadService, artifactUrl, artifactPath, true);
 		}
 		catch (Throwable unused) {
-			AppLog.e(" Maven Download", dependencyString, unused);
+			AppLog.e("Maven Download", dependencyString, unused);
 			FileUtil.deleteFolder(artifactPath);
 			return false;
 		}

@@ -22,10 +22,8 @@ import java.util.Map;
 public class JavaCodeModelPro implements CodeModel {
 
     private final JSharpCommentsLanguage jsharpCommentsLanguage;
-
-
-
-    private JavaCompiler javaCompiler;
+	
+    private CodeCompiler javaCompiler;
     private JavaDebugger javaDebugger;
 
 
@@ -33,19 +31,23 @@ public class JavaCodeModelPro implements CodeModel {
 	
 	private JavaLexer javaLexer;
 	private JavaParser javaParser;
-    private final JavaLanguagePro javaLanguage;
+	
+    public final JavaLanguagePro javaLanguage;
 	
     private final Model model;
+	
     public JavaCodeModelPro(Model model) {
 		this.model = model;
 		this.javaLanguage = new JavaLanguagePro(model, this);
 		this.jsharpCommentsLanguage = new JSharpCommentsLanguage(model, false);
+		
 		if (model == null) {
 			return;
 		}
-
 		// 仅在debug版本中替换
-		this.javaCompiler = new JavaCompiler(model, this.javaLanguage);
+		// this.javaCompiler = new JavaCompiler(model, this.javaLanguage);
+		this.javaCompiler = new EclipseJavaCodeCompiler(model, this);
+		
 		this.javaDebugger = new JavaDebugger(model, this.javaLanguage, this);
 		this.javaLexer = new JavaLexer(model.identifierSpace, model.errorTable, false, this.javaLanguage, this.jsharpCommentsLanguage);
 		this.javaParser = new JavaParserPro(model.identifierSpace, model.errorTable, model.entitySpace, this.javaLanguage.getSyntax(), false);
@@ -62,21 +64,28 @@ public class JavaCodeModelPro implements CodeModel {
 	
     @Override
     public void fillSyntaxTree(FileEntry fileEntry, Reader reader, Map<Language, SyntaxTree> map, boolean z) {
-		initEnv();
-		ProjectEnvironment.fillFileEntry(this.projectEnvironments, model, fileEntry);
 		
 		SyntaxTreeStyles makeSyntaxTreeStyles = this.model.U2.makeSyntaxTreeStyles();
 		SyntaxTreeStyles makeSyntaxTreeStyles2 = this.model.U2.makeSyntaxTreeStyles();
+		// parser
 		this.javaLexer.Zo(fileEntry, reader, z && map.containsKey(this.javaLanguage), z && map.containsKey(this.jsharpCommentsLanguage), map.containsKey(this.javaLanguage), map.containsKey(this.jsharpCommentsLanguage), makeSyntaxTreeStyles, makeSyntaxTreeStyles2);
+		
 		if (map.containsKey(this.javaLanguage)) {
 			this.javaParser.init(makeSyntaxTreeStyles, fileEntry, z, map.get(this.javaLanguage));
 		}
+		
+		// parser
 		this.model.U2.DW(makeSyntaxTreeStyles);
 		if (map.containsKey(this.jsharpCommentsLanguage)) {
 			this.jSharpCommentsParser.j6(makeSyntaxTreeStyles2, fileEntry, z, map.get(this.jsharpCommentsLanguage));
 		}
+		
+		// 回收语法树
 		this.model.U2.DW(makeSyntaxTreeStyles2);
-
+		
+		initEnv();
+		// ProjectEnvironment.fillFileEntry(this.projectEnvironments, model, fileEntry);
+		
     }
 
     @Override
@@ -155,7 +164,9 @@ public class JavaCodeModelPro implements CodeModel {
 
     @Override
     public void update() {
-		this.javaCompiler.createClassWriter();
+		if( this.javaCompiler instanceof JavaCompiler){
+			((JavaCompiler)this.javaCompiler).createClassWriter();
+		}
     }
 	
 	

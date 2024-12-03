@@ -16,7 +16,7 @@ public class JavaLanguagePro extends JavaLanguage {
 	}
 
 	JavaCodeAnalyzer eclipseJavaCodeAnalyzer;
-	
+
 	JavaCodeModelPro javaCodeModelPro;
 	public JavaLanguagePro(Model model, JavaCodeModelPro javaCodeModelPro) {
 		super(model);
@@ -25,12 +25,12 @@ public class JavaLanguagePro extends JavaLanguage {
 			return;
 		}
 		this.eclipseJavaCodeAnalyzer = 
-		//*
-		new EclipseJavaCodeAnalyzer(model, this);
+			//*
+			new EclipseJavaCodeAnalyzer2(javaCodeModelPro, model, this);
 		/*/
-		new JavaCodeAnalyzer(model, this);
-		//*/
-		
+		 new JavaCodeAnalyzer(model, this);
+		 //*/
+
 		this.javaSyntax = new JavaSyntax(model.identifierSpace);
 		this.javaSignatureAnalyzer = new JavaSignatureAnalyzer(model, this);
 	}
@@ -50,5 +50,5 @@ public class JavaLanguagePro extends JavaLanguage {
 		return this.javaSyntax;
 	}
 
-	
+
 }

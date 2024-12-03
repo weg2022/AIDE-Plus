@@ -58,6 +58,8 @@ public class ZeroAicyMainActivity extends MainActivity {
 
 	private static final String TAG_15955545567 = "ZeroAicyMainActivity";
 
+	private static final String TAG = "ZeroAicyMainActivity";
+	
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -73,6 +75,21 @@ public class ZeroAicyMainActivity extends MainActivity {
 			// 检查并申请管理外部储存权限
 			showRequestManageExternalStorage();
 		}
+	}
+
+	@Override
+	public void BT() {
+		// 若没有需要保存的文件
+		// 则 finish()
+		super.BT();
+	}
+	
+	@Override
+	public void finish() {
+		super.finish();
+		// 强制退出，防止ServiceContainer::shutdown()与异步导致的错误
+		System.exit(0);
+		android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	/**
@@ -303,11 +320,6 @@ public class ZeroAicyMainActivity extends MainActivity {
 	}
 
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
-	}
-
-	@Override
 	public void setHasEmbeddedTabs() {
 		//ServiceContainer.Mz() && AndroidHelper.u7(this) <= 610.0f
 		AndroidHelper.setActionBarHasEmbeddedTabs(this, ZeroAicySetting.enableActionBarSpinner() 
@@ -382,10 +394,11 @@ public class ZeroAicyMainActivity extends MainActivity {
 			&& !suffixName.equals("class") 
 			&& !suffixName.equals("xml") 
 			&& !suffixName.equals("svg") 
+		
 			&& mimeTypeFromExtension != null 
 			&& !mimeTypeFromExtension.startsWith("text")) {
 
-			if (Build.VERSION.SDK_INT < 24) {
+			if (Build.VERSION.SDK_INT >= 24) {
 				Intent intent = new Intent();
 				intent.setAction("android.intent.action.VIEW");
 				intent.setDataAndType(Uri.fromFile(new File(str)), mimeTypeFromExtension);
@@ -407,8 +420,13 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (FileSystem.isEmptyFile(str)) {
 			return;
 		}
+		
+		AppLog.d(TAG, "openFile this %s", this);
+		AppLog.d(TAG, "ServiceContainer isShutdowned %s", String.valueOf(ServiceContainer.isShutdowned()));
+		
 		aq(new FileSpan(str, 1, 1, 1, 1));
 		ServiceContainer.getProjectService().openFile(str);
+
 
     }
 
