@@ -4,11 +4,17 @@
 package io.github.zeroaicy.aide.extend;
 
 
+import abcd.q2;
+import abcd.x2;
+import abcd.y2;
 import android.app.Activity;
 import android.os.Parcel;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import androidx.annotation.Keep;
+import com.aide.codemodel.AIDEModel;
+import com.aide.codemodel.ZeroAicyModel;
+import com.aide.codemodel.api.BomReaderFactory;
 import com.aide.codemodel.api.Entity;
 import com.aide.codemodel.api.EntitySpace;
 import com.aide.codemodel.api.Member;
@@ -19,6 +25,18 @@ import com.aide.codemodel.api.Type;
 import com.aide.codemodel.api.abstraction.CodeModel;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.abstraction.Syntax;
+import com.aide.codemodel.api.callback.APISearcherCallback;
+import com.aide.codemodel.api.callback.CodeCompleterCallback;
+import com.aide.codemodel.api.callback.CodeMetricsCallback;
+import com.aide.codemodel.api.callback.DebugMetadataCallback;
+import com.aide.codemodel.api.callback.HighlighterCallback;
+import com.aide.codemodel.api.callback.OpenFileCallback;
+import com.aide.codemodel.api.callback.RefactoringCallback;
+import com.aide.codemodel.api.callback.StopCallback;
+import com.aide.codemodel.api.callback.StructureCallback;
+import com.aide.codemodel.api.callback.SymbolSearcherCallback;
+import com.aide.codemodel.api.callback.TemplateEvaluatorCallback;
+import com.aide.codemodel.api.callback.UsageSearcherCallback;
 import com.aide.codemodel.api.excpetions.UnknownEntityException;
 import com.aide.codemodel.api.util.SyntaxTreeUtils;
 import com.aide.codemodel.language.classfile.ClassFilePreProcessor;
@@ -47,6 +65,8 @@ import com.aide.ui.project.NativeExecutableProjectSupport;
 import com.aide.ui.project.PhonegapProjectSupport;
 import com.aide.ui.project.WebsiteProjectSupport;
 import com.aide.ui.project.internal.GradleTools;
+import com.aide.ui.scm.ExternalGitService;
+import com.aide.ui.scm.GitStatus;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ProjectSupport;
 import com.aide.ui.services.TrainerService;
@@ -54,10 +74,12 @@ import com.aide.ui.services.ZeroAicyProjectService;
 import com.aide.ui.services.ZeroAicyTrainerService;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.activity.ZeroAicyCommitActivity;
 import io.github.zeroaicy.aide.activity.ZeroAicyMainActivity;
 import io.github.zeroaicy.aide.codemodel.language.ZeroAicyXmlTools;
 import io.github.zeroaicy.aide.completion.EditorCompletionAdapter;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.aide.scm.ZeroAicyExternalGitService;
 import io.github.zeroaicy.aide.services.ZeroAicyCodeAnalysisEngineService;
 import io.github.zeroaicy.aide.services.ZeroAicyExternalPackagingService;
 import io.github.zeroaicy.aide.ui.project.ZeroAicyAndroidProjectSupport;
@@ -75,10 +97,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import com.aide.ui.scm.GitStatus;
-import io.github.zeroaicy.aide.activity.ZeroAicyCommitActivity;
-import com.aide.ui.scm.ExternalGitService;
-import io.github.zeroaicy.aide.scm.ZeroAicyExternalGitService;
 
 /**
  * 1.aapt2
@@ -96,11 +114,11 @@ public class ZeroAicyExtensionInterface {
 	 * 编译器编译完成
 	 */
 	@Keep
-	public static void completed(Model model) {
-		if (model == null) {
+	public static void completed( Model model ) {
+		if ( model == null ) {
 			return;
 		}
-		for (CodeModel codeModel : model.getCodeModels()) {
+		for ( CodeModel codeModel : model.getCodeModels() ) {
 			try {
 				codeModel.getCodeCompiler().completed();
 			}
@@ -110,7 +128,7 @@ public class ZeroAicyExtensionInterface {
 	}
 
 	// 预扩展 由CodeModelFactory调用 采用[源码覆盖模式]
-	public static void createCodeModels(Model model, List<String> codeModelNames, List<CodeModel> codeModels) {
+	public static void createCodeModels( Model model, List<String> codeModelNames, List<CodeModel> codeModels ) {
 		// AIDE是根据 codeModelNames来选择是否添加 CodeModel
 		// codeModelNames来源之一 ServiceContainer.Hw()
 		// 但我不遵守😕😕😕，即表示所有项目都会支持添加的CodeModel
@@ -121,15 +139,22 @@ public class ZeroAicyExtensionInterface {
 		codeModels.add(new KotlinCodeModel(model));
 
 		//* 覆盖JavaCodeModel
-		if (ContextUtil.getPackageName().endsWith("debug")) {
+		if ( ContextUtil.getPackageName().endsWith("debug")
+			|| ZeroAicySetting.isEnableEclipseCompilerForJava() ) {
 			// 只在共存版生效
-			if (codeModels.get(0) instanceof JavaCodeModel) {
+			if ( codeModels.get(0) instanceof JavaCodeModel ) {
+				// 替换JavaCodeModel实现
+				AppLog.d("启用EclipseCompilerForJava");
 				codeModels.set(0, new JavaCodeModelPro(model));
 			}
 		}
 		//*/
 	}
 
+	public static AIDEModel createAIDEModel( OpenFileCallback openFileCallback, StopCallback stopCallback, StructureCallback structureCallback, HighlighterCallback highlighterCallback, SymbolSearcherCallback symbolSearcherCallback, CodeCompleterCallback codeCompleterCallback, RefactoringCallback refactoringCallback, UsageSearcherCallback usageSearcherCallback, CodeMetricsCallback codeMetricsCallback, APISearcherCallback aPISearcherCallback, DebugMetadataCallback debugMetadataCallback, TemplateEvaluatorCallback templateEvaluatorCallback, y2 y2Var, q2 q2Var, x2 x2Var, BomReaderFactory bomReaderFactory ) {
+        return new ZeroAicyModel(openFileCallback, stopCallback, structureCallback, highlighterCallback, symbolSearcherCallback, codeCompleterCallback, refactoringCallback, usageSearcherCallback, codeMetricsCallback, aPISearcherCallback, debugMetadataCallback, templateEvaluatorCallback, y2Var, q2Var, x2Var, bomReaderFactory);
+	}
+	
 	/**
 	 * AIDE AIDL容易崩 所以需要压缩
 	 */
@@ -169,10 +194,10 @@ public class ZeroAicyExtensionInterface {
 	 return-void
 	 .end method
 	 */
-	public static void compressionParcel(Parcel parcelableParcel, Parcel dest) {
+	public static void compressionParcel( Parcel parcelableParcel, Parcel dest ) {
 		// 判断是否压缩, 数据大的强制压缩吧
 
-		if (ZeroAicySetting.getDefaultSp() == null) {
+		if ( ZeroAicySetting.getDefaultSp() == null ) {
 			ZeroAicySetting.init(ContextUtil.getContext());
 		}
 
@@ -185,7 +210,7 @@ public class ZeroAicyExtensionInterface {
 		// 压缩等级
 		int data_compression_level = Utils.parseInt(ZeroAicySetting.getDefaultSpString("data_compression_level", "9"), Deflater.DEFLATED);
 		// 规范压缩等级
-		if (data_compression_level < 0 || data_compression_level > 9) {
+		if ( data_compression_level < 0 || data_compression_level > 9 ) {
 			data_compression_level = Deflater.DEFLATED;
 		}
 
@@ -195,7 +220,7 @@ public class ZeroAicyExtensionInterface {
 		//是否压缩标识
 		dest.writeInt(compress ? 1 : 0);
 
-		if (!compress) {
+		if ( !compress ) {
 			// dest 只有数据没有 压缩标识
 			// 添加dest
 			dest.appendFrom(parcelableParcel, 0, parcelableParcel.dataSize());
@@ -255,13 +280,13 @@ public class ZeroAicyExtensionInterface {
 	 #	
 	 *
 	 */
-	public static Parcel decompressionParcel(Parcel dest) {
+	public static Parcel decompressionParcel( Parcel dest ) {
 		// dest 不仅一个Parcelable数据
 		// 所以不能修改
 		// compression标志
 		boolean compression = dest.readInt() == 1;
 
-		if (!compression) {
+		if ( !compression ) {
 			// 如果压缩时用appendFrom
 			// 啥都不用处理
 			return dest;
@@ -297,8 +322,8 @@ public class ZeroAicyExtensionInterface {
 	 #	invoke-static {p1, v0}, Lio/github/zeroaicy/aide/extend/ZeroAicyExtensionInterface;->recycleParcelableParcel(Landroid/os/Parcel;Landroid/os/Parcel;)V
 	 *
 	 */
-	public static void recycleParcelableParcel(Parcel source, Parcel parcelableParcel) {
-		if (source != parcelableParcel) {
+	public static void recycleParcelableParcel( Parcel source, Parcel parcelableParcel ) {
+		if ( source != parcelableParcel ) {
 			parcelableParcel.recycle();
 		}
 	}
@@ -306,11 +331,11 @@ public class ZeroAicyExtensionInterface {
 	 * 测试 仅在共存版会被SyntaxTree::declareAttrType()调用
 	 */
 	@Keep
-	public static void declareAttrType(SyntaxTree syntaxTree, int node, Type type) {
+	public static void declareAttrType( SyntaxTree syntaxTree, int node, Type type ) {
 
-		if (type == null) return;
+		if ( type == null ) return;
 		// 禁用
-		if (type != null) return;
+		if ( type != null ) return;
 		SyntaxTreeUtils.printlnNodeAttr(syntaxTree, "declareAttrType node ", node);
 		SyntaxTreeUtils.printNode(syntaxTree, node);
 		System.out.println(type);
@@ -328,7 +353,7 @@ public class ZeroAicyExtensionInterface {
 	 * 防止ParameterizedType被踢出泛型
 	 */
 	@Keep
-	public static Type getVarNodeAttrType(SyntaxTree syntaxTree, int varParentNode) {
+	public static Type getVarNodeAttrType( SyntaxTree syntaxTree, int varParentNode ) {
 		return SyntaxTreeUtils.getVarNodeAttrType(syntaxTree, varParentNode);
 	}
 
@@ -338,7 +363,7 @@ public class ZeroAicyExtensionInterface {
 	 * 尝试支持 var [Java]
 	 */
 	@Keep
-	public static Entity getVarAttrType(JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode) throws UnknownEntityException {
+	public static Entity getVarAttrType( JavaCodeAnalyzer.a JavaCodeAnalyzer$a, int varNode ) throws UnknownEntityException {
 		return SyntaxTreeUtils.getVarAttrType(JavaCodeAnalyzer$a, varNode);
 	}
 
@@ -347,8 +372,8 @@ public class ZeroAicyExtensionInterface {
 	 * 
 	 */
 	@Keep
-	public static boolean parserLambdaExpression(JavaParser javaParser) throws Parser.a {
-		if (! (javaParser instanceof JavaParserPro)) {
+	public static boolean parserLambdaExpression( JavaParser javaParser ) throws Parser.a {
+		if ( ! ( javaParser instanceof JavaParserPro ) ) {
 			return false;
 		}
 		JavaParserPro javaParserPro = (JavaParserPro)javaParser;
@@ -361,17 +386,17 @@ public class ZeroAicyExtensionInterface {
 	 * JavaParser::oY()I
 	 */
 	@Keep
-	public static int getModifiers(SyntaxTree syntaxTree, int nodeIndex, int flags) {
+	public static int getModifiers( SyntaxTree syntaxTree, int nodeIndex, int flags ) {
 		// 显示声明 abstract 或 static，添加 public 就行
-		if ((flags & 0x4000) != 0 
-			|| (flags & 0x40) != 0) {
+		if ( ( flags & 0x4000 ) != 0 
+			|| ( flags & 0x40 ) != 0 ) {
 			return flags |= 0x1;
 		}
 		// 处理源码的接口默认方法
 		Language language = syntaxTree.getLanguage();
 		// 非class 且 非default或非static时才添加抽象标志
-		if (! (language instanceof JavaBinaryLanguage)
-			&& !SyntaxTreeUtils.isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0))) {
+		if ( ! ( language instanceof JavaBinaryLanguage )
+			&& !SyntaxTreeUtils.isNoInterfaceAbstractMethod(syntaxTree, syntaxTree.getChildNode(nodeIndex, 0)) ) {
 			// 非 default || 非static 才 |= 0x4000
 			return flags |= 0x4001;
 		}
@@ -387,7 +412,7 @@ public class ZeroAicyExtensionInterface {
 	 * 此时Member已填充完成，Member:isAbstract()可用
 	 */
 	@Keep
-	public static boolean isInterfaceAbstractMethod(EntitySpace entitySpace, SyntaxTree syntaxTree, int nodeIndex) {
+	public static boolean isInterfaceAbstractMethod( EntitySpace entitySpace, SyntaxTree syntaxTree, int nodeIndex ) {
 		// code 分析器 
 		Member method = entitySpace.getMember(syntaxTree.getFile(), syntaxTree.getLanguage(), syntaxTree.getDeclarationNumber(nodeIndex));
 		// 此方法没有 abstract
@@ -399,10 +424,10 @@ public class ZeroAicyExtensionInterface {
 	 * 重定义Apk构建路径
 	 *
 	 */
-	public static String getApkBuildPath(String projectPath) {
-		if (ZeroAicySetting.isEnableAdjustApkBuildPath()) {
+	public static String getApkBuildPath( String projectPath ) {
+		if ( ZeroAicySetting.isEnableAdjustApkBuildPath() ) {
 			String currentAppHome = ServiceContainer.getProjectService().getCurrentAppHome();
-			if (currentAppHome != null) {
+			if ( currentAppHome != null ) {
 				return GradleTools.getBinPath(currentAppHome) + "/" + FileSystem.getName(projectPath) + ".apk";
 			}
 		}
@@ -412,68 +437,68 @@ public class ZeroAicyExtensionInterface {
 	 * 返回入口Activity类
 	 * 主要是替换点击通知后的启动
 	 */
-	public static Class<? extends MainActivity> getLaunchActivityClass() {
+	public static Class<? extends MainActivity> getLaunchActivityClass( ) {
 		return ZeroAicyMainActivity.class;
 	}
 	/**
 	 * 替换CodeAnalysisEngineService实现
 	 */
-	public static Class<? extends CodeAnalysisEngineService> getCodeAnalysisEngineServiceClass() {
+	public static Class<? extends CodeAnalysisEngineService> getCodeAnalysisEngineServiceClass( ) {
 		return ZeroAicyCodeAnalysisEngineService.class;
 	}
 
 	//打包服务替换
-	public static Class<?extends ExternalPackagingService> getExternalPackagingServiceClass() {
+	public static Class<?extends ExternalPackagingService> getExternalPackagingServiceClass( ) {
 		return ZeroAicyExternalPackagingService.class;
 	}
-	
+
 	/**
 	 * 替换 ExternalGitService服务
 	 */
-	public static Class<?extends ExternalGitService> getExternalGitService() {
+	public static Class<?extends ExternalGitService> getExternalGitService( ) {
 		return ZeroAicyExternalGitService.class;
 	}
 
 	//替换ClassFilePreProcessor实现
 	@Keep
-	public static ClassFilePreProcessor getClassFilePreProcessor() {
+	public static ClassFilePreProcessor getClassFilePreProcessor( ) {
 		return ZeroAicyClassFilePreProcessor.getSingleton();
 	}
 	//拦截类默认接口方法
 	@Deprecated
 	@Keep
-	public static boolean isDefaultMethod(String methodSignature) {
+	public static boolean isDefaultMethod( String methodSignature ) {
 		return false; //ZeroAicyClassFilePreProcessor.isDefaultMethod(methodSignature);
 	}
 
 	//替换默认安装，true则拦截，false则不拦截
 	@Keep
-	public static boolean instalApp(final String apkFilePath) {
+	public static boolean instalApp( final String apkFilePath ) {
 		return DistributeEvents.instalApp(apkFilePath);
 	}
 
 	//在Java项目中解除android.jar限制
 	@Keep
-	public static boolean isEnableAndroidApi() {
+	public static boolean isEnableAndroidApi( ) {
 		return ZeroAicySetting.isEnableAndroidApi();
 	}
 
 	@Keep
-	public static boolean isEnableADRT() {
+	public static boolean isEnableADRT( ) {
 		return ZeroAicySetting.enableADRT();
 	}
 	/*
 	 * 控制台是否启用分屏
 	 */
 	@Keep
-	public static boolean isEnableSplitScreenConsole() {
+	public static boolean isEnableSplitScreenConsole( ) {
 		return false;
 	}
 	/**
 	 * 修改maven默认下载路径
 	 */
 	@Keep
-	public static String getUserM2Repositories() {
+	public static String getUserM2Repositories( ) {
 		return ZeroAicySetting.getDefaultSpString("user_m2repositories", null);
 	}
 
@@ -481,12 +506,12 @@ public class ZeroAicyExtensionInterface {
 	 * 替换BuildGradle解析实现
 	 */
 	@Keep
-	public static BuildGradle getBuildGradle() {
+	public static BuildGradle getBuildGradle( ) {
 		return ZeroAicyBuildGradle.getSingleton();
 	}
 
 	@Keep
-	public static ProjectService getProjectService() {
+	public static ProjectService getProjectService( ) {
 		return ZeroAicyProjectService.getSingleton();
 	}
 
@@ -494,7 +519,7 @@ public class ZeroAicyExtensionInterface {
 	 * 项目服务运行的线程服务
 	 */
 	@Keep
-	public static ExecutorService getProjectExecutorService() {
+	public static ExecutorService getProjectExecutorService( ) {
 		return ZeroAicyProjectService.getProjectServiceExecutorService();
 	}
 
@@ -502,7 +527,7 @@ public class ZeroAicyExtensionInterface {
 	 * 优化冷启动
 	 */
 	@Keep
-	public static TrainerService getTrainerService() {
+	public static TrainerService getTrainerService( ) {
 		return ZeroAicyTrainerService.getSingleton();
 	}
 
@@ -510,13 +535,13 @@ public class ZeroAicyExtensionInterface {
 	 * 实现渠道包添加额外依赖
 	 * configuration.dependencies -> getFlavorDependencies
 	 */
-	public static List<BuildGradle.Dependency> getFlavorDependencies(BuildGradle buildGradle) {
-		if (buildGradle == null) {
+	public static List<BuildGradle.Dependency> getFlavorDependencies( BuildGradle buildGradle ) {
+		if ( buildGradle == null ) {
 			return Collections.emptyList();
 		}
 
 		List<BuildGradle.Dependency> defaultDependencies = buildGradle.dependencies;
-		if (!(buildGradle instanceof ZeroAicyBuildGradle)) {
+		if ( !( buildGradle instanceof ZeroAicyBuildGradle ) ) {
 			return defaultDependencies;
 		}
 
@@ -524,12 +549,12 @@ public class ZeroAicyExtensionInterface {
 		String buildVariant = ServiceContainer.getProjectService().getFlavor();
 
 		//Log.d("getFlavorDependencies", "buildVariant", buildVariant);
-		if (TextUtils.isEmpty(buildVariant)) {
+		if ( TextUtils.isEmpty(buildVariant) ) {
 			return defaultDependencies;
 		}
 
-		List<BuildGradle.Dependency> flavorDependencies = ((ZeroAicyBuildGradle)buildGradle).getFlavorDependencies(buildVariant);
-		if (flavorDependencies.isEmpty()) {
+		List<BuildGradle.Dependency> flavorDependencies = ( (ZeroAicyBuildGradle)buildGradle ).getFlavorDependencies(buildVariant);
+		if ( flavorDependencies.isEmpty() ) {
 			return defaultDependencies;			
 		}
 		// 合并 flavorDependencies与defaultDependencies
@@ -541,13 +566,13 @@ public class ZeroAicyExtensionInterface {
 	}
 
 	// 用于修复MessageBox::gW()可能在子线程运行的情况
-	public static void showDialogMessageBox(final Activity activity, final int id) {
-		if (activity == null) return;
+	public static void showDialogMessageBox( final Activity activity, final int id ) {
+		if ( activity == null ) return;
 		//保证在主线程调用
 		activity.runOnUiThread(new Runnable(){
 				@Override
-				public void run() {
-					if( !activity.isFinishing()){
+				public void run( ) {
+					if ( !activity.isFinishing() ) {
 						activity.showDialog(id);						
 					}
 				}
@@ -556,8 +581,8 @@ public class ZeroAicyExtensionInterface {
 	/**
 	 * 修复更新弹窗
 	 */
-	public static String repairWhatsNewDialog(String appId) {
-		if (ServiceContainer.appId.equals(appId)) {
+	public static String repairWhatsNewDialog( String appId ) {
+		if ( ServiceContainer.appId.equals(appId) ) {
 			return ContextUtil.getPackageName();
 		}
 		return appId;
@@ -566,7 +591,7 @@ public class ZeroAicyExtensionInterface {
 	 * Lcom/aide/engine/Engine$c;->Ws
 	 */
 	@Keep
-	public static SyntaxStyleType getSyntaxStyleType(Syntax syntax, int syntaxTag) {
+	public static SyntaxStyleType getSyntaxStyleType( Syntax syntax, int syntaxTag ) {
         try {
 			/*
 			 if ( syntax.isOperator(syntaxTag) ){
@@ -610,7 +635,7 @@ public class ZeroAicyExtensionInterface {
     }
 
 	@Keep
-	public static ProjectSupport[] getProjectSupports() {
+	public static ProjectSupport[] getProjectSupports( ) {
 		return 
 			new ProjectSupport[]{
 			new JavaGradleProjectSupport(),
@@ -621,28 +646,28 @@ public class ZeroAicyExtensionInterface {
 			new NativeExecutableProjectSupport(),
 			new JavaScriptProjectSupport()};
 	}
-	
+
 	/**
 	 *  Tools必然重构 符号更换底包是麻烦
 	 */
 	@Keep
-	public static XmlTools getXmlTools(Model model, XmlLanguage xmlLanguage, boolean p) {
+	public static XmlTools getXmlTools( Model model, XmlLanguage xmlLanguage, boolean p ) {
 		return new ZeroAicyXmlTools(model, xmlLanguage, p);
 	}
-	
+
 	/**
 	 * 必须返回 ArrayAdapter
 	 */
 	@Keep
-	public static ArrayAdapter getEditorCompletionAdapter(AIDEEditor aideEditor, List<SourceEntity> sourceEntitys){
+	public static ArrayAdapter getEditorCompletionAdapter( AIDEEditor aideEditor, List<SourceEntity> sourceEntitys ) {
 		return new EditorCompletionAdapter(aideEditor, sourceEntitys);
 	}
-	
+
 	/**
 	 * 必须返回 替换 CommitActivity实现
 	 */
 	@Keep
-	public static void startCommitActivity(Activity activity, GitStatus gitStatus, String gitBranch) {
+	public static void startCommitActivity( Activity activity, GitStatus gitStatus, String gitBranch ) {
 		ZeroAicyCommitActivity.startCommitActivity(activity, gitStatus, gitBranch);
 	}
 }

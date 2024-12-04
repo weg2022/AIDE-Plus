@@ -186,6 +186,16 @@
 			android:key="test_zero_aicy_enable_custom_apkssign"
 			android:dependency="test_zero_aicy_enable_build_aab_apks"
 			android:defaultValue="false" />
+		<PreferenceCategory android:title="编译器实现">
+
+			<SwitchPreference
+				android:title="启用EclipseCompilerForJava[ecj]"
+				android:summary="支持Java23[重启生效]，仅支持代码分析与编译，代码导航等仍是Java6"
+				android:key="test_zero_aicy_enable_eclipse_compiler_for_java"
+				android:defaultValue="false" />
+			
+		</PreferenceCategory>
+		
     </PreferenceScreen>
 
 </PreferenceScreen>

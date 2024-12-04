@@ -126,7 +126,7 @@ public class EclipseJavaCodeCompiler implements CodeCompiler {
 
 	private void compile(SyntaxTree syntaxTree) {
 		try {
-			AppLog.println_d("compile2()");
+			// AppLog.println_d("compile2()");
 			
 			FileEntry fileEntry = syntaxTree.getFile();
 			int assemblyId = fileSpace.getAssembly(fileEntry);

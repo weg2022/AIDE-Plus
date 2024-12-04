@@ -21,9 +21,7 @@ import io.github.zeroaicy.util.crash.CrashApphandler;
 import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import android.content.pm.PackageManager.NameNotFoundException;
 
-@SuppressWarnings("all")
 public class ZeroAicyAIDEApplication extends AIDEApplication {
 
 	public static final String TAG = "ZeroAicyAIDEApplication 88";

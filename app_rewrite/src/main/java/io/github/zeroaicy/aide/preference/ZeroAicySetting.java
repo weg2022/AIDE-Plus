@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ZeroAicySetting {
-
+	
 	private static SharedPreferences defaultSp;
 	public static SharedPreferences projectServiceSharedPreferences;
 	private static final Map<String, String> gradleCmdLineMap = new LinkedHashMap<String, String>();
@@ -202,7 +202,10 @@ public class ZeroAicySetting {
 	public static boolean isViewBindingAndroidX( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_view_binding_use_androidx", true);
 	}
-
+	public static boolean isEnableEclipseCompilerForJava(){
+		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_eclipse_compiler_for_java", false);
+	}
+	
 	public static String getCurrentAppHome( ) {
 		return getProjectService().getString("CurrentAppHome", null);
 	}

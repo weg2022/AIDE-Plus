@@ -16,8 +16,12 @@ import com.aide.codemodel.api.callback.StructureCallback;
 import com.aide.codemodel.api.callback.SymbolSearcherCallback;
 import com.aide.codemodel.api.callback.TemplateEvaluatorCallback;
 import com.aide.codemodel.api.callback.UsageSearcherCallback;
+import com.aide.codemodel.api.abstraction.CodeModel;
+import com.aide.codemodel.language.java.JavaCodeModelPro;
+import com.aide.engine.EngineSolution;
 
 public class ZeroAicyModel extends AIDEModel {
+
 	public ZeroAicyModel(
 		OpenFileCallback openFileCallback, 
 		StopCallback stopCallback, 
@@ -30,7 +34,7 @@ public class ZeroAicyModel extends AIDEModel {
 		CodeMetricsCallback codeMetricsCallback, 
 		APISearcherCallback aPISearcherCallback, 
 		DebugMetadataCallback debugMetadataCallback, 
-		TemplateEvaluatorCallback templateEvaluatorCallback, y2 y2Var, q2 q2Var, x2 x2Var, BomReaderFactory bomReaderFactory) {
+		TemplateEvaluatorCallback templateEvaluatorCallback, y2 y2Var, q2 q2Var, x2 x2Var, BomReaderFactory bomReaderFactory ) {
 		//super(structureCallback, highlighterCallback,);
 		// ReflectPie.on(this).set("errorTable", new ErrorTablePro(this));
 
@@ -38,13 +42,22 @@ public class ZeroAicyModel extends AIDEModel {
 
 	}
 
-	
+
 	// configure
 	@Override
-	public void J0() {
+	public void J0( ) {
+		for ( CodeModel codeModel : getCodeModels() ) {
+			if ( codeModel instanceof JavaCodeModelPro ) {
+				JavaCodeModelPro javaCodeModelPro = (JavaCodeModelPro)codeModel;
+				javaCodeModelPro.reset();
+			}
+		}
 		super.J0();
+	}
+
+	@Override
+	public void setEngineSolution( EngineSolution engineSolution ) {
+		super.setEngineSolution(engineSolution);
 		
 	}
-	
-	
 }
