@@ -16,6 +16,7 @@ package org.eclipse.jdt.internal.compiler.util;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,7 +38,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ClassFile;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -447,9 +447,29 @@ public class Util implements SuffixConstants {
 	 * @throws IOException if a problem occurred reading the stream.
 	 */
 	public static byte[] getInputStreamAsByteArray(InputStream input) throws IOException {
-		return input.readAllBytes(); // will have even slighly better performance as of JDK17+ see JDK-8264777
+		return readAllBytes(input, false); // will have even slighly better performance as of JDK17+ see JDK-8264777
 	}
-
+	public static byte[] readAllBytes(InputStream inputStream) throws IOException {
+		return readAllBytes(inputStream, true);
+	}
+	public static byte[] readAllBytes(InputStream inputStream, boolean autoClose) throws IOException {
+		try {
+			byte[] data = new byte[4096];
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			int count;
+			while ((count = inputStream.read(data)) > 0) {
+				baos.write(data, 0, count);
+			}
+			byte[] readAllBytes = baos.toByteArray();
+			baos.close();
+			return readAllBytes;
+		}
+		finally {
+			if (autoClose) {
+				inputStream.close();
+			}
+		}
+	}
 
 	/**
 	 * Returns the given input stream's first bytes as array.
