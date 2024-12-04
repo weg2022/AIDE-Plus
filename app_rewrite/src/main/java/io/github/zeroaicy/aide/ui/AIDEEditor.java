@@ -1,34 +1,28 @@
 package io.github.zeroaicy.aide.ui;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
+import com.aide.common.AndroidHelper;
+import com.aide.common.AppLog;
 import com.aide.engine.OpenFile;
-import com.aide.engine.SyntaxStyleType;
+import com.aide.ui.AppPreferences;
 import com.aide.ui.ServiceContainer;
+import com.aide.ui.rewrite.R;
 import com.aide.ui.services.EngineService;
 import com.aide.ui.services.OpenFileService;
 import com.aide.ui.util.FileSystem;
 import com.aide.ui.views.CodeEditText;
+import com.aide.ui.views.editor.Color;
 import com.aide.ui.views.editor.EditorModel;
 import com.aide.ui.views.editor.EditorModelKt;
 import com.aide.ui.views.editor.TextBuffer;
-import com.aide.ui.views.editor.TextStyle;
 import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import io.github.zeroaicy.util.IOUtils;
-import io.github.zeroaicy.util.Log;
 import java.io.Reader;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicBoolean;
-import android.graphics.Typeface;
-import com.aide.ui.AppPreferences;
-import com.aide.common.AndroidHelper;
-import com.aide.ui.views.editor.Color;
-import com.aide.ui.rewrite.R;
-import io.github.zeroaicy.aide.highlight.ColorKind;
-import android.graphics.Canvas;
-import com.aide.common.AppLog;
 import java.util.concurrent.ExecutorService;
-import android.widget.LinearLayout;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AIDEEditor extends com.aide.ui.AIDEEditor {
 

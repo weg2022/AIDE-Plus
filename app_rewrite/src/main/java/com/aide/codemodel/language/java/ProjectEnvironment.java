@@ -18,8 +18,10 @@ import com.aide.engine.EngineSolutionProject;
 import com.aide.ui.services.AssetInstallationService;
 import io.github.zeroaicy.util.IOUtils;
 import io.github.zeroaicy.util.reflect.ReflectPie;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +44,6 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 
 /**
  * 使用 Eclipse JDT Compiler 进行增量语义分析
@@ -342,7 +343,7 @@ public class ProjectEnvironment {
 		this.resolver.lookupEnvironment.reset();
 
 		String pathString = fileEntry.getPathString();
-		
+
 		char[] data;
 		try {
 			data = IOUtils.readAllChars(fileEntry.getReader(), true);
@@ -426,11 +427,11 @@ public class ProjectEnvironment {
 			if ( problem.isError() ) {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 错误文件(" + syntaxTree.getFile().getPathString() + ")");
 				hasError = true;
-				errorTable.Hw(syntaxTree.getFile(), syntaxTree.getLanguage(), line, column, line, endColumn, msg, 20);
+				errorTable.Hw(fileEntry, syntaxTree.getLanguage(), line, column, line, endColumn, msg, 20);
 			} else {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
 				// 添加警告⚠️
-				errorTable.lg(syntaxTree.getFile(), syntaxTree.getLanguage(), line, column, line, endColumn, msg, 49);
+				errorTable.lg(fileEntry, syntaxTree.getLanguage(), line, column, line, endColumn, msg, 49);
 				// System.out.println("warning: "  + msg + " -> " + String.valueOf(problem.getOriginatingFileName()));
 			}
 
@@ -438,28 +439,62 @@ public class ProjectEnvironment {
 
 		if ( !hasError ) {
 			ClassFile[] classFiles = result.compilationResult.getClassFiles();
-			writeClassFilesToDisk(classFiles, this.getReleaseOutputPath());
+			writeClassFilesToDisk(fileEntry, classFiles, this.getReleaseOutputPath());
 		}
 
 	}
 
-	private void writeClassFilesToDisk( ClassFile[] classFiles, String currentDestinationPath ) throws IOException, IOException {
-		boolean generateClasspathStructure = true;
+	private void writeClassFilesToDisk( FileEntry fileEntry, ClassFile[] classFiles, String currentDestinationPath ) throws IOException, IOException {
 
 		for ( ClassFile classFile : classFiles ) {
+			
 			char[] filename = classFile.fileName();
-			int length = filename.length;
-			char[] relativeName = new char[length + 6];
-			System.arraycopy(filename, 0, relativeName, 0, length);
-			System.arraycopy(SuffixConstants.SUFFIX_class, 0, relativeName, length, 6);
-			CharOperation.replace(relativeName, '/', File.separatorChar);
-			String relativeStringName = new String(relativeName);
 
-			org.eclipse.jdt.internal.compiler.util.Util.writeToDisk(
-				generateClasspathStructure,
-				currentDestinationPath,
-				relativeStringName,
-				classFile);
+			String packageName;
+			String className = new String(filename);
+			int indexOfPackageEnd = className.lastIndexOf('/');
+			if ( indexOfPackageEnd >= 0 ) {
+				// 包含 /
+				packageName = className.substring(0, indexOfPackageEnd + 1);
+				className = className.substring(indexOfPackageEnd + 1);
+			} else {
+				packageName = "";
+			}
+
+			OutputStream file = this.model.j3.nw(fileEntry, packageName, className, true, false);
+
+			BufferedOutputStream output = null;
+			try {
+				output = new BufferedOutputStream(file, 1024);
+				// if no IOException occured, output cannot be null
+				output.write(classFile.header, 0, classFile.headerOffset);
+				output.write(classFile.contents, 0, classFile.contentsOffset);
+				output.flush();
+			}
+			catch (Throwable e) {
+				throw e;
+			}finally{
+				IOUtils.close(output);
+			}
+
+			/*
+			 char[] filename = classFile.fileName();
+			 int length = filename.length;
+
+			 char[] relativeName = new char[length + 6];
+			 System.arraycopy(filename, 0, relativeName, 0, length);
+			 System.arraycopy(SuffixConstants.SUFFIX_class, 0, relativeName, length, 6);
+			 CharOperation.replace(relativeName, '/', File.separatorChar);
+
+			 String relativeStringName = new String(relativeName);
+
+
+			 org.eclipse.jdt.internal.compiler.util.Util.writeToDisk(
+			 generateClasspathStructure,
+			 currentDestinationPath,
+			 relativeStringName,
+			 classFile);
+			 */
 		}
 	}
 

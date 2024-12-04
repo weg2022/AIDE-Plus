@@ -1,20 +1,21 @@
 package io.github.zeroaicy.aide.completion;
-import io.github.zeroaicy.aide.aaptcompiler.ApiVersionsUtils;
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import com.aide.ui.util.FileSystem;
+
+
 import android.content.Context;
-import java.io.IOException;
-import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
+import com.aide.common.AppLog;
+import com.aide.ui.util.FileSystem;
+import io.github.zeroaicy.aide.aaptcompiler.ApiVersionsUtils;
+import io.github.zeroaicy.aide.aaptcompiler.impl.versions.DefaultClassInfo;
 import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.ApiVersions;
 import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.ClassInfo;
 import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.FieldInfo;
-import io.github.zeroaicy.aide.aaptcompiler.impl.versions.DefaultClassInfo;
-import io.github.zeroaicy.aide.aaptcompiler.utils.jdt.core.Signature;
 import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.MethodInfo;
+import io.github.zeroaicy.aide.aaptcompiler.utils.jdt.core.Signature;
+import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import com.aide.common.AppLog;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ApiVersionCompletion {
 
@@ -24,7 +25,7 @@ public class ApiVersionCompletion {
 	// 主线程只读
 
 	private static ApiVersions apiVersions;
-
+	
 	public static synchronized void preLoad(final Context context) {
 
 		if (!inited.compareAndSet(false, true)) {
@@ -107,7 +108,8 @@ public class ApiVersionCompletion {
 			methodNameEnd == -1 ?
 			methodSignature
 			: methodSignature.substring(0, methodNameEnd);
-
+		
+		String methodSmaliSignature = methodsParamToSmali(methodSignature);
 		if (classInfo instanceof DefaultClassInfo) {
 			DefaultClassInfo defaultClassInfo = (DefaultClassInfo)classInfo;
 			List<MethodInfo> methods = defaultClassInfo.getMethods$res_parse_release().get(methodName);
@@ -118,17 +120,17 @@ public class ApiVersionCompletion {
 					if( name == null ){
 						continue;
 					}
-					if (name.startsWith(methodSignature)) {
+					if (name.startsWith(methodSmaliSignature)) {
 						methodInfo = info;
 						break;
 					}
 				}
 			}
-			
 		} else {
 			String[] parameterTypes = Signature.getParameterTypes(methodSignature);
 			methodInfo = classInfo.getMethod(methodName, parameterTypes);
 		}
+		
 		// 没有按 classInfo处理🐶
 		return new ApiVersionInfo(methodInfo, classInfo);
 

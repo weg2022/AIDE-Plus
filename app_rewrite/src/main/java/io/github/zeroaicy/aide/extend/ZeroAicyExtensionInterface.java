@@ -142,7 +142,7 @@ public class ZeroAicyExtensionInterface {
 		if ( ContextUtil.getPackageName().endsWith("debug")
 			|| ZeroAicySetting.isEnableEclipseCompilerForJava() ) {
 			// 只在共存版生效
-			if ( codeModels.get(0) instanceof JavaCodeModel ) {
+			if (model != null && codeModels.get(0) instanceof JavaCodeModel ) {
 				// 替换JavaCodeModel实现
 				AppLog.d("启用EclipseCompilerForJava");
 				codeModels.set(0, new JavaCodeModelPro(model));

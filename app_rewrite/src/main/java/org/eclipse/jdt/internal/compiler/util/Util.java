@@ -969,14 +969,17 @@ public class Util implements SuffixConstants {
 		 return;
 		 }
 		 */
-		 // BufferedOutputStream output;
-		 try (BufferedOutputStream output = new BufferedOutputStream(file, DEFAULT_WRITING_SIZE)) {
-			// if no IOException occured, output cannot be null
+		BufferedOutputStream output = null;
+		try {
+		 output = new BufferedOutputStream(file, DEFAULT_WRITING_SIZE);
+		 // if no IOException occured, output cannot be null
 			output.write(classFile.header, 0, classFile.headerOffset);
 			output.write(classFile.contents, 0, classFile.contentsOffset);
 			output.flush();
 		} catch(IOException e) {
 			throw e;
+		}finally{
+			if( output != null ) output.close();
 		}
 	}
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -1,13 +1,13 @@
 package io.github.zeroaicy.aide.completion;
+
+
 import android.content.Context;
-import android.text.TextUtils;
-import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.Info;
 import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.ClassInfo;
+import io.github.zeroaicy.aide.aaptcompiler.interfaces.versions.Info;
 
 public class ApiVersionInfo {
 
 	public static final ApiVersionInfo Empty = new ApiVersionInfo();;
-
 	Info memberInfo;
 	ClassInfo classInfo;
 
@@ -16,13 +16,13 @@ public class ApiVersionInfo {
 		this.empty = true;
 	}
 
-	public ApiVersionInfo(Info info) {
-		this(info, null);
+	public ApiVersionInfo(Info classInfo) {
+		this(classInfo, null);
 	}
 
-	public ApiVersionInfo(Info info, ClassInfo parent) {
+	public ApiVersionInfo(Info info, ClassInfo classInfo) {
 		this.memberInfo = info;
-		this.classInfo = parent;
+		this.classInfo = classInfo;
 		this.empty = false;
 	}
 
@@ -44,6 +44,7 @@ public class ApiVersionInfo {
 		}
 
 		StringBuffer sb = new StringBuffer();
+		
 		Info memberInfo = this.memberInfo;
 		Info classInfo = this.classInfo;
 

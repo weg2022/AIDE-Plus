@@ -3,29 +3,13 @@
 //
 package com.aide.engine;
 
-import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Keep;
-import androidx.preference.PreferenceManager;
-import com.aide.common.AppLog;
-import com.aide.engine.EngineSolution;
 import com.aide.ui.util.FileSystem;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
-import io.github.zeroaicy.aide.utils.Utils;
-import io.github.zeroaicy.util.ContextUtil;
-import io.github.zeroaicy.util.IOUtils;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import io.github.zeroaicy.aide.extend.ZeroAicyClassFilePreProcessor;
-import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
-import com.aide.codemodel.api.abstraction.CodeModel;
 
 @Keep
 public class EngineSolutionProject implements Parcelable {

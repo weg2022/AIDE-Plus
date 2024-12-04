@@ -29,6 +29,7 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 
+@Deprecated
 public class EclipseJavaCodeAnalyzer extends JavaCodeAnalyzer {
 
 
@@ -37,7 +38,7 @@ public class EclipseJavaCodeAnalyzer extends JavaCodeAnalyzer {
 	public void v5(SyntaxTree syntaxTree) {
 		super.v5(syntaxTree);
 
-		if (!true) return;
+		// if (!true) return;
 
 		//*
 		try {

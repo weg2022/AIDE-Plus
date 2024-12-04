@@ -11,16 +11,18 @@ import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.internal.compiler.Compiler {
 
-	public CompilationUnitDeclaration resolve9999(String pathString) {
+	public CompilationUnitDeclaration resolve9999( String pathString ) {
 		// TODO: Implement this method
 		return null;
 	}
 
 	static{
-		System.loadLibrary("EnsureCapacity");
+		if ( ZeroAicySetting.isEnableEnsureCapacity() ) 
+			System.loadLibrary("EnsureCapacity");
 	}
 
 	ProjectEnvironment projecttEnvironment;
@@ -30,7 +32,7 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 		IErrorHandlingPolicy policy,
 		CompilerOptions compilerOptions,
 		ICompilerRequestor requestor,
-		IProblemFactory problemFactory) {
+		IProblemFactory problemFactory ) {
 		super(environment, policy, compilerOptions, requestor, problemFactory);
 
 		this.projecttEnvironment = projecttEnvironment;
@@ -38,20 +40,20 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 	}
 
 
-	public CompilationUnitDeclaration resolve3(ICompilationUnit compilationunit) {
+	public CompilationUnitDeclaration resolve3( ICompilationUnit compilationunit ) {
 		CompilationUnitDeclaration unit = dietParse2(compilationunit);
 		// binding resolution
 		this.lookupEnvironment.completeTypeBindings();
-		
+
 		// resolve
 		resolve2(unit);
-		
-		
+
+
 		return unit;
 	}
-	
+
 	// 自动 buildTypeBindings
-	private CompilationUnitDeclaration dietParse2(ICompilationUnit sourceUnit) throws AbortCompilation {
+	private CompilationUnitDeclaration dietParse2( ICompilationUnit sourceUnit ) throws AbortCompilation {
 		CompilationResult unitResult = new CompilationResult(sourceUnit, 0, 1, this.options.maxProblemsPerUnit);
 		CompilationUnitDeclaration parsedUnit;
 		try {
@@ -63,20 +65,20 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 			lookupEnvironment.buildTypeBindings(parsedUnit, null);
 
 			ImportReference currentPackage = parsedUnit.currentPackage;
-			if (currentPackage != null) {
+			if ( currentPackage != null ) {
 				unitResult.recordPackageName(currentPackage.tokens);
 			}
 		}
 		catch (AbortCompilation a) {
 			// best effort to find a way for reporting this problem:
-			if (a.compilationResult == null)
+			if ( a.compilationResult == null )
 				a.compilationResult = unitResult;
 			throw a;
 		}
 		return parsedUnit;
 	}
 
-	private void resolve2(CompilationUnitDeclaration unit) {
+	private void resolve2( CompilationUnitDeclaration unit ) {
 		boolean verifyMethods = true;
 		boolean analyzeCode = true;
 		boolean generateCode = !true;
@@ -85,10 +87,10 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 
 		// 解析
 		this.parser.getMethodBodies(unit);
-		if (unit.scope != null) {
+		if ( unit.scope != null ) {
 			// fault in fields & methods
 			unit.scope.faultInTypes();
-			if (unit.scope != null && verifyMethods) {
+			if ( unit.scope != null && verifyMethods ) {
 				// http://dev.eclipse.org/bugs/show_bug.cgi?id=23117
 				// verify inherited methods
 				unit.scope.verifyMethods(this.lookupEnvironment.methodVerifier());
@@ -97,10 +99,10 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 			unit.resolve();
 
 			// flow analysis
-			if (analyzeCode) unit.analyseCode();
+			if ( analyzeCode ) unit.analyseCode();
 
 			// code generation
-			if (generateCode) unit.generateCode();
+			if ( generateCode ) unit.generateCode();
 
 			// finalize problems (suppressWarnings)
 			unit.finalizeProblems();
@@ -110,7 +112,7 @@ public class CompilationUnitDeclarationResolver2 extends org.eclipse.jdt.interna
 	}
 
 	@Override
-	public CompilationUnitDeclaration resolve(CompilationUnitDeclaration unit, ICompilationUnit sourceUnit, boolean verifyMethods, boolean analyzeCode, boolean generateCode) {
+	public CompilationUnitDeclaration resolve( CompilationUnitDeclaration unit, ICompilationUnit sourceUnit, boolean verifyMethods, boolean analyzeCode, boolean generateCode ) {
 		// TODO: Implement this method
 		return super.resolve(unit, sourceUnit, verifyMethods, analyzeCode, generateCode);
 	}
