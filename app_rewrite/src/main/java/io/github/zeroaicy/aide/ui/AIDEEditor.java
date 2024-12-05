@@ -1,11 +1,14 @@
 package io.github.zeroaicy.aide.ui;
 
+import abcd.i2;
+import abcd.jg;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import com.aide.common.AndroidHelper;
 import com.aide.common.AppLog;
 import com.aide.engine.OpenFile;
+import com.aide.engine.SyntaxError;
 import com.aide.ui.AppPreferences;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.rewrite.R;
@@ -20,6 +23,7 @@ import com.aide.ui.views.editor.TextBuffer;
 import io.github.zeroaicy.aide.ui.services.ThreadPoolService;
 import io.github.zeroaicy.util.IOUtils;
 import java.io.Reader;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -280,7 +284,7 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		protected void finalize() throws Throwable {
 			super.finalize();
 		}
-		
+
 
 		@Override
 		public int getLineCount() {
@@ -376,6 +380,32 @@ public class AIDEEditor extends com.aide.ui.AIDEEditor {
 		public void HwAsync(int p, int p1) {
 			super.Hw(p, p1);
 		}
+
+
+
+		// isWarningColor
+		@Override
+		public boolean ef(int i, int i2) {
+			jg<SyntaxError> jgVar = this.KD;
+            if (jgVar == null || !jgVar.u7(i2, i)) {
+                return false;
+            }
+			
+            Enumeration<SyntaxError> Hw = jgVar.Hw(i2, i);
+            while (Hw.hasMoreElements()) {
+                SyntaxError nextElement = Hw.nextElement();
+				// EclipseJavaCodeAnalyzer2 clearErrors 50 -> 112
+				if (nextElement.WB == 112) {
+					continue;
+				}
+				if (nextElement.Zo()) {
+                    return true;
+                }
+            }
+            return false;
+		}
+
+
 
 	}
 }

@@ -385,7 +385,7 @@ public class ProjectEnvironment {
 		return result;
 	}
 
-	public void compile( SyntaxTree syntaxTree ) throws IOException {
+	public void compile( SyntaxTree syntaxTree ) throws Throwable {
 		this.resolver.lookupEnvironment.reset();
 
 		FileEntry fileEntry = syntaxTree.getFile();
@@ -434,7 +434,6 @@ public class ProjectEnvironment {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
 				// 添加警告⚠️
 				errorTable.lg(fileEntry, syntaxTree.getLanguage(), line, column, line, endColumn, msg, 49);
-				// System.out.println("warning: "  + msg + " -> " + String.valueOf(problem.getOriginatingFileName()));
 			}
 
 		}
@@ -446,7 +445,7 @@ public class ProjectEnvironment {
 
 	}
 
-	private void writeClassFilesToDisk( FileEntry fileEntry, ClassFile[] classFiles, String currentDestinationPath ) throws IOException, IOException {
+	private void writeClassFilesToDisk( FileEntry fileEntry, ClassFile[] classFiles, String currentDestinationPath ) throws Throwable {
 
 		for ( ClassFile classFile : classFiles ) {
 			

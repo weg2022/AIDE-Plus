@@ -2,12 +2,16 @@
 package com.aide.ui.project;
 
 import abcd.xd;
+import android.widget.Toast;
 import androidx.annotation.Keep;
+import com.aide.common.AddAndroidFiles;
 import com.aide.common.AppLog;
+import com.aide.common.MessageBox;
 import com.aide.common.ValueRunnable;
 import com.aide.engine.EngineSolution;
 import com.aide.engine.EngineSolutionProject;
 import com.aide.engine.service.CodeModelFactory;
+import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.build.JavaGradleProjectBuildService;
 import com.aide.ui.project.internal.GradleTools;
@@ -15,6 +19,8 @@ import com.aide.ui.rewrite.R;
 import com.aide.ui.services.ProjectService;
 import com.aide.ui.services.ProjectSupport;
 import com.aide.ui.services.TemplateService;
+import com.aide.ui.services.TemplateService.Template;
+import com.aide.ui.services.TemplateService.TemplateGroup;
 import com.aide.ui.util.BuildGradle;
 import com.aide.ui.util.BuildGradle.Dependency;
 import com.aide.ui.util.BuildGradle.FilesDependency;
@@ -23,7 +29,6 @@ import com.aide.ui.util.ClassPath;
 import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.extend.ZeroAicyExtensionInterface;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,14 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.aide.common.AddAndroidFiles;
-import com.aide.common.MessageBox;
-import com.aide.ui.MainActivity;
-import android.widget.Toast;
-import com.aide.ui.trainer.Course;
-import com.aide.ui.services.TemplateService.TemplateGroup;
-import com.aide.ui.services.TemplateService.Template;
-import android.text.Html;
 
 /**
  * Java项目使用Gradle作为依赖管理
@@ -50,7 +47,7 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 
 	private static final String TAG = JavaGradleProjectSupport.class.getSimpleName();
 	public static String[] aj(Map<String, List<String>> map) {
-		ArrayList arrayList = new ArrayList();
+		ArrayList<String> arrayList = new ArrayList<String>();
 		for (String str2 : map.keySet()) {
 			if (!GradleTools.isAarEexplodedPath(str2)) {
 				for (ClassPath.Entry entry : getProjectClassPathEntrys(str2)) {
@@ -305,9 +302,9 @@ public class JavaGradleProjectSupport implements ProjectSupport {
 			try {
 				List<String> listFiles = FileSystem.listFiles(str);
 				Collections.sort(listFiles);
-				Iterator it2 = listFiles.iterator();
+				Iterator<String> it2 = listFiles.iterator();
 				while (it2.hasNext()) {
-					addLibFileTree((String) it2.next(), str2, list, z);
+					addLibFileTree( it2.next(), str2, list, z);
 				}
 			}
 			catch (Exception e) {

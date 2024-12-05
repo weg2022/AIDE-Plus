@@ -3,7 +3,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Parcelable;
 import android.view.MenuItem;
-import com.aide.ui.activities.CommitActivity;
 import com.aide.ui.scm.GitStatus;
 import com.aide.ui.rewrite.R;
 import android.widget.ListView;
@@ -51,7 +50,7 @@ public class ZeroAicyCommitActivity extends com.aide.ui.activities.CommitActivit
 			invalidateViews();
 			return true;
 		}
-
+		
 		return super.onOptionsItemSelected(menuItem);
 	}
 

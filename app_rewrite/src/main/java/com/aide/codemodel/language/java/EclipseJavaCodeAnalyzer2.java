@@ -9,15 +9,13 @@ import com.aide.codemodel.api.SyntaxTree;
 import com.aide.codemodel.api.abstraction.Language;
 import com.aide.codemodel.api.collections.HashtableOfInt;
 import com.aide.codemodel.api.collections.MapOfIntLong;
+import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.github.zeroaicy.util.reflect.ReflectPie;
 import java.util.Vector;
-import com.aide.codemodel.api.ErrorTable.Error;
 import com.aide.codemodel.api.ErrorTable.d;
-import com.aide.codemodel.language.java.EclipseJavaCodeAnalyzer2.ErrorInfo;
 
 public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 	JavaCodeModelPro javaCodeModel;
@@ -62,7 +60,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 		// 当前文件error count
 		FileEntry fileEntry = syntaxTree.getFile();
 		Language language = syntaxTree.getLanguage();
-		
+
 		// 根据文件版本原则更新解析
 		int fileId = fileEntry.getId();
 		// get
@@ -78,10 +76,10 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 			}
 			// ecj生成的错误信息
 			addErrorInfo(errorInfosCache, fileEntry, language);
-			
+
 			// AIDE的错误信息
 			addErrorInfo(errorInfos, fileEntry, language);
-			
+
 			return;
 		}
 
@@ -91,10 +89,10 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 		// 解析
 		ProjectEnvironment projectEnvironment = getProjectEnvironment(fileEntry);
 		projectEnvironment.resolve3(syntaxTree);
-		
+
 		// AIDE的错误信息 和 Java项目的入口类信息
 		addErrorInfo(errorInfos, fileEntry, language);
-		
+
 		// 缓存 ecj生成的错误信息
 		List<ErrorInfo> errorInfosCache = getErrorInfos(syntaxTree);
 		errorInfosMap.put(pathString, errorInfosCache);
@@ -106,7 +104,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 			// Hw会 put compileErrors里导致 编译器不调用
 			errorTable.lg(errorInfo.file, errorInfo.language, errorInfo.startLine, errorInfo.startColumn, errorInfo.endLine, errorInfo.endColumn, errorInfo.msg, errorInfo.kind);
 
-			ErrorTable.d fileEntryErrorPack = method(fileEntry, language);
+			ErrorTable.d fileEntryErrorPack = getFileEntryErrorPack(fileEntry, language);
 			if (fileEntryErrorPack == null) {
 				continue;
 			}
@@ -176,7 +174,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 
 
 	private List<ErrorInfo> clearErrors(SyntaxTree syntaxTree) {
-		
+
 		FileEntry fileEntry = syntaxTree.getFile();
 		Language language = syntaxTree.getLanguage();
 
@@ -202,13 +200,19 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 				ErrorInfo errorInfo = new ErrorInfo(fileEntry, language, startLine, startColumn, endLine, endColumn, msg);
 				errorInfos.add(errorInfo);
 			}  else {
-				ErrorInfo errorInfo = new ErrorInfo(fileEntry, language, startLine, startColumn, endLine, endColumn, msg, 49);
+				// kind == 50 会由Lcom/aide/engine/Engine$DaemonTask;::XL(I)
+				// 转为 112
+				// 49 103
+
+				ErrorInfo errorInfo = new ErrorInfo(fileEntry, language, startLine, startColumn, endLine, endColumn, msg, 50);
 				errorInfo.fixes = fixes;
 				errorInfos.add(errorInfo);
 			}
 		}
 
 		this.errorTable.clearNonParserErrors(syntaxTree.getFile(), syntaxTree.getLanguage());
+		ErrorTable.d fileEntryErrorPack = getFileEntryErrorPack(fileEntry, language);
+		if( fileEntryErrorPack != null ) fileEntryErrorPack.parseErrors.clear();
 		return errorInfos;
 
 	}
@@ -255,7 +259,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 	}
 
 	public ErrorTable.Error getError(FileEntry fileEntry, Language language, int i) {
-		ErrorTable.d d = method(fileEntry, language);
+		ErrorTable.d d = getFileEntryErrorPack(fileEntry, language);
 		int size = d.parseErrors.size();
 
 		if (i >= size) {
@@ -266,7 +270,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 		return parseErrors.elementAt(i);
     }
 
-	private ErrorTable.d method(FileEntry fileEntry, Language language) {
+	private ErrorTable.d getFileEntryErrorPack(FileEntry fileEntry, Language language) {
 		int fileEntryLanguageId = this.model.fileSpace.getFileEntryLanguageId(fileEntry, language);
 		ErrorTable.d d = this.errors.get(fileEntryLanguageId);
 		return d;
