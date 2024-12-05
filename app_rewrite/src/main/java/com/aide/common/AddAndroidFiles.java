@@ -67,7 +67,7 @@ public class AddAndroidFiles {
 							// 包名
 							String packageName = AndroidProjectSupport.Ev(projectService.getLibraryMapping(), projectService.getFlavor(), javaFileParentPath);
 							if (!TextUtils.isEmpty(packageName)) {
-								sourceContent = "package " + packageName + ";\n\n";
+								sourceContent += "package " + packageName + ";\n\n";
 							}
 
 							FileSystem.writeStringToFile(javaFilePath, sourceContent + "public class " + className + "{\n\n}");
