@@ -74,7 +74,7 @@ public class ProjectEnvironment {
 	public static FunctionOfIntInt getFileAssembles( ReflectPie fileSpaceReflect ) {
 		return fileSpaceReflect.get("fileAssembles");
 	}
-
+	
 	/*
 	 * 注册文件容器
 	 */
@@ -375,6 +375,8 @@ public class ProjectEnvironment {
 			if ( problem.isError() ) {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 错误文件(" + syntaxTree.getFile().getPathString() + ")");
 				this.errorTable.Hw(fileEntry, language, line, column, line, endColumn, msg, 20);
+				
+				
 			} else if ( problem.isWarning() ) {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
 				this.errorTable.addSemanticWarning(fileEntry, language, line, column, line, endColumn, msg, 49);
