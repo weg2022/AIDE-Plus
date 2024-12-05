@@ -134,7 +134,7 @@ public class DexingJarTask implements Callable<DexingJarTask>{
 		
 		
 		argsList.add("--globals-output");
-		argsList.add(jarLibPath + "--globals.zip");
+		argsList.add(dexCachePath + "--globals.zip");
 		//添加需要编译的jar(输入文件)
 		argsList.add(jarLibPath);
 
