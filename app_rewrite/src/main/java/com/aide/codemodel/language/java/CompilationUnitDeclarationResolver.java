@@ -477,25 +477,9 @@ public class CompilationUnitDeclarationResolver extends Compiler {
 	Map<String, CompilationUnitDeclaration> unitDeclCacheMap2 = new HashMap<>();
 	Set<String> resolvedFilePathSet = new HashSet<>();
 
-	public CompilationUnitDeclaration resolve2(String filePath) throws Exception {
-		boolean resolved = resolvedFilePathSet.contains(filePath);
-		CompilationUnitDeclaration unit = unitDeclCacheMap2.get(filePath);
-		if (unit == null) {
-			unit = updateFile(filePath);
-			return unit;
-		}
-
-		resolvedFilePathSet.add(filePath);
-
-		// resolve
-		if (!resolved) resolve2(unit);
-
-		return unit;
-	}
-
-	public CompilationUnitDeclaration updateFile(String filePath) throws Exception {
+	/*public CompilationUnitDeclaration updateFile(String filePath) throws Exception {
 		return updateFile(filePath, this.projecttEnvironment.getCompilationUnit(filePath), true);
-	}
+	}*/
 
 	/*public CompilationUnitDeclaration updateFile(String filePath, boolean resolve) throws Exception {
 	 InputStreamReader reader = new InputStreamReader(new FileInputStream(filePath));

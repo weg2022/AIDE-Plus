@@ -168,7 +168,7 @@ public class Aapt2TaskFromZeroAicy {
 				String resourcesOptimizeApPath = resourcesOptimizeApFile.getAbsolutePath();
 				List<String> args = new ArrayList<>();
 
-				args.add(aaptServiceArgs.getAapt2Path());
+				args.add(AaptServiceArgs.getAapt2Path());
 				args.add("optimize");
 				args.add("-o");
 				args.add(resourcesOptimizeApPath);
@@ -212,7 +212,7 @@ public class Aapt2TaskFromZeroAicy {
 		File mainRJavaFile = new File(mainProjectGenDir, mainRJavaChildPath);
 
 		//R.java的内容按行储存
-		List<String> rJavaLinelist = aaptServiceArgs.listLine(mainRJavaFile);
+		List<String> rJavaLinelist = AaptServiceArgs.listLine(mainRJavaFile);
 		// R.java包名所在行
 		String packageNameLine = null;
 		//R.java包名所在行数
@@ -261,8 +261,8 @@ public class Aapt2TaskFromZeroAicy {
 			// R怎么只包含自己的资源呢🤔🤔🤔🤔
 			// 根据R.txt生成
 			if (subRtxtPath == null) {
-
 				//没有R.txt使用主项目的
+				
 				//子项目R.java路径
 				File subRJavaFile = new File(subProjectGen.getKey(), subRJavaAbsolutePath);
 				rJavaLinelist.set(packageNameLineCount, packageNameLine.replace(mainPackageName, subPackageName));
@@ -556,20 +556,22 @@ public class Aapt2TaskFromZeroAicy {
 			return "";
 		}
 		// 不对仅有主主项目才有 intermediates/R.txt
-//		if (rTxtPath.endsWith("/build/gen")) {
-//			//子项目
-//			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/build/gen".length());
-//			File rTxtFile = new File(rTxtPath, "R.txt");
-//			if (rTxtFile.exists()) {
-//				return rTxtFile.getAbsolutePath();
-//			}
-//			// intermediates中的R.txt
-//			// 这样可以保证生成的R.java比较贴合
-//			File intermediatesRtxt = new File(rTxtFile.getParentFile(), "build/bin/intermediates/R.txt");
-//			if ( intermediatesRtxt.exists() ) {
-//				return intermediatesRtxt.getAbsolutePath();
-//			}
-//		}
+		if (rTxtPath.endsWith("/build/gen")) {
+			//子项目
+			rTxtPath = rTxtPath.substring(0, rTxtPath.length() - "/build/gen".length());
+			// 项目中的R.txt
+			File rTxtFile = new File(rTxtPath, "R.txt");
+			if (rTxtFile.exists()) {
+				return rTxtFile.getAbsolutePath();
+			}
+			
+			// intermediates/R.txt
+			File intermediatesRtxt = new File(rTxtFile.getParentFile(), "build/bin/intermediates/R.txt");
+			if ( intermediatesRtxt.exists() ) {
+				return intermediatesRtxt.getAbsolutePath();
+			}
+		}
+		
 		return null;
 	}
 
