@@ -53,9 +53,21 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 
 		super.v5(syntaxTree);
 
+		List<ErrorInfo> allErrorInfos = getAllErrors(syntaxTree);
+		
 		// 清除AIDE语义分析器错误
-		List<ErrorInfo> errorInfos = clearErrors(syntaxTree);
+		clearErrors(syntaxTree);
 
+		// 优先添加 确保Java入口类添加
+		// 从allErrorInfos清除并添加 Java项目入口类
+		/*for (int i = allErrorInfos.size() -1 ; i >= 0; i--) {
+			ErrorInfo errorInfo = allErrorInfos.get(i);
+			if(errorInfo.kind == 300){
+				errorTable.lg(errorInfo.file, errorInfo.language, errorInfo.startLine, errorInfo.startColumn, errorInfo.endLine, errorInfo.endColumn, errorInfo.msg, errorInfo.kind);
+				allErrorInfos.remove(errorInfo);
+			}
+		}*/
+		
 
 		// 当前文件error count
 		FileEntry fileEntry = syntaxTree.getFile();
@@ -76,9 +88,9 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 			}
 			// ecj生成的错误信息
 			addErrorInfo(errorInfosCache, fileEntry, language);
-
+			
 			// AIDE的错误信息
-			addErrorInfo(errorInfos, fileEntry, language);
+			addErrorInfo(allErrorInfos, fileEntry, language);
 
 			return;
 		}
@@ -89,14 +101,14 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 		// 解析
 		ProjectEnvironment projectEnvironment = getProjectEnvironment(fileEntry);
 		projectEnvironment.resolve3(syntaxTree);
-
-		// AIDE的错误信息 和 Java项目的入口类信息
-		addErrorInfo(errorInfos, fileEntry, language);
-
 		// 缓存 ecj生成的错误信息
 		List<ErrorInfo> errorInfosCache = getErrorInfos(syntaxTree);
 		errorInfosMap.put(pathString, errorInfosCache);
+		
+		// AIDE的错误信息 和 Java项目的入口类信息
+		addErrorInfo(allErrorInfos, fileEntry, language);
 
+		
 	}
 
 	private void addErrorInfo(List<ErrorInfo> errorInfosCache, FileEntry fileEntry, Language language) {
@@ -172,14 +184,23 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 	}
 
 
-
-	private List<ErrorInfo> clearErrors(SyntaxTree syntaxTree) {
-
+	
+	private void clearErrors(SyntaxTree syntaxTree) {
+		FileEntry fileEntry = syntaxTree.getFile();
+		Language language = syntaxTree.getLanguage();
+		this.errorTable.clearNonParserErrors(syntaxTree.getFile(), syntaxTree.getLanguage());
+		ErrorTable.d fileEntryErrorPack = getFileEntryErrorPack(fileEntry, language);
+		if( fileEntryErrorPack != null ) fileEntryErrorPack.parseErrors.clear();
+	}
+	
+	private List<ErrorInfo> getAllErrors(SyntaxTree syntaxTree) {
+		
 		FileEntry fileEntry = syntaxTree.getFile();
 		Language language = syntaxTree.getLanguage();
 
 		int count = errorTable.SI(fileEntry, syntaxTree.getLanguage());
 		List<ErrorInfo> errorInfos = new ArrayList<>();
+		
 		for (int index = 0; index < count;index++) {
 			ErrorTable.Error error = getError(fileEntry, language, index);
 
@@ -210,11 +231,7 @@ public class EclipseJavaCodeAnalyzer2 extends JavaCodeAnalyzer {
 			}
 		}
 
-		this.errorTable.clearNonParserErrors(syntaxTree.getFile(), syntaxTree.getLanguage());
-		ErrorTable.d fileEntryErrorPack = getFileEntryErrorPack(fileEntry, language);
-		if( fileEntryErrorPack != null ) fileEntryErrorPack.parseErrors.clear();
 		return errorInfos;
-
 	}
 
 	public static class ErrorInfo {
