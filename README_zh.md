@@ -12,6 +12,7 @@
 - [x] 一些Java8语法的实现
 - [x] 一些Java9语法的实现
 - [x] 一些Java11语法的实现
+- [x] 一些Java23语法(通过ecj实现)
 - [x] 支持解析Java高版本的class
 - [x] 实现了`runtimeOnly`，`compileOnly`，`libgdxNatives`
 - [x] 新的Gradle解析器
@@ -42,7 +43,7 @@
   * [487145957](https://qm.qq.com/q/W0WJq5qne2)
   * [1002980489](https://qm.qq.com/q/W0WJq5qne2) 
 - [QQ频道](https://pd.qq.com/s/auq589py2)
-- [网站](https://plus.androidide.com)
+- [网站](https://plus.androidide.cn)
 
 # 特别感谢
 

@@ -1,6 +1,6 @@
 # AIDE-Plus
 
-- [README of Chinese](README_zh.md)
+- [中文](README_zh.md)
 
 
 ## Features
@@ -11,6 +11,7 @@
 - [x] Some Java 8 syntax support
 - [x] Some Java 9 syntax support
 - [x] Some Java 11 syntax support
+- [x] Some Java 23 syntax support(form ecj)
 - [x] Support for parsing higher version Java classes
 - [x] `runtimeOnly`, `compileOnly`, and `libgdxNatives` implemented
 - [x] New Gradle parser
@@ -41,6 +42,6 @@
     * [487145957](https://qm.qq.com/q/W0WJq5qne2)
     * [1002980489](https://qm.qq.com/q/W0WJq5qne2)
 - [QQ Channel](https://pd.qq.com/s/auq589py2)
-- [Website](https://plus.androidide.com)
+- [Website](https://plus.androidide.cn)
 
 # Special Thanks
