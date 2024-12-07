@@ -15,18 +15,19 @@ public class EngineSolutionProject$a implements Parcelable.Creator<EngineSolutio
 
 	@Override
     public EngineSolutionProject createFromParcel(Parcel source) {
-		
+		// 解压缩
 		Parcel parcelableParcel =  ZeroAicyExtensionInterface.decompressionParcel(source);
 		
-		EngineSolutionProject j6 = j6(parcelableParcel);
+		// 反序列化
+		EngineSolutionProject create = createEngineSolutionProjectFromParcel(parcelableParcel);
 		
-		// 判断并释放 parcelableParcel
+		// 释放Parcel
 		ZeroAicyExtensionInterface.recycleParcelableParcel(source, parcelableParcel);
 		
-		return j6;
+		return create;
     }
 
-    public EngineSolutionProject j6(Parcel source) {
+    public EngineSolutionProject createEngineSolutionProjectFromParcel(Parcel source) {
         return new EngineSolutionProject(source);
     }
 
