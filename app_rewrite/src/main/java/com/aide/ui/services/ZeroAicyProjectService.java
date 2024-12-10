@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import io.github.zeroaicy.aide.utils.AndroidManifestParser;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
 
 public class ZeroAicyProjectService extends ProjectService {
 	/**
@@ -71,7 +69,6 @@ public class ZeroAicyProjectService extends ProjectService {
 		show.getWindow().addFlags(128);
 		show.getWindow().clearFlags(2);
 
-		//*
 		final Runnable syncTask = new Runnable(){
 			@Override
 			public void run() {
@@ -80,23 +77,12 @@ public class ZeroAicyProjectService extends ProjectService {
 				}
 				finally {
 					if (onUiTask != null) {
-						executorsService.post(onUiTask);
+						ThreadPoolService.postOfUi(onUiTask);
 					}
 				}
 			}
 		};
-		/*/
-		 Runnable syncTask = () -> {
-		 try {
-		 show.dismiss();
-		 }
-		 finally {
-		 if (onUiTask != null) {
-		 executorsService.post(onUiTask);
-		 }
-		 }
-		 };
-		 //*/
+		
 
 		executorsService.submit(new Runnable(){
 				@Override
@@ -107,7 +93,7 @@ public class ZeroAicyProjectService extends ProjectService {
 						}
 					}
 					finally {
-						executorsService.post(syncTask);
+						ThreadPoolService.postOfUi(syncTask);
 					}
 				}
 			});
@@ -411,7 +397,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.jJ(); // 关闭项目
 
 		// 同步主线程 已关闭项目
-		executorsService.post(new Runnable(){
+		executorsService.postOfUi(new Runnable(){
 				@Override
 				public void run() {
 					// 关闭项目 关闭所有已打开文件
@@ -848,7 +834,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		ServiceContainer.getDebugger().ef();
 
 		//在主线程执行showProgressDialog
-		executorsService.post(new Runnable(){
+		executorsService.postOfUi(new Runnable(){
 				@Override
 				public void run() {
 					MainActivity mainActivity = ServiceContainer.getMainActivity();
