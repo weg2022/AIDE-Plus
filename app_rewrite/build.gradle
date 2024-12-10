@@ -62,5 +62,5 @@ dependencies {
 	// jgit 7.0.0.202409031743-r
 	implementation "org.eclipse.jgit:org.eclipse.jgit:7.0.0.202409031743-r"
 
-	
+	api "org.bouncycastle:bcprov-jdk18on:1.78.1"
 }
