@@ -587,10 +587,16 @@ public class ZeroAicyExtensionInterface {
 		}
 		return appId;
 	}
+	
+	
+	public static SyntaxStyleType getSyntaxStyleType(int type){
+		return SyntaxStyleType.getStyleTypeOfHighlighterType(type);
+	}
 	/**
 	 * Lcom/aide/engine/Engine$c;->Ws
 	 */
 	@Keep
+	@Deprecated
 	public static SyntaxStyleType getSyntaxStyleType( Syntax syntax, int syntaxTag ) {
         try {
 			/*
@@ -659,7 +665,7 @@ public class ZeroAicyExtensionInterface {
 	 * 必须返回 ArrayAdapter
 	 */
 	@Keep
-	public static ArrayAdapter getEditorCompletionAdapter( AIDEEditor aideEditor, List<SourceEntity> sourceEntitys ) {
+	public static ArrayAdapter<SourceEntity> getEditorCompletionAdapter( AIDEEditor aideEditor, List<SourceEntity> sourceEntitys ) {
 		return new EditorCompletionAdapter(aideEditor, sourceEntitys);
 	}
 

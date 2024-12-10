@@ -52,15 +52,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.aide.ui.services.OpenFileService;
 
 public class ZeroAicyMainActivity extends MainActivity {
 
 
-	private static final String TAG_15955545567 = "ZeroAicyMainActivity";
+	private static final String TAG_1595554556 = "ZeroAicyMainActivity";
 
 	private static final String TAG = "ZeroAicyMainActivity";
-	
+
 	static ZeroAicyExtensionInterface zeroAicyExtensionInterface;
+
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -77,19 +79,36 @@ public class ZeroAicyMainActivity extends MainActivity {
 		}
 	}
 
+	private boolean isExit = false;
 	@Override
 	public void BT() {
 		// 若没有需要保存的文件
 		// 则 finish()
+		OpenFileService openFileService = ServiceContainer.getOpenFileService();
+		if (!openFileService.U2()) {
+			isExit = true;
+		}
 		super.BT();
+
 	}
-	
+
 	@Override
 	public void finish() {
 		super.finish();
+		if (isExit) {
+			// 强制退出，防止ServiceContainer::shutdown()与异步导致的错误
+			System.exit(0);
+			android.os.Process.killProcess(android.os.Process.myPid());
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
 		// 强制退出，防止ServiceContainer::shutdown()与异步导致的错误
 		System.exit(0);
 		android.os.Process.killProcess(android.os.Process.myPid());
+
+		super.onDestroy();
 	}
 
 	/**
@@ -394,7 +413,7 @@ public class ZeroAicyMainActivity extends MainActivity {
 			&& !suffixName.equals("class") 
 			&& !suffixName.equals("xml") 
 			&& !suffixName.equals("svg") 
-		
+
 			&& mimeTypeFromExtension != null 
 			&& !mimeTypeFromExtension.startsWith("text")) {
 
@@ -420,10 +439,10 @@ public class ZeroAicyMainActivity extends MainActivity {
 		if (FileSystem.isEmptyFile(str)) {
 			return;
 		}
-		
+
 		AppLog.d(TAG, "openFile this %s", this);
 		AppLog.d(TAG, "ServiceContainer isShutdowned %s", String.valueOf(ServiceContainer.isShutdowned()));
-		
+
 		aq(new FileSpan(str, 1, 1, 1, 1));
 		ServiceContainer.getProjectService().openFile(str);
 

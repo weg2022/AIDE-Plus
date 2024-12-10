@@ -30,6 +30,11 @@
                 android:key="zero_aicy_enable_detailed_log"
                 android:summary="是否打印更详细的日志"
                 android:defaultValue="false" />
+			<SwitchPreference
+				android:title="启用警告⚠️显示"
+				android:summary="显示编译器的警告内容"
+				android:key="zero_aicy_enable_error_browser_show_warning"
+				android:defaultValue="true" />
 			
         </PreferenceCategory>
 

@@ -22,7 +22,8 @@ import java.util.Collections;
 
 public class ZeroAicyPreferencesActivity extends PreferencesActivity implements ActionBar.TabListener {
 
-    private final String TAG9999_5 = "ZeroAicyPreferencesActivity";
+    @SuppressWarnings({"unused"})
+	private final String TAG9999_5 = "ZeroAicyPreferencesActivity";
 
 	private final String TAG_TAB_SETTING = "tag_tab_settings";
 

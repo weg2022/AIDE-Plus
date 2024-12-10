@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
-import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ClassFile;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
@@ -37,12 +36,14 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.batch.CompilationUnit;
 import org.eclipse.jdt.internal.compiler.batch.FileSystem;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import com.aide.codemodel.api.HighlighterType;
+import com.aide.codemodel.api.callback.HighlighterCallback;
+import org.eclipse.jdt.core.compiler.IProblem;
 
 /**
  * 使用 Eclipse JDT Compiler 进行增量语义分析
@@ -254,7 +255,7 @@ public class ProjectEnvironment {
 	final Model model;
 	final FileSpace fileSpace;
 	final ErrorTable errorTable;
-
+	final HighlighterCallback highlighterCallback;
 	FileSystem environment;
 	// 增量语义分析器实现以及增量编译器实现
 	public final CompilationUnitDeclarationResolver2 resolver;
@@ -264,7 +265,8 @@ public class ProjectEnvironment {
 		this.model = model;
 		this.fileSpace = model.fileSpace;
 		this.errorTable = model.errorTable;
-
+		this.highlighterCallback = model.highlighterCallback;
+		
 		this.solutionProject = solutionProject;
 		this.bootclasspath = bootclasspath;
 
@@ -335,10 +337,10 @@ public class ProjectEnvironment {
 
 
 	public CompilationUnitDeclaration resolve3(SyntaxTree syntaxTree) {
-		return resolve3(syntaxTree.getFile(), syntaxTree.getLanguage());
+		return resolve3(syntaxTree.getFile());
 	}
 
-	public CompilationUnitDeclaration resolve3(FileEntry fileEntry, Language language) {
+	public CompilationUnitDeclaration resolve3(FileEntry fileEntry) {
 		this.resolver.lookupEnvironment.reset();
 
 		String pathString = fileEntry.getPathString();
@@ -358,28 +360,6 @@ public class ProjectEnvironment {
 		if (result == null || result.compilationResult == null) {
 			AppLog.println_d("没有解析 %s ", pathString);
 			return result;
-		}
-
-		CategorizedProblem[] problems = result.compilationResult.getAllProblems();
-		if (problems == null) {
-			return result;
-		}
-		for (CategorizedProblem rawProblem : problems) {
-			DefaultProblem problem = (DefaultProblem) rawProblem;
-			int line = problem.getSourceLineNumber();
-			int column = problem.column;
-			int endColumn = (problem.column + problem.getSourceEnd() - problem.getSourceStart()) + 1;
-
-			String msg = problem.getMessage();
-			if (problem.isError()) {
-				// AppLog.d("JavaCodeAnalyzer:: ECJ 错误文件(" + syntaxTree.getFile().getPathString() + ")");
-				this.errorTable.Hw(fileEntry, language, line, column, line, endColumn, msg, 20);
-
-
-			} else if (problem.isWarning()) {
-				// AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
-				this.errorTable.addSemanticWarning(fileEntry, language, line, column, line, endColumn, msg, 49);
-			}
 		}
 		return result;
 	}
@@ -414,6 +394,11 @@ public class ProjectEnvironment {
 			return;
 		}
 		boolean hasError = false;
+		
+		
+		// clear
+		this.highlighterCallback.releaseSyntaxTree();
+		
 		CategorizedProblem[] problems = compilationResult.getAllProblems();
 		int problemsLength = problems == null ? 0 : problems.length;
 
@@ -433,10 +418,22 @@ public class ProjectEnvironment {
 				// AppLog.d("JavaCodeAnalyzer:: ECJ 警告文件(" + syntaxTree.getFile().getPathString() + ")");
 				// 添加警告⚠️
 				errorTable.lg(fileEntry, syntaxTree.getLanguage(), line, column, line, endColumn, msg, 49);
+				
+				// 设置 unuse 变量颜色值
+				switch( problem.getID()){
+					case IProblem.LocalVariableIsNeverUsed:
+					case IProblem.ArgumentIsNeverUsed:
+					case IProblem.UnusedPrivateField:
+					case IProblem.ExceptionParameterIsNeverUsed:
+					case IProblem.UnusedObjectAllocation:
+						this.highlighterCallback.found(HighlighterType.UnUsed, line, column, line, endColumn);
+						break;
+				}
 			}
-
 		}
-
+		// 完成
+		this.highlighterCallback.fileFinished(fileEntry);
+		
 		if (!hasError) {
 			ClassFile[] classFiles = result.compilationResult.getClassFiles();
 			writeClassFilesToDisk(fileEntry, classFiles, this.getReleaseOutputPath());
