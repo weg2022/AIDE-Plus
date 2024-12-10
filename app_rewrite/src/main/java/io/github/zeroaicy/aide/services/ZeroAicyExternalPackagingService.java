@@ -1,6 +1,7 @@
 package io.github.zeroaicy.aide.services;
 
 
+import android.content.Intent;
 import android.text.TextUtils;
 import com.aide.common.AppLog;
 import com.aide.ui.ServiceContainer;
@@ -12,7 +13,6 @@ import io.github.zeroaicy.aide.utils.Utils;
 import io.github.zeroaicy.aide.utils.ZeroAicyBuildGradle;
 import io.github.zeroaicy.util.FileUtil;
 import io.github.zeroaicy.util.IOUtils;
-import io.github.zeroaicy.util.Log;
 import io.github.zeroaicy.util.MD5Util;
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,17 +24,15 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.ExecutorService;
-import android.content.Intent;
-import java.util.Collections;
-import java.util.concurrent.ExecutionException;
-import com.aide.ui.util.FileSystem;
 
 public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 	@Override
@@ -821,7 +819,7 @@ public class ZeroAicyExternalPackagingService extends ExternalPackagingService {
 				for (String classFileRootDir : getAllClassFileRootDirs()) {
 					checkInterrupted();
 					if (classFileRootDir != null 
-						|| !classFileRootDir.equals(mainProjectClassCacheDirPath)) {
+						&& !classFileRootDir.equals(mainProjectClassCacheDirPath)) {
 						fillAllClassFileCache(classFileRootDir, allClassFiles, classFileSet);
 					}
 				}
