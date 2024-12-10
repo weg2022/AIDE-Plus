@@ -15,7 +15,7 @@ package io.github.zeroaicy.util.reflect;
  */
 //package org.joor;
 
-import java.lang.reflect.InvocationTargetException;
+
 
 /**
  * A unchecked wrapper for any of Java's checked reflection exceptions:

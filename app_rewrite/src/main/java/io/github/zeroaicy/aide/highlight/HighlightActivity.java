@@ -1,33 +1,20 @@
 package io.github.zeroaicy.aide.highlight;
-import android.app.Activity;
-import android.os.Bundle;
-import android.os.PersistableBundle;
-import com.aide.ui.ThemedActionbarActivity;
-import android.widget.ListView;
 import android.app.ActionBar;
-import android.widget.AdapterView;
-import android.widget.Adapter;
-import android.view.View;
-import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import android.content.DialogInterface;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.content.SharedPreferences;
-import com.aide.common.MessageBox;
-import android.app.AlertDialog;
-import android.widget.LinearLayout;
-import android.view.ViewGroup;
-import com.aide.common.ColorPickerView;
-import android.widget.TextView;
-import android.widget.EditText;
-import android.view.LayoutInflater;
-import android.content.DialogInterface;
-import net.margaritov.preference.colorpicker.ColorPickerDialog;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.Toast;
+import com.aide.ui.ThemedActionbarActivity;
+import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+@SuppressWarnings({"deprecation"})
 public class HighlightActivity extends ThemedActionbarActivity implements AdapterView.OnItemClickListener ,ActionBar.TabListener {
 
 	@Override
@@ -47,7 +34,7 @@ public class HighlightActivity extends ThemedActionbarActivity implements Adapte
 
 
 
-	private boolean from_main;
+	// private boolean from_main;
 
 	private ListView mListView;
 
@@ -58,7 +45,7 @@ public class HighlightActivity extends ThemedActionbarActivity implements Adapte
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		from_main  =  getIntent().getBooleanExtra("from_main", false);
+		// from_main  =  getIntent().getBooleanExtra("from_main", false);
 		mListView  =  new ListView(this);
 
 		mListView.setDivider(null);

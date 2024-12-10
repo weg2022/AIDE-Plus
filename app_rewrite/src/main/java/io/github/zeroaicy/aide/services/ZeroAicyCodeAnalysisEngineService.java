@@ -1,21 +1,13 @@
 package io.github.zeroaicy.aide.services;
-import abcd.sy;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
+import com.aide.common.AppLog;
 import com.aide.engine.service.CodeAnalysisEngineService;
 import com.aide.ui.MainActivity;
-import com.aide.ui.rewrite.R;
-import io.github.zeroaicy.util.Log;
-import androidx.core.app.NotificationChannelCompat;
-import androidx.core.app.NotificationManagerCompat;
-import com.aide.common.AppLog;
-import androidx.core.app.NotificationChannelCompat.Builder;
 import com.aide.ui.ServiceContainer;
 
 public class ZeroAicyCodeAnalysisEngineService extends CodeAnalysisEngineService {

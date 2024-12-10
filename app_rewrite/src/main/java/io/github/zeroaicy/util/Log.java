@@ -96,7 +96,7 @@ public final class Log {
 	public static void print(char[] s, int fromIndex, int toIndex) {
 		if (isOut && Log.getLog() != null) Log.getLog().print(String.valueOf(s, fromIndex, toIndex));
 	}
-	
+
 	public static void print(String s) {
 		if (isOut && Log.getLog() != null) Log.getLog().print(s);
 	}
@@ -136,11 +136,11 @@ public final class Log {
 	public static void println(char[] x) {
 		if (isOut && Log.getLog() != null) Log.getLog().println(x);
 	}
-	
+
 	public static void println(char[] s, int fromIndex, int toIndex) {
 		if (isOut && Log.getLog() != null) Log.getLog().println(String.valueOf(s, fromIndex, toIndex));
 	}
-	
+
 	public static void println(String x) {
 		//缓存
 		if (!isOut && preMsgList != null && preMsgList.size() < maxPreNumber) {
@@ -205,7 +205,7 @@ public final class Log {
 		if (isOut && Log.getLog() != null) Log.getLog().println(x);
 	}
 	public static void println(StackTraceElement[] stackTrace) {
-		if (isOut && Log.getLog() != null){
+		if (isOut && Log.getLog() != null) {
 			for (int i = 2; i < stackTrace.length - 1; i++) {
 				Log.println(stackTrace[i].toString());
 			}
@@ -213,7 +213,7 @@ public final class Log {
 		} 
 	}
 	public static void println(StackTraceElement[] stackTrace, int off, int endOff) {
-		if (isOut && Log.getLog() != null){
+		if (isOut && Log.getLog() != null) {
 			for (int i = off ; i < stackTrace.length - endOff - 1; i++) {
 				Log.println(stackTrace[i].toString());
 			}
@@ -224,7 +224,7 @@ public final class Log {
 		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 		println(stackTrace, off + 2, endOff);
 	}
-	
+
 	public static void printlnStack() {
 		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 		println(stackTrace, 2, 2);
@@ -560,7 +560,8 @@ public final class Log {
 
 			File logFile = new File(this.logPath);
 			// 更新流
-			this.mLog = new PrintStream(new AsyncOutStream(createOutStream(logFile)));
+			Log.AsyncOutputStreamHold.AsyncOutStream asyncOutStream = new AsyncOutStream(createOutStream(logFile));
+			this.mLog = new PrintStream(asyncOutStream);
 
 			// 如果上一个流流是系统流则平滑的替换
 			// 因为lastLog是异步流，不太放心

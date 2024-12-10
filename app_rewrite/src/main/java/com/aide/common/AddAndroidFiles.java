@@ -5,17 +5,15 @@ package com.aide.common;
 
 import android.text.TextUtils;
 import androidx.annotation.Keep;
-import com.aide.common.MessageBox;
-import com.aide.common.ValueRunnable;
+import com.aide.ui.MainActivity;
 import com.aide.ui.ServiceContainer;
 import com.aide.ui.project.AndroidProjectSupport;
 import com.aide.ui.rewrite.R;
-import com.aide.ui.util.FileSystem;
-import java.io.File;
 import com.aide.ui.services.ProjectService;
-import com.aide.ui.MainActivity;
-import io.github.zeroaicy.util.Log;
+import com.aide.ui.util.FileSystem;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.util.Log;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -164,7 +162,7 @@ public class AddAndroidFiles {
 	/**
 	 * 是否是源码路径
 	 */
-    private static boolean ZoOld(String dirPath) {
+     static boolean ZoOld(String dirPath) {
 		return AndroidProjectSupport.Ev(ServiceContainer.getProjectService().getLibraryMapping(), ServiceContainer.getProjectService().getFlavor(), dirPath) != null;
     }
 

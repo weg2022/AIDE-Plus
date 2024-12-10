@@ -1,25 +1,25 @@
 package io.github.zeroaicy.util.crash;
+
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.ClipboardManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CrashActivity extends Activity{
+public class CrashActivity extends Activity {
 
 	private static String log;
 
-	public static String getErrorLog() {
+	public static String getErrorLog( ) {
 		return log;
 	}
 	@Override
-	protected void onCreate(Bundle savedInstanceState){
+	protected void onCreate( Bundle savedInstanceState ) {
 		setTheme(android.R.style.Theme_Material_Light);
 		setTitle("CrashActivity");
 		super.onCreate(savedInstanceState);
@@ -44,15 +44,15 @@ public class CrashActivity extends Activity{
 	}
 
 	@Override
-	public void onBackPressed(){
+	public void onBackPressed( ) {
 		reset();
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu){
+	public boolean onCreateOptionsMenu( Menu menu ) {
 		menu.add(android.R.string.copy).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
 				@Override
-				public boolean onMenuItemClick(MenuItem p1){
+				public boolean onMenuItemClick( MenuItem p1 ) {
 					copyText(log);
 					return false;
 				}
@@ -61,7 +61,7 @@ public class CrashActivity extends Activity{
 		menu.add("重启").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener(){
 
 				@Override
-				public boolean onMenuItemClick(MenuItem p1){
+				public boolean onMenuItemClick( MenuItem p1 ) {
 					reset();
 					return false;
 				}
@@ -71,7 +71,7 @@ public class CrashActivity extends Activity{
 		return super.onCreateOptionsMenu(menu);
 	}
 
-	private void reset(){
+	private void reset( ) {
 		Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
 		intent.addFlags(intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
@@ -80,16 +80,12 @@ public class CrashActivity extends Activity{
 		System.exit(-1);
     }
 
-	private void copyText(String msg){
-		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ){
-			final android.content.ClipboardManager clipboardManager = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-			final android.content.ClipData clipData = android.content.ClipData
-				.newPlainText(getPackageName(), msg);
-			clipboardManager.setPrimaryClip(clipData);
-		}else{
-			final android.text.ClipboardManager clipboardManager = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-			clipboardManager.setText(msg);
-		}
+	
+	private void copyText( String msg ) {
+		final android.content.ClipboardManager clipboardManager = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+		final android.content.ClipData clipData = android.content.ClipData
+			.newPlainText(getPackageName(), msg);
+		clipboardManager.setPrimaryClip(clipData);
 	}
 
 }

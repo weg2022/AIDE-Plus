@@ -1,9 +1,8 @@
 
 package com.aide.common;
 
-import io.github.zeroaicy.util.Log;
-import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.aide.preference.ZeroAicySetting;
+import io.github.zeroaicy.util.Log;
 
 /**
  * AIDE日志类

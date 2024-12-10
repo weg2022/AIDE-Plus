@@ -15,7 +15,7 @@ public class SystemMemory {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(mi);
-// mi.availMem; 当前系统的可用内存
+		// mi.availMem; 当前系统的可用内存
         return Formatter.formatFileSize(context, mi.availMem);// 将获取的内存大小规格化
     }
 
@@ -32,10 +32,14 @@ public class SystemMemory {
         String str2;
         String[] arrayOfString;
         long initial_memory = 0;
-        try {
-            FileReader localFileReader = new FileReader(str1);
-            BufferedReader localBufferedReader = new BufferedReader(localFileReader, 8192);
-            str2 = localBufferedReader.readLine();// 读取meminfo第一行，系统总内存大小
+
+        FileReader localFileReader = null;
+		BufferedReader localBufferedReader = null;
+		try {
+            localFileReader = new FileReader(str1);
+            localBufferedReader = new BufferedReader(localFileReader, 8192);
+
+			str2 = localBufferedReader.readLine();// 读取meminfo第一行，系统总内存大小
             arrayOfString = str2.split("\\s+");
             for (String num : arrayOfString) {
                 Log.i(str2, num + "\t");
@@ -43,10 +47,14 @@ public class SystemMemory {
             // 获得系统总内存，单位是KB
             int i = Integer.valueOf(arrayOfString[1]).intValue();
             //int值乘以1024转换为long类型
-            initial_memory = new Long((long)i*1024);
-            localBufferedReader.close();
-        } catch (IOException e) {
+            initial_memory = (long)i * 1024;
         }
+		catch (IOException e) {
+        }
+		finally {
+			IOUtils.close(localBufferedReader);
+			IOUtils.close(localFileReader);
+		}
         return Formatter.formatFileSize(context, initial_memory);// Byte转换为KB或者MB，内存大小规格化
     }
 }

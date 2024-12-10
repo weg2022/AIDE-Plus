@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ZeroAicySetting {
-	
+
 	private static SharedPreferences defaultSp;
 	public static SharedPreferences projectServiceSharedPreferences;
 	private static final Map<String, String> gradleCmdLineMap = new LinkedHashMap<String, String>();
@@ -124,10 +124,12 @@ public class ZeroAicySetting {
 		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_enable_follow_system", false);
 	}
 	public static boolean isEnableDetailedLog( ) {
-		if( ZeroAicySetting.defaultSp == null ) return false;
+		if ( ZeroAicySetting.defaultSp == null ) return false;
 		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_enable_detailed_log", false);
-	 }
-	 
+	}
+	public static boolean isEnableShowWarning(){
+		return ZeroAicySetting.defaultSp.getBoolean("zero_aicy_enable_error_browser_show_warning", true); 
+	}
 	/*
 	 * 构建运行
 	 */
@@ -183,14 +185,14 @@ public class ZeroAicySetting {
 	/**
 	 * 实验室
 	 */
-	 
+
 	/**
 	 * 默认为true，以后写死
 	 */
 	public static boolean isEnableAapt2( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_aapt2", true);
 	}
-	
+
 	/**
 	 * 弃用，通过build.gradle android.buildFeatures控制
 	 * viewBinding true
@@ -202,10 +204,10 @@ public class ZeroAicySetting {
 	public static boolean isViewBindingAndroidX( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_view_binding_use_androidx", true);
 	}
-	public static boolean isEnableEclipseCompilerForJava(){
+	public static boolean isEnableEclipseCompilerForJava( ) {
 		return ZeroAicySetting.defaultSp.getBoolean("test_zero_aicy_enable_eclipse_compiler_for_java", false);
 	}
-	
+
 	public static String getCurrentAppHome( ) {
 		return getProjectService().getString("CurrentAppHome", null);
 	}

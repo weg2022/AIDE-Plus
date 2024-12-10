@@ -1,9 +1,8 @@
 package com.aide.codemodel.language.aidl;
 
-import static com.aide.codemodel.Styles.*;
-import java.io.Reader;
-import java.io.IOException;
 import com.aide.codemodel.JFlexLexer;
+
+import static com.aide.codemodel.Styles.*;
 
 
 @SuppressWarnings("fallthrough")
