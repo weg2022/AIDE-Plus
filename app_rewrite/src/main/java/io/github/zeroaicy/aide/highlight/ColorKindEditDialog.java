@@ -130,12 +130,12 @@ public class ColorKindEditDialog extends AlertDialog implements ColorPickerView.
 	public void setHexValueEnabled(boolean enable) {
 		this.mHexValueEnabled = enable;
 		if (enable) {
-			this.mHexVal.setVisibility(0);
+			this.mHexVal.setVisibility(View.VISIBLE);
 			updateHexLengthFilter();
 			updateHexValue(getColor());
 			return;
 		}
-		this.mHexVal.setVisibility(8);
+		this.mHexVal.setVisibility(View.GONE);
 	}
 
 	int typefaceStyleValue;
@@ -187,11 +187,11 @@ public class ColorKindEditDialog extends AlertDialog implements ColorPickerView.
 	public void setTypefaceStyleEditEnabled(boolean enable) {
 		//this.typefaceStyleEditView = enable;
 		if (enable) {
-			this.typefaceStyleEditView.setVisibility(0);
+			this.typefaceStyleEditView.setVisibility(View.VISIBLE);
 
 			return;
 		}
-		this.mHexVal.setVisibility(8);
+		this.mHexVal.setVisibility(View.GONE);
 	}
 
 	public boolean getHexValueEnabled() {
