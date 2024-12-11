@@ -60,32 +60,18 @@ public class h0 {
 	// 高亮 根据SyntaxTree
     private void fillSemanticHighlighter( SyntaxTree syntaxTree ) {
 
-
-		// 暂时不知道 AIDE高亮信息是队尾优先还是队首优先 
-		// ecj的语义高亮
-		//*
-		CodeAnalyzer codeAnalyzer = syntaxTree.getLanguage().getCodeAnalyzer();
-
-//		if ( codeAnalyzer instanceof EclipseJavaCodeAnalyzer2 ) {
-//
-//			// fillSemanticHighlighter(syntaxTree, syntaxTree.getRootNode());
-//
-//			EclipseJavaCodeAnalyzer2 eclipseJavaCodeAnalyzer2 = (EclipseJavaCodeAnalyzer2)codeAnalyzer;
-//			// 回调EclipseJavaCodeAnalyzer2填充语义高亮
-//			eclipseJavaCodeAnalyzer2.fillSemanticHighlighter(syntaxTree.getFile());
-//
-//		} else 
-
 		// 编辑器 渲染时采用倒序查询
-		// 哪个优先添加用哪个，奇怪
+		// 哪个优先添加用哪个，奇怪, 不是倒序查询吗
+		CodeAnalyzer codeAnalyzer = syntaxTree.getLanguage().getCodeAnalyzer();
 		if ( codeAnalyzer instanceof EclipseJavaCodeAnalyzer2 ) {
 			EclipseJavaCodeAnalyzer2 eclipseJavaCodeAnalyzer2 = (EclipseJavaCodeAnalyzer2)codeAnalyzer;
 			// 回调EclipseJavaCodeAnalyzer2填充语义高亮
 			eclipseJavaCodeAnalyzer2.fillSemanticHighlighter(syntaxTree.getFile());
 		}
-		
+		// 根据 SyntaxTree(AIDE语义) 填充高亮
 		fillSemanticHighlighter(syntaxTree, syntaxTree.getRootNode());
 	}
+	
 	private void fillSemanticHighlighter( SyntaxTree syntaxTree, int nodeIndex ) {
 		if ( syntaxTree.isIdentifierNode(nodeIndex) ) {
 
@@ -156,6 +142,159 @@ public class h0 {
 		}
 	}
 
+	
+
+	// fillSemanticHighlighter
+	@Keep
+    public void DW( FileEntry fileEntry, List<SyntaxTree> syntaxTrees ) {
+        int fileEntryId = fileEntry.getId();
+		if ( fileEntry.getCodeModel() == null 
+			|| this.semanticHighlighterVersionMap.get(fileEntryId) == fileEntry.getVersion() ) {
+			return;
+		}
+
+		this.semanticHighlighterVersionMap.put(fileEntryId, fileEntry.getVersion());
+
+		this.highlighterCallback.releaseSyntaxTree();
+
+		for ( SyntaxTree syntaxTree : syntaxTrees ) {
+
+			// semanticHighlighterParser
+			fillSemanticHighlighter(syntaxTree);
+
+			this.syntaxTreeSpace.releaseSyntaxTree(syntaxTree);
+		}
+
+		this.highlighterCallback.fileFinished(fileEntry);
+    }
+
+
+	// fillLexerHighlighter
+    @Keep
+    public void FH( FileEntry fileEntry ) {
+		if ( fileEntry.getCodeModel() == null || this.lexerHighlighterVersionMap.get(fileEntry.getId()) == fileEntry.getVersion() ) {
+			return;
+		}
+		this.lexerHighlighterVersionMap.put(fileEntry.getId(), fileEntry.getVersion());
+		Hw(fileEntry, 0, null);
+	}
+
+
+
+	// lexerHighlighterParser
+    @Keep
+    public void Hw( FileEntry fileEntry, int i, Reader reader ) {
+		
+		
+		// clear
+		this.highlighterCallback.j6();
+
+		HashMap<Language, SyntaxTreeStyles> syntaxTreeStylesMap = new HashMap<>();
+		List<Language> languages = fileEntry.getCodeModel().getLanguages();
+
+		for ( Language language : languages ) {
+			syntaxTreeStylesMap.put(language, this.aideModel.U2.makeSyntaxTreeStyles());
+		}
+
+		if ( reader == null ) {
+			try {
+				reader = fileEntry.getReader();
+			}
+			catch (Exception unused) {
+			}
+		}
+		try {
+			CodeModel codeModel = fileEntry.getCodeModel();
+			// 填充语法树(仅用于高亮)
+			codeModel.fillSyntaxTree(fileEntry, reader, syntaxTreeStylesMap);
+
+			for ( Language language : languages ) {
+				
+				SyntaxTreeStyles syntaxTreeStyles = syntaxTreeStylesMap.get(language);
+				// 添加词法高亮
+				this.highlighterCallback.addSyntaxTreeStyles(language, syntaxTreeStyles);
+				
+				// 释放SyntaxTreeStyles
+				this.aideModel.U2.DW(syntaxTreeStyles);
+			}
+			this.highlighterCallback.unifedLineFound(fileEntry, i);
+		}
+		finally {
+			IOUtils.close(reader);
+		}
+
+    }
+
+
+	// 移除已关闭文件的 词法 语义 高亮版本
+    @Keep
+    public void Zo( ) {
+		FileSpace fileSpace = this.fileSpace;
+
+		SetOfInt closedFileEntrys = new SetOfInt();
+
+		FunctionOfIntLong.Iterator semanticVersionIterator = this.semanticHighlighterVersionMap.default_Iterator;
+		semanticVersionIterator.init();
+		while ( semanticVersionIterator.hasMoreElements() ) {
+
+			int fileEntryId = semanticVersionIterator.nextKey();
+			FileEntry fileEntry = fileSpace.getFileEntry(fileEntryId);
+			if ( !fileEntry.isOpen() ) {
+				closedFileEntrys.put(fileEntryId);
+			}
+		}
+
+		FunctionOfIntLong.Iterator lexerVersionIterator = this.lexerHighlighterVersionMap.default_Iterator;
+		lexerVersionIterator.init();
+		while ( lexerVersionIterator.hasMoreElements() ) {
+			int fileEntryId = lexerVersionIterator.nextKey();
+			FileEntry fileEntry = fileSpace.getFileEntry(fileEntryId);
+			if ( !fileEntry.isOpen() ) {
+				closedFileEntrys.put(fileEntryId);
+			}
+		}
+
+
+		SetOfInt.Iterator closedFileEntrysIterator = closedFileEntrys.default_Iterator;
+		closedFileEntrysIterator.init();
+		while ( closedFileEntrysIterator.hasMoreElements() ) {
+			int fileEntryId = closedFileEntrysIterator.nextKey();
+			this.semanticHighlighterVersionMap.remove(fileEntryId);
+			this.lexerHighlighterVersionMap.remove(fileEntryId);
+		}
+    }
+
+
+	// 调用编译器时的 词法 语义高亮
+	@Keep
+    public void j6( FileEntry fileEntry ) {
+		if ( fileEntry.getCodeModel() == null 
+			|| this.semanticHighlighterVersionMap.get(fileEntry.getId()) == fileEntry.getVersion() ) {
+			return;
+		}
+		this.semanticHighlighterVersionMap.put(fileEntry.getId(), fileEntry.getVersion());
+
+		// 重置，与j6相同
+		this.highlighterCallback.releaseSyntaxTree();
+
+		for ( SyntaxTree syntaxTree : this.syntaxTreeSpace.VH(fileEntry) ) {
+			Language language = syntaxTree.getLanguage();
+			CodeAnalyzer codeAnalyzer = language.getCodeAnalyzer();
+			// 语义分析
+			codeAnalyzer.v5(syntaxTree);
+
+			// 填充语义分析高亮
+			fillSemanticHighlighter(syntaxTree);
+
+			// 释放语法树
+			this.syntaxTreeSpace.releaseSyntaxTree(syntaxTree);
+		}
+
+		this.highlighterCallback.fileFinished(fileEntry);
+    }
+	
+	
+	// 正确代码备份
 	@SuppressWarnings("all")
 	private void fillSemanticHighlighter_bak( SyntaxTree syntaxTree, int nodeIndex ) {
 		if ( syntaxTree.isIdentifierNode(nodeIndex) ) {
@@ -230,150 +369,5 @@ public class h0 {
 			fillSemanticHighlighter(syntaxTree, syntaxTree.getChildNode(nodeIndex, childNodeIndex));
 		}
 	}
-
-	// fillSemanticHighlighter
-	@Keep
-    public void DW( FileEntry fileEntry, List<SyntaxTree> syntaxTrees ) {
-        int fileEntryId = fileEntry.getId();
-		if ( fileEntry.getCodeModel() == null 
-			|| this.semanticHighlighterVersionMap.get(fileEntryId) == fileEntry.getVersion() ) {
-			return;
-		}
-
-		this.semanticHighlighterVersionMap.put(fileEntryId, fileEntry.getVersion());
-
-		this.highlighterCallback.releaseSyntaxTree();
-
-		for ( SyntaxTree syntaxTree : syntaxTrees ) {
-
-			// semanticHighlighterParser
-			fillSemanticHighlighter(syntaxTree);
-
-			this.syntaxTreeSpace.releaseSyntaxTree(syntaxTree);
-		}
-
-		this.highlighterCallback.fileFinished(fileEntry);
-    }
-
-
-	// fillLexerHighlighter
-    @Keep
-    public void FH( FileEntry fileEntry ) {
-		if ( fileEntry.getCodeModel() == null || this.lexerHighlighterVersionMap.get(fileEntry.getId()) == fileEntry.getVersion() ) {
-			return;
-		}
-		this.lexerHighlighterVersionMap.put(fileEntry.getId(), fileEntry.getVersion());
-		Hw(fileEntry, 0, null);
-	}
-
-
-
-	// lexerHighlighterParser
-    @Keep
-    public void Hw( FileEntry fileEntry, int i, Reader reader ) {
-
-		// clear
-		this.highlighterCallback.j6();
-
-		HashMap<Language, SyntaxTreeStyles> syntaxTreeStylesMap = new HashMap<>();
-		List<Language> languages = fileEntry.getCodeModel().getLanguages();
-
-		for ( Language language : languages ) {
-			syntaxTreeStylesMap.put(language, this.aideModel.U2.makeSyntaxTreeStyles());
-		}
-
-		if ( reader == null ) {
-			try {
-				reader = fileEntry.getReader();
-			}
-			catch (Exception unused) {
-			}
-		}
-		try {
-			CodeModel codeModel = fileEntry.getCodeModel();
-			// 填充语法树(仅用于高亮)
-			codeModel.fillSyntaxTree(fileEntry, reader, syntaxTreeStylesMap);
-
-			for ( Language language : languages ) {
-				SyntaxTreeStyles syntaxTreeStyles = syntaxTreeStylesMap.get(language);
-				this.highlighterCallback.addSyntaxTreeStyles(language, syntaxTreeStyles);
-				this.aideModel.U2.DW(syntaxTreeStyles);
-			}
-			this.highlighterCallback.unifedLineFound(fileEntry, i);
-		}
-		finally {
-			IOUtils.close(reader);
-		}
-
-    }
-
-
-	// 移除已关闭文件的 词法 语义 高亮版本
-    @Keep
-    public void Zo( ) {
-		FileSpace fileSpace = this.fileSpace;
-
-		SetOfInt closedFileEntrys = new SetOfInt();
-
-		FunctionOfIntLong.Iterator semanticVersionIterator = this.semanticHighlighterVersionMap.default_Iterator;
-		semanticVersionIterator.init();
-		while ( semanticVersionIterator.hasMoreElements() ) {
-
-			int fileEntryId = semanticVersionIterator.nextKey();
-			FileEntry fileEntry = fileSpace.getFileEntry(fileEntryId);
-			if ( !fileEntry.isOpen() ) {
-				closedFileEntrys.put(fileEntryId);
-			}
-		}
-
-		FunctionOfIntLong.Iterator lexerVersionIterator = this.lexerHighlighterVersionMap.default_Iterator;
-		lexerVersionIterator.init();
-		while ( lexerVersionIterator.hasMoreElements() ) {
-			int fileEntryId = lexerVersionIterator.nextKey();
-			FileEntry fileEntry = fileSpace.getFileEntry(fileEntryId);
-			if ( !fileEntry.isOpen() ) {
-				closedFileEntrys.put(fileEntryId);
-			}
-		}
-
-
-		SetOfInt.Iterator closedFileEntrysIterator = closedFileEntrys.default_Iterator;
-		closedFileEntrysIterator.init();
-		while ( closedFileEntrysIterator.hasMoreElements() ) {
-			int fileEntryId = closedFileEntrysIterator.nextKey();
-			this.semanticHighlighterVersionMap.remove(fileEntryId);
-			this.lexerHighlighterVersionMap.remove(fileEntryId);
-		}
-    }
-
-
-	// 调用编译器时的 词法 语义高亮
-	@Keep
-    public void j6( FileEntry fileEntry ) {
-		if ( fileEntry.getCodeModel() == null 
-			|| this.semanticHighlighterVersionMap.get(fileEntry.getId()) == fileEntry.getVersion() ) {
-			return;
-		}
-		this.semanticHighlighterVersionMap.put(fileEntry.getId(), fileEntry.getVersion());
-
-		// 重置，与j6相同
-		this.highlighterCallback.releaseSyntaxTree();
-
-		for ( SyntaxTree syntaxTree : this.syntaxTreeSpace.VH(fileEntry) ) {
-			Language language = syntaxTree.getLanguage();
-			CodeAnalyzer codeAnalyzer = language.getCodeAnalyzer();
-			// 语义分析
-			codeAnalyzer.v5(syntaxTree);
-
-			// 语义分析高亮
-			fillSemanticHighlighter(syntaxTree);
-
-
-			// 释放语法树
-			this.syntaxTreeSpace.releaseSyntaxTree(syntaxTree);
-		}
-
-		this.highlighterCallback.fileFinished(fileEntry);
-    }
 }
 
