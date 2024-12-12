@@ -1,10 +1,8 @@
 package com.aide.codemodel.language.smali;
 
-import java.io.Reader;
-import java.io.IOException;
-import static java.lang.Math.toIntExact;
-import java.util.Stack;
 import com.aide.codemodel.JFlexLexer;
+import java.util.Stack;
+
 import static com.aide.codemodel.Styles.*;
 
 
@@ -2116,7 +2114,7 @@ public class SmaliLexer implements JFlexLexer {
 	/* user code: */
     private StringBuffer sb = new StringBuffer();
     private String tokenError = null;
-    private int lexerErrors = 0;
+    // private int lexerErrors = 0;
     private Stack<Integer> stateStack = new Stack<>();
     private int apiLevel=30;
 

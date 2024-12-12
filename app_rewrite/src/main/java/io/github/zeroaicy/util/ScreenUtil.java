@@ -1,11 +1,13 @@
 package io.github.zeroaicy.util;
 
-import android.app.*;
-import android.content.*;
-import android.os.*;
-import android.provider.*;
-import android.view.*;
-import java.util.*;
+import android.app.Activity;
+import android.content.Context;
+import android.os.Build;
+import android.provider.Settings;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 
 public class ScreenUtil {
 	//隐藏系统栏(导航、状态栏)

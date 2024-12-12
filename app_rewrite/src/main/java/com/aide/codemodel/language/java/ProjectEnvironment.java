@@ -5,9 +5,10 @@ import android.util.SparseArray;
 import com.aide.codemodel.api.ErrorTable;
 import com.aide.codemodel.api.FileEntry;
 import com.aide.codemodel.api.FileSpace;
+import com.aide.codemodel.api.HighlighterType;
 import com.aide.codemodel.api.Model;
 import com.aide.codemodel.api.SyntaxTree;
-import com.aide.codemodel.api.abstraction.Language;
+import com.aide.codemodel.api.callback.HighlighterCallback;
 import com.aide.codemodel.api.collections.FunctionOfIntInt;
 import com.aide.codemodel.api.collections.OrderedMapOfIntInt;
 import com.aide.codemodel.api.collections.SetOfFileEntry;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.ClassFile;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
@@ -41,9 +43,8 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import com.aide.codemodel.api.HighlighterType;
-import com.aide.codemodel.api.callback.HighlighterCallback;
-import org.eclipse.jdt.core.compiler.IProblem;
+import com.aide.codemodel.api.collections.OrderedMapOfIntInt.Iterator;
+import com.aide.codemodel.api.FileSpace.Assembly;
 
 /**
  * 使用 Eclipse JDT Compiler 进行增量语义分析
@@ -128,18 +129,19 @@ public class ProjectEnvironment {
 
 		// 构建项目依赖信息并返回 androidJarAssemblyId(bootclasspath)
 		int androidJarAssemblyId = initSolutionProjects(projects, assemblyMap, fileSpaceReflect);
+		
 		// 填充项目依赖
 		fillProjectReferences(androidJarAssemblyId, projects, assemblyMap, fileSpaceReflect);
-
+		
 		if (androidJarAssemblyId < 0) {
 			throw new Error("not found [android.jar | rt.jar](bootclasspath)");
 		}
+		
 		// android.jar AssemblyId[路径为android.jar]
 		String bootclasspath = FileSpace.Assembly.Zo(assemblyMap.get(androidJarAssemblyId));
 
 		// 填充项目信息
 		for (int i = 0, size = projects.size(); i < size; i++) {
-
 			SolutionProject project = projects.valueAt(i);
 			if (!project.isModule) {
 				continue;
@@ -163,9 +165,47 @@ public class ProjectEnvironment {
 		 //*/
 
 	}
+	
+	private static int findMainProjectAssemblyId(OrderedMapOfIntInt assemblyReferences, Map<Integer, FileSpace.Assembly> assemblyMap) {
+		SetOfInt referencedSet = new SetOfInt();
+		
+		OrderedMapOfIntInt.Iterator default_Iterator = assemblyReferences.default_Iterator;
+		// 重置
+		default_Iterator.init();
+		// 遍历
+		while (default_Iterator.hasMoreElements()) {
+			int key = default_Iterator.nextKey();
+			int referenced = default_Iterator.nextValue();
 
+			// 自己会依赖自己，排除
+			if (key != referenced 
+				&& !referencedSet.contains(referenced)) {
+				referencedSet.put(referenced);
+			}
+		}
+
+
+		for (Integer assemblyId : assemblyMap.keySet()) {
+			// int assemblyId = assemblyIdInteger.intValue();
+			if (referencedSet.contains(assemblyId)) {
+				continue;
+			}
+			return assemblyId;
+		}
+		return -1;
+	}
+	
+	
 	private static int initSolutionProjects(SparseArray<SolutionProject> projects, Map<Integer, FileSpace.Assembly> assemblyMap, ReflectPie fileSpaceReflect) {
 		int androidJarAssemblyId = -1;
+		
+		OrderedMapOfIntInt assemblyReferences = fileSpaceReflect.get("assemblyReferences");
+		// AppLog.println_d("assemblyReferences -> %s",  assemblyReferences);
+
+		// OrderedMapOfIntInt允许多个相同的key
+		// 应该是 int int 对
+		int mainProjectAssemblyId = findMainProjectAssemblyId(assemblyReferences, assemblyMap);
+		
 		for (Map.Entry<Integer, FileSpace.Assembly> entry : assemblyMap.entrySet()) {
 			Integer assemblyId = entry.getKey();
 			FileSpace.Assembly assembly = entry.getValue();
@@ -176,15 +216,19 @@ public class ProjectEnvironment {
 				androidJarAssemblyId = assemblyId;
 				continue;
 			}
-
+			boolean isMainModule = assemblyId == mainProjectAssemblyId;
 			// 创建项目
-			SolutionProject project = new SolutionProject(assemblyId, assembly);
+			SolutionProject project = new SolutionProject(assemblyId, assembly, isMainModule);
+			
 			projects.put(assemblyId, project);
 		}
+		
+		
 		return androidJarAssemblyId;
 	}
 
 	private static void fillProjectReferences(int androidJarAssemblyId, SparseArray<SolutionProject> projects, Map<Integer, FileSpace.Assembly> assemblyMap, ReflectPie fileSpaceReflect) {
+		
 		OrderedMapOfIntInt assemblyReferences = getAssemblyReferences(fileSpaceReflect);
 		OrderedMapOfIntInt.Iterator referencesIterator = assemblyReferences.default_Iterator;
 		referencesIterator.init();
@@ -365,9 +409,16 @@ public class ProjectEnvironment {
 	}
 
 	public void compile(SyntaxTree syntaxTree) throws Throwable {
-		this.resolver.lookupEnvironment.reset();
+		
 
 		FileEntry fileEntry = syntaxTree.getFile();
+		if( this.fileSpace.isRJavaFileEntry(fileEntry) && !this.solutionProject.isMainModule){
+			// 非MainModule的R不可编译
+			return;
+		}
+		
+		this.resolver.lookupEnvironment.reset();
+
 		String pathString = fileEntry.getPathString();
 
 		char[] data;
@@ -664,7 +715,8 @@ public class ProjectEnvironment {
 		final FileSpace.Assembly assembly;
 
 		final String projectPath;
-
+		
+		final boolean isMainModule;
 		final boolean isModule;
 		final boolean isJar;
 		final boolean isAar;
@@ -673,7 +725,7 @@ public class ProjectEnvironment {
 
 		final Set<SolutionProject> projectReferences = new HashSet<>();
 
-		public SolutionProject(int assemblyId, FileSpace.Assembly assembly) {
+		public SolutionProject(int assemblyId, FileSpace.Assembly assembly, boolean isMainModule) {
 			this.assemblyId = assemblyId;
 			this.assembly = assembly;
 			this.assemblyName = FileSpace.Assembly.VH(assembly);
@@ -686,7 +738,7 @@ public class ProjectEnvironment {
 			this.isJar = isFile && projectPath.endsWith(".jar");
 			// 非文件，aar，jar才是 gradle module
 			this.isModule = !isAar && !isJar && !isFile;
-
+			this.isMainModule = isMainModule;
 			this.releaseOutputPath = FileSpace.Assembly.getReleaseOutputPath(assembly);
 
 		}

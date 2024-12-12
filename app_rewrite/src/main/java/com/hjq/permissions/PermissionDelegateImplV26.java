@@ -92,8 +92,10 @@ class PermissionDelegateImplV26 extends PermissionDelegateImplV23 {
          mode = appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
                  context.getApplicationInfo().uid, context.getPackageName());
       } else {
-         mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                 context.getApplicationInfo().uid, context.getPackageName());
+		  @SuppressWarnings("deprecation")
+		  int checkOpNoThrow = appOps.checkOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+													 context.getApplicationInfo().uid, context.getPackageName());
+		  mode = checkOpNoThrow;
       }
       return mode == AppOpsManager.MODE_ALLOWED;
    }

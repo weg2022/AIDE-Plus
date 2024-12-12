@@ -45,10 +45,10 @@ public enum ColorKind {
 	// "代码注释颜色"
 	// -> #FF9B9B9B
     COMMENT("Comment", "代码注释颜色", R.color.editor_syntax_comment_light, R.color.editor_syntax_comment, Typeface.ITALIC),
-	
+
 	// 扩展
 	UNUSED("Unused", "未使用变量颜色", R.color.editor_syntax_unused_light, R.color.editor_syntax_unused, Typeface.NORMAL),
-	
+
 	// 
 	ARGUMENT_IDENTIFIER("Argument Identifier", "参数标识符颜色", R.color.material_grey_100, R.color.material_grey_100, Typeface.ITALIC),
 
@@ -134,8 +134,8 @@ public enum ColorKind {
 		}else{
 			this.hasCustomDarkColor = false;
 		}
-		
-		
+
+
 	}
 
 	/**
@@ -159,7 +159,7 @@ public enum ColorKind {
 		if( this.hasCustomDarkColor){
 			return this.customDarkColor;
 		}
-		int defaultDarkColor = context.getResources().getColor(this.darkColorId);
+		int defaultDarkColor = context.getColor(this.darkColorId);
 		// colorId的值是定死的，与主题无关，所以直接储存起来
 		setCustomColor(defaultDarkColor, isLight);
 

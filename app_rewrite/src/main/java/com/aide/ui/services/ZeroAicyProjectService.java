@@ -225,7 +225,7 @@ public class ZeroAicyProjectService extends ProjectService {
 			List<String> librarys = this.getLibraryMapping().get(this.currentAppHome);
 			// 异步bug修复
 			if (librarys == null 
-				&& librarys.contains(filePath)) {
+				|| librarys.contains(filePath)) {
 				return true;
 			}
 
@@ -397,7 +397,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		this.jJ(); // 关闭项目
 
 		// 同步主线程 已关闭项目
-		executorsService.postOfUi(new Runnable(){
+		ThreadPoolService.postOfUi(new Runnable(){
 				@Override
 				public void run() {
 					// 关闭项目 关闭所有已打开文件
@@ -834,7 +834,7 @@ public class ZeroAicyProjectService extends ProjectService {
 		ServiceContainer.getDebugger().ef();
 
 		//在主线程执行showProgressDialog
-		executorsService.postOfUi(new Runnable(){
+		ThreadPoolService.postOfUi(new Runnable(){
 				@Override
 				public void run() {
 					MainActivity mainActivity = ServiceContainer.getMainActivity();

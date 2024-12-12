@@ -114,11 +114,11 @@ public class ErrorBrowser extends LinearLayout implements a {
 	public void VH() {
 		ErrorService errorService = ServiceContainer.getErrorService();
 		int errorCount = errorService.gW();
-
 		if (errorCount >= 100 
 			|| this.errorCount == errorCount) {
 			return;
 		}
+		
 		Zo();
     }
 

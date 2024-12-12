@@ -109,10 +109,7 @@ public class SimpleHighlighterASTVisitor extends ASTVisitor {
 			for ( int i = 0; i < statementsLength; i++ )
 				statements[i].traverse(this, methodDeclaration.scope);
 		}
-		this.endVisit(methodDeclaration, scope);
-		
-		Runnable run = () -> System.out.println("Lambda");
-		
+		this.endVisit(methodDeclaration, scope);	
 		// 
 		return false;
 		// return super.visit(methodDeclaration, scope);

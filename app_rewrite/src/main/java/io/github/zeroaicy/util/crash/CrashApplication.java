@@ -2,11 +2,9 @@ package io.github.zeroaicy.util.crash;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
+import io.github.zeroaicy.util.ContextUtil;
 import io.github.zeroaicy.util.DebugUtil;
 import io.github.zeroaicy.util.FileUtil;
-import io.github.zeroaicy.util.crash.CrashApphandler;
-import io.github.zeroaicy.util.ContextUtil;
 
 public class CrashApplication extends Application{
 

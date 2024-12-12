@@ -73,7 +73,7 @@ public class CrashActivity extends Activity {
 
 	private void reset( ) {
 		Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-		intent.addFlags(intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 		finish();
 		android.os.Process.killProcess(android.os.Process.myPid());

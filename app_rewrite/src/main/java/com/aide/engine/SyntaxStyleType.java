@@ -63,7 +63,7 @@ public enum SyntaxStyleType {
 
 	;
 
-    private final String enumName;
+    // private final String enumName;
 
 	private final int darkResId;
     private final int lightResId;
@@ -71,7 +71,7 @@ public enum SyntaxStyleType {
 
 	private final ColorKind colorKind;
     private SyntaxStyleType(String enumName, int lightResId, int darkResId, int typefaceStyle) {
-		this.enumName = enumName;
+		// this.enumName = enumName;
 
 		this.lightResId = lightResId;
 		this.darkResId = darkResId;

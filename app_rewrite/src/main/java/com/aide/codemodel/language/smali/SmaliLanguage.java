@@ -18,11 +18,11 @@ public class SmaliLanguage implements Language {
     // DW() -> shrink
 	//public class SmaliLanguage implements na{
 
-	private final SmaliCodeModel myCodeModel;
+	// private final SmaliCodeModel myCodeModel;
 	HighlighterSyntax highlighterSyntax = new HighlighterSyntax();
 	
 	public SmaliLanguage(SmaliCodeModel codeModel) {
-		myCodeModel = codeModel;
+		// myCodeModel = codeModel;
 	}
 
 	@Override
